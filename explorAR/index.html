@@ -1,13 +1,28 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>explorar</title>
+    <title>ExplorAR</title>
+    <link rel="stylesheet" href="/src/css/styles.css" />
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+    <header>
+      <h1>ExplorAR 🚀</h1>
+    </header>
+
+    <!-- Menú principal -->
+    <section id="menu">
+      <button id="btn-start">Iniciar juego</button>
+    </section>
+
+    <!-- HUD (oculto hasta que el juego empieza) -->
+    <section id="hud" style="display:none;">
+      <p id="score">Puntaje: 0</p>
+      <p id="stars">Estrellas: 0</p>
+    </section>
+
+    <!-- Script principal -->
+    <script type="module" src="/src/js/main.js"></script>
   </body>
 </html>
