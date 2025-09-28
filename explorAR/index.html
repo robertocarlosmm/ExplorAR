@@ -1,28 +1,27 @@
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ExplorAR</title>
-    <link rel="stylesheet" href="/src/css/styles.css" />
-  </head>
-  <body>
-    <header>
-      <h1>ExplorAR 🚀</h1>
-    </header>
+<body>
+  <main class="container">
 
-    <!-- Menú principal -->
-    <section id="menu">
-      <button id="btn-start">Iniciar juego</button>
+    <!-- Pantalla de inicio -->
+    <section id="experience-list" class="screen">
+      <h1>ExplorAR</h1>
+      <p id="subtitle" class="subtitle">Elige una experiencia para jugar</p>
+      <div class="grid" id="grid-container"></div>
+      <p class="footer-note">Juega en un espacio despejado</p>
     </section>
 
-    <!-- HUD (oculto hasta que el juego empieza) -->
-    <section id="hud" style="display:none;">
-      <p id="score">Puntaje: 0</p>
-      <p id="stars">Estrellas: 0</p>
+    <!-- Pantalla de detalle -->
+    <section id="experience-detail" class="screen" style="display:none;">
+      <h1>ExplorAR</h1>
+      <p id="subtitle-detail" class="subtitle"></p>
+      <div class="detail-card">
+        <img id="detail-image" alt="Imagen experiencia" />
+        <div class="detail-name" id="detail-title"></div>
+      </div>
+      <button class="btn primary" id="btn-continue">Continuar</button>
+      <button class="btn secondary" id="btn-back">Regresar</button>
     </section>
 
-    <!-- Script principal -->
-    <script type="module" src="/src/js/main.js"></script>
-  </body>
-</html>
+  </main>
+
+  <script type="module" src="/src/js/main.js"></script>
+</body>
