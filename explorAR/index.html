@@ -1,27 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="screen-orientation" content="portrait" />
+  <meta name="x5-orientation" content="portrait" />
+  <title>ExplorAR</title>
+  <!-- Fuente Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/css/style.css" />
+</head>
+
 <body>
   <main class="container">
 
     <!-- Pantalla de inicio -->
-    <section id="experience-list" class="screen">
-      <h1>ExplorAR</h1>
-      <p id="subtitle" class="subtitle">Elige una experiencia para jugar</p>
+    <section id="experience-list" class="screen active">
+      <header>
+        <h1>ExplorAR</h1>
+      </header>
+
+      <p id="instruction" class="subtitle">Elige una experiencia para jugar</p>
       <div class="grid" id="grid-container"></div>
-      <p class="footer-note">Juega en un espacio despejado</p>
+
+      <footer>
+        <p class="footer-note">Juega en un espacio despejado</p>
+      </footer>
     </section>
 
     <!-- Pantalla de detalle -->
-    <section id="experience-detail" class="screen" style="display:none;">
-      <h1>ExplorAR</h1>
-      <p id="subtitle-detail" class="subtitle"></p>
+    <section id="experience-detail" class="screen">
+      <header>
+        <h1>ExplorAR</h1>
+        
+      </header>
+
       <div class="detail-card">
         <img id="detail-image" alt="Imagen experiencia" />
         <div class="detail-name" id="detail-title"></div>
       </div>
-      <button class="btn primary" id="btn-continue">Continuar</button>
-      <button class="btn secondary" id="btn-back">Regresar</button>
+
+      <div class="buttons">
+        <button class="btn primary" id="btn-continue">Continuar</button>
+        <button class="btn secondary" id="btn-back">Regresar</button>
+      </div>
     </section>
 
   </main>
 
   <script type="module" src="/src/js/main.js"></script>
 </body>
+
+</html>
