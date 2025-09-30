@@ -1,9 +1,11 @@
-const experiences = [
-    { id: "taquile", name: "Taquile", image: "/assets/images/taquile_foto.jpg" },
-    { id: "vicos", name: "Vicos", image: "/assets/images/vicos_foto.jpg" },
-    { id: "tambopata", name: "Tambopata", image: "/assets/images/tambopata_foto.jpg" },
-    { id: "lucumo", name: "Lomas de Lúcumo", image: "/assets/images/lomasLucumo_foto.jpg" },
-]
+// src/js/main.js
+import { experiencesConfig } from "../config/experienceConfig.js"
+import { Experience } from "./models/Experience.js"
+
+// Generar catálogo dinámico
+const experiences = experiencesConfig.map(cfg =>
+    new Experience(cfg.id, cfg.name, cfg.image, cfg.modelPath || null, cfg.description, cfg.minigames || [])
+)
 
 // Elementos principales
 const gridContainer = document.getElementById("grid-container");
@@ -18,14 +20,13 @@ const detailTitle = document.getElementById("detail-title");
 const btnContinue = document.getElementById("btn-continue");
 const btnBack = document.getElementById("btn-back");
 
-// Renderizar cards en la grilla
 function renderExperiences() {
     gridContainer.innerHTML = "";
     experiences.forEach((exp, index) => {
         const card = document.createElement("div");
         card.classList.add("card");
         card.innerHTML = `
-            <img src="${exp.image}" alt="${exp.name}">
+            <img src="${exp.imagePath}" alt="${exp.name}">
             <div class="card-title">${exp.name}</div>
             `;
         card.addEventListener("click", () => showDetail(index));
@@ -33,10 +34,9 @@ function renderExperiences() {
     });
 }
 
-// Mostrar detalle
 function showDetail(index) {
     const exp = experiences[index];
-    detailImage.src = exp.image;
+    detailImage.src = exp.imagePath;
     detailTitle.textContent = exp.name;
 
     experienceListScreen.classList.remove("active");
