@@ -1,52 +1,81 @@
 export class UIController {
-    constructor(game) {
-        this.game = game
+    constructor({ experiences, onSelectExperience, onContinue, onBack }) {
+        this.experiences = experiences
+        this.onSelectExperience = onSelectExperience
+        this.onContinue = onContinue
+        this.onBack = onBack
+
         this.gridContainer = document.getElementById("grid-container")
-        this.listEl = document.getElementById("experience-list")
-        this.detailEl = document.getElementById("experience-detail")
-        this.detailTitle = document.getElementById("detail-title")
+        this.experienceListScreen = document.getElementById("experience-list")
+        this.experienceDetailScreen = document.getElementById("experience-detail")
+
         this.detailImage = document.getElementById("detail-image")
-        this.subtitle = document.getElementById("subtitle")
-        this.subtitleDetail = document.getElementById("subtitle-detail")
+        this.detailTitle = document.getElementById("detail-title")
+
         this.btnContinue = document.getElementById("btn-continue")
         this.btnBack = document.getElementById("btn-back")
+
+        this.currentIndex = null
     }
 
     init() {
-        this.renderExperienceList()
+        this.renderExperiences()
 
-        this.btnBack.addEventListener("click", () => this.showList())
+        this.btnBack.addEventListener("click", () => {
+            this.showList()
+            this.onBack()
+        })
+
         this.btnContinue.addEventListener("click", () => {
-            alert("Aquí luego empieza la experiencia seleccionada")
+            if (this.currentIndex !== null) {
+                console.log("Continuar con experiencia:", this.currentIndex)
+                const exp = this.experiences[this.currentIndex]
+                this.onContinue(exp)
+            }
         })
     }
 
-    renderExperienceList() {
+    renderExperiences() {
         this.gridContainer.innerHTML = ""
-        this.subtitle.textContent = "Elige una experiencia para jugar"
-        this.game.experiences.forEach(exp => {
+        this.experiences.forEach((exp, index) => {
             const card = document.createElement("div")
-            card.className = "card"
+            card.classList.add("card")
             card.innerHTML = `
                 <img src="${exp.imagePath}" alt="${exp.name}">
-                <p>${exp.name}</p>
+                <div class="card-title">${exp.name}</div>
             `
-            card.addEventListener("click", () => this.showDetail(exp))
+            card.addEventListener("click", () => this.showDetail(index))
             this.gridContainer.appendChild(card)
         })
     }
 
-    showDetail(exp) {
-        this.game.selectExperience(exp.id)
-        this.listEl.style.display = "none"
-        this.detailEl.style.display = "block"
-        this.detailTitle.textContent = exp.name
+    showDetail(index) {
+        const exp = this.experiences[index]
         this.detailImage.src = exp.imagePath
-        this.subtitleDetail.textContent = "Estás por comenzar la experiencia"
+        this.detailTitle.textContent = exp.name
+        this.currentIndex = index
+
+        this.experienceListScreen.classList.remove("active")
+        this.experienceDetailScreen.classList.add("active")
+
+        this.onSelectExperience(exp)
     }
 
     showList() {
-        this.listEl.style.display = "block"
-        this.detailEl.style.display = "none"
+        this.experienceDetailScreen.classList.remove("active")
+        this.experienceListScreen.classList.add("active")
+        this.currentIndex = null
     }
+
+    showGame() {
+        this.experienceDetailScreen.classList.remove("active")
+        document.getElementById("experience-detail").classList.remove("active")
+        document.getElementById("game-container").classList.add("active")
+    }
+
+    hideGame() {
+        document.getElementById("game-container").classList.remove("active")
+        this.showList()
+    }
+
 }
