@@ -1,53 +1,54 @@
 export class UIController {
-    constructor({ experiences, onSelectExperience, onContinue, onBack }) {
+    constructor({ experiences }) {
         this.experiences = experiences
-        this.onSelectExperience = onSelectExperience
-        this.onContinue = onContinue
-        this.onBack = onBack
 
         this.gridContainer = document.getElementById("grid-container")
         this.experienceListScreen = document.getElementById("experience-list")
         this.experienceDetailScreen = document.getElementById("experience-detail")
-
         this.detailImage = document.getElementById("detail-image")
         this.detailTitle = document.getElementById("detail-title")
 
         this.btnContinue = document.getElementById("btn-continue")
         this.btnBack = document.getElementById("btn-back")
 
-        this.currentIndex = null
-
-        // HUD elements
         this.hud = document.getElementById("hud")
         this.btnInfoGame1 = document.getElementById("btn-igame1")
         this.btnExit = document.getElementById("btn-exit")
+
+        this.currentIndex = null
+
+        // Handlers inyectables
+        this.handlers = {
+            onSelectExperience: null,
+            onContinue: null,
+            onBack: null,
+        }
+    }
+
+    setHandlers(h) {
+        this.handlers = { ...this.handlers, ...h }
     }
 
     init() {
         this.renderExperiences()
 
-        // Navegación detalle ←→ lista
         this.btnBack?.addEventListener("click", () => {
-            this.showList()
-            this.onBack?.()
+            this.handlers.onBack?.()
         })
 
         this.btnContinue?.addEventListener("click", () => {
             if (this.currentIndex !== null) {
                 const exp = this.experiences[this.currentIndex]
-                this.onContinue?.(exp)
+                this.handlers.onContinue?.(exp)
             }
         })
 
-        // HUD: botón info (ejemplo)
         this.btnInfoGame1?.addEventListener("click", () => {
-            console.log("Botón info (i) presionado")
-            // Aquí puedes abrir un modal o mostrar tooltip
+            console.log("Botón info (i)")
         })
 
-        // HUD: botón salir AR (atajo alternativo)
         this.btnExit?.addEventListener("click", () => {
-            this.onBack?.()
+            this.handlers.onBack?.()
         })
     }
 
@@ -74,7 +75,7 @@ export class UIController {
         this.experienceListScreen.classList.remove("active")
         this.experienceDetailScreen.classList.add("active")
 
-        this.onSelectExperience?.(exp)
+        this.handlers.onSelectExperience?.(exp)
     }
 
     showList() {
@@ -84,11 +85,8 @@ export class UIController {
     }
 
     showGame() {
-        // Oculta el detalle y muestra el contenedor del juego
         this.experienceDetailScreen.classList.remove("active")
         document.getElementById("game-container").classList.add("active")
-
-        // Muestra el HUD (DOM overlay necesita que exista y no esté oculto)
         this.hud?.classList.remove("hidden")
     }
 
@@ -98,20 +96,13 @@ export class UIController {
         this.showList()
     }
 
-    /**
-     * Controla qué elementos del HUD se muestran según estado/parámetros.
-     * @param {{showInfo?: boolean, showNav?: boolean}} cfg
-     */
     updateHUD(cfg = {}) {
-        const show = (el, v) => el && el.classList.toggle("hidden", !v)
-
-        // ejemplo: botón "i" (info)
-        show(this.btnInfoGame1, !!cfg.showInfo)
-
-        // ejemplo: barra de navegación (prev/next)
-        const prev = document.getElementById("btn-prev")
-        const next = document.getElementById("btn-next")
-        show(prev, !!cfg.showNav)
-        show(next, !!cfg.showNav)
+        const show = (id, v) => {
+            const el = document.getElementById(id)
+            if (el) el.classList.toggle("hidden", !v)
+        }
+        show("btn-igame1", !!cfg.showInfo)
+        show("btn-prev", !!cfg.showNav)
+        show("btn-next", !!cfg.showNav)
     }
 }
