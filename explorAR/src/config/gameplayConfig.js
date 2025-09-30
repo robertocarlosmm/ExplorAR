@@ -4,7 +4,7 @@ export const gameplayConfig = {
         puzzle3D: {
             base: 200,               // puntaje fijo al completar
             perPiece: 50,            // bonus por pieza correctamente encajada
-            timeBonusPerSec: 5,      // bonus por cada segundo sobrante
+            timeBonusPerSec: 2,      // bonus por cada segundo sobrante
             wrongRotationPenalty: 10,// penalización por rotación incorrecta
             dropPenalty: 0           // penalización al soltar fuera de lugar
         },

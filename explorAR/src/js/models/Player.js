@@ -1,7 +1,7 @@
 export class Player {
     constructor() {
-        this.experienceResults = {} // { taquile: ExperienceResult, vicos: ExperienceResult, ... }
-        this.unlockedIcons = []     // Global unlocked icons
+        this.experienceResults = {} // { taquile: ExperienceResult, vicos: ... }
+        this.unlockedIcons = []
     }
 
     setExperienceResult(experienceId, result) {

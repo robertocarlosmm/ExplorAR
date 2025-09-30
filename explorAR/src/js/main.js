@@ -1,6 +1,6 @@
-// src/js/main.js
 import { experiencesConfig } from "../config/experienceConfig.js"
 import { Experience } from "./models/Experience.js"
+import { startXR } from "../features/xrExperience.js";
 
 // Generar catálogo dinámico
 const experiences = experiencesConfig.map(cfg =>
@@ -48,6 +48,12 @@ btnBack.addEventListener("click", () => {
     experienceDetailScreen.classList.remove("active");
     experienceListScreen.classList.add("active");
 });
+
+// botón continuar
+/*btnContinue.addEventListener("click", () => {
+    if (!game.currentExperience) return;
+    startXR(game.currentExperience); // pasa la experiencia activa
+});*/
 
 // Inicializar
 renderExperiences();
