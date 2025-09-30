@@ -184,6 +184,8 @@ header h1 {
   background: #f1e3d6;
 }
 
+.hidden { display: none; }
+
 /*HUD*/ 
 
 .hud {
