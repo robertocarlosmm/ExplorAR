@@ -184,9 +184,11 @@ header h1 {
   background: #f1e3d6;
 }
 
-.hidden { display: none; }
+.hidden {
+  display: none;
+}
 
-/*HUD*/ 
+/*HUD*/
 
 .hud {
   position: absolute;
@@ -208,4 +210,31 @@ header h1 {
 .hud-btn:hover {
   transform: scale(1.1);
   background: rgba(80, 80, 80, 0.9);
+}
+
+#loading-screen {
+  display: none;
+  /* oculto por defecto */
+  position: fixed;
+  inset: 0;
+  /* ocupa toda la pantalla */
+  background: black;
+  /* negro sólido */
+  color: white;
+  font-size: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  /* por encima de todo */
+}
+
+/*Mensaje de indicación*/
+#center-msg {
+  opacity: 1;
+  transition: opacity 1s ease;
+}
+
+#center-msg.hidden {
+  opacity: 0;
 }

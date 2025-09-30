@@ -58,6 +58,15 @@ export class XRSession {
             { optionalFeatures: ["dom-overlay"], domOverlay: { root } }
         )
 
+        // Mostrar mensaje de inicio solo 3 segundos
+        const msg = document.getElementById("center-msg")
+        if (msg) {
+            msg.style.display = "block"        // asegurar que aparezca
+            setTimeout(() => {
+                msg.classList.add("hidden")
+            }, 3000)
+        }
+
         // Ahora sí arranca el loop
         this.engine.runRenderLoop(() => this.scene.render())
 
