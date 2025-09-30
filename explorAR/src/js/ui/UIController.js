@@ -16,6 +16,8 @@ export class UIController {
         this.btnBack = document.getElementById("btn-back")
 
         this.currentIndex = null
+
+        this.btnInfoGame1 = document.getElementById("btn-igame1")
     }
 
     init() {
@@ -33,6 +35,13 @@ export class UIController {
                 this.onContinue(exp)
             }
         })
+
+        if (this.btnInfoGame1) {
+            this.btnInfoGame1.addEventListener("click", () => {
+                console.log("Botón Minijuego 1 presionado")
+                if (this.onGame1) this.onGame1()
+            })
+        }
     }
 
     renderExperiences() {
@@ -71,10 +80,16 @@ export class UIController {
         this.experienceDetailScreen.classList.remove("active")
         document.getElementById("experience-detail").classList.remove("active")
         document.getElementById("game-container").classList.add("active")
+
+        // mostrar HUD
+        document.getElementById("hud").style.display = "block"
     }
 
     hideGame() {
         document.getElementById("game-container").classList.remove("active")
+        // ocultar HUD
+        document.getElementById("hud").style.display = "none"
+
         this.showList()
     }
 

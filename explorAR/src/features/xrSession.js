@@ -41,17 +41,15 @@ export class XRSession {
     }
 
     async enterXR() {
-        // Crear experiencia XR con soporte a overlay
         this.xrHelper = await WebXRDefaultExperience.CreateAsync(this.scene, {
             optionalFeatures: ["dom-overlay"],
-            domOverlay: { root: document.getElementById("game-container") }
-        })
+            domOverlay: { root: document.getElementById("hud") }
+        });
 
-        // Entrar directamente a AR (sin necesidad del botón de gafas)
-        await this.xrHelper.baseExperience.enterXRAsync("immersive-ar", "local-floor")
-
-        //console.log("WebXR directo iniciado")
+        await this.xrHelper.baseExperience.enterXRAsync("immersive-ar", "local-floor");
+        console.log("WebXR directo iniciado");
     }
+
 
     dispose() {
         if (this.engine) {
