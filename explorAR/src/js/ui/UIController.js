@@ -86,13 +86,13 @@ export class UIController {
 
     showGame() {
         this.experienceDetailScreen.classList.remove("active")
-        document.getElementById("game-container").classList.add("active")
-        this.hud?.classList.remove("hidden")
+        this.gameContainer?.classList.add("active")
+        this.hud?.classList.remove("hidden")    // <- aquí lo muestras
     }
 
     hideGame() {
-        document.getElementById("game-container").classList.remove("active")
-        this.hud?.classList.add("hidden")
+        this.gameContainer?.classList.remove("active")
+        this.hud?.classList.add("hidden")       // <- aquí lo ocultas
         this.showList()
     }
 
