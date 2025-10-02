@@ -47,16 +47,28 @@
       </div>
     </section>
 
-    <!-- Pantalla de juego (RA) -->
+    <!-- GAME -->
     <section id="game-container" class="screen">
-      <!-- El canvas de Babylon se inyectará aquí -->
+      <canvas id="renderCanvas"></canvas>
 
-      <!-- HUD AR -->
+      <!-- HUD AR (DOM Overlay) -->
       <div id="hud" class="hud hidden">
-        <button id="btn-igame1" class="hud-btn">ℹ️</button>
+        <div class="topbar">
+          <span id="shape-label">Esfera</span>
+          <button id="btn-exit">Salir</button>
+          <button id="btn-igame1" class="hud-btn">i</button> <!-- botón info -->
+        </div>
+        <div class="center-msg" id="center-msg">Mueve el teléfono para detectar una superficie</div>
+        <div class="bottombar">
+          <button id="btn-prev">←</button>
+          <button id="btn-next">→</button>
+        </div>
       </div>
     </section>
 
+    <div id="loading-screen" style="display: none;">
+      Cargando...
+    </div>
 
   </main>
 

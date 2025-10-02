@@ -1,47 +1,55 @@
 export class UIController {
-    constructor({ experiences, onSelectExperience, onContinue, onBack }) {
+    constructor({ experiences }) {
         this.experiences = experiences
-        this.onSelectExperience = onSelectExperience
-        this.onContinue = onContinue
-        this.onBack = onBack
 
         this.gridContainer = document.getElementById("grid-container")
         this.experienceListScreen = document.getElementById("experience-list")
         this.experienceDetailScreen = document.getElementById("experience-detail")
-
         this.detailImage = document.getElementById("detail-image")
         this.detailTitle = document.getElementById("detail-title")
 
         this.btnContinue = document.getElementById("btn-continue")
         this.btnBack = document.getElementById("btn-back")
 
+        this.hud = document.getElementById("hud")
+        this.btnInfoGame1 = document.getElementById("btn-igame1")
+        this.btnExit = document.getElementById("btn-exit")
+
         this.currentIndex = null
 
-        this.btnInfoGame1 = document.getElementById("btn-igame1")
+        // Handlers inyectables
+        this.handlers = {
+            onSelectExperience: null,
+            onContinue: null,
+            onBack: null,
+        }
+    }
+
+    setHandlers(h) {
+        this.handlers = { ...this.handlers, ...h }
     }
 
     init() {
         this.renderExperiences()
 
-        this.btnBack.addEventListener("click", () => {
-            this.showList()
-            this.onBack()
+        this.btnBack?.addEventListener("click", () => {
+            this.handlers.onBack?.()
         })
 
-        this.btnContinue.addEventListener("click", () => {
+        this.btnContinue?.addEventListener("click", () => {
             if (this.currentIndex !== null) {
-                console.log("Continuar con experiencia:", this.currentIndex)
                 const exp = this.experiences[this.currentIndex]
-                this.onContinue(exp)
+                this.handlers.onContinue?.(exp)
             }
         })
 
-        if (this.btnInfoGame1) {
-            this.btnInfoGame1.addEventListener("click", () => {
-                console.log("Botón Minijuego 1 presionado")
-                if (this.onGame1) this.onGame1()
-            })
-        }
+        this.btnInfoGame1?.addEventListener("click", () => {
+            console.log("Botón info (i)")
+        })
+
+        this.btnExit?.addEventListener("click", () => {
+            this.handlers.onBack?.()
+        })
     }
 
     renderExperiences() {
@@ -67,7 +75,7 @@ export class UIController {
         this.experienceListScreen.classList.remove("active")
         this.experienceDetailScreen.classList.add("active")
 
-        this.onSelectExperience(exp)
+        this.handlers.onSelectExperience?.(exp)
     }
 
     showList() {
@@ -78,19 +86,23 @@ export class UIController {
 
     showGame() {
         this.experienceDetailScreen.classList.remove("active")
-        document.getElementById("experience-detail").classList.remove("active")
         document.getElementById("game-container").classList.add("active")
-
-        // mostrar HUD
-        document.getElementById("hud").style.display = "block"
+        this.hud?.classList.remove("hidden")
     }
 
     hideGame() {
         document.getElementById("game-container").classList.remove("active")
-        // ocultar HUD
-        document.getElementById("hud").style.display = "none"
-
+        this.hud?.classList.add("hidden")
         this.showList()
     }
 
+    updateHUD(cfg = {}) {
+        const show = (id, v) => {
+            const el = document.getElementById(id)
+            if (el) el.classList.toggle("hidden", !v)
+        }
+        show("btn-igame1", !!cfg.showInfo)
+        show("btn-prev", !!cfg.showNav)
+        show("btn-next", !!cfg.showNav)
+    }
 }
