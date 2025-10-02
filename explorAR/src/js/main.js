@@ -17,6 +17,11 @@ const uiController = new UIController({ experiences })
 const router = new Router({ experiences, uiController, gameManager })
 router.init()
 
+// 2.1) Si la XR se cierra (ej. botón Atrás), volver al lobby SIN push extra
+gameManager.setOnExit(() => {
+    router.goToLobby(false)   // no hace pushState; cierra XR y restaura UI
+})
+
 // 3) Inyecta handlers que llaman al router
 uiController.setHandlers({
     onSelectExperience: (exp) => {
@@ -29,20 +34,3 @@ uiController.setHandlers({
 // 4) Inicia UI
 uiController.init()
 
-// 5) Mostrar lobby inicialmente
-window.onpopstate = async (event) => {
-    if (event.state?.expId) {
-        // Usuario está volviendo a una experiencia desde el historial
-        const exp = experiences.find(e => e.id === event.state.expId)
-        if (exp) {
-            uiController.showGame()
-            await gameManager.startExperience(exp)
-            uiController.updateHUD({ showInfo: true, showNav: true })
-        }
-    } else {
-        console.log("Botón físico del celular: Volver al lobby")
-        // Usuario presionó atrás mientras estaba en AR
-        await gameManager.stopExperience()   // aquí se asegura de cerrar XR
-        uiController.hideGame()
-    }
-}

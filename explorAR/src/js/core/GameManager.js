@@ -1,15 +1,23 @@
 import { XRSession } from "../../features/xrSession.js"
 
 export class GameManager {
-    constructor() {
+    constructor({ onExit } = {}) {
         this.xrSession = null
+        this.onExit = (typeof onExit === 'function') ? onExit : () => { }
+    }
+
+    setOnExit(fn) {
+        if (typeof fn === 'function') this.onExit = fn
     }
 
     async startExperience(experience) {
         // Evita dobles inicios
         if (this.xrSession) await this.stopExperience()
 
-        this.xrSession = new XRSession()
+        this.xrSession = new XRSession({
+            onExit: this.onExit
+        });
+
         await this.xrSession.init(experience?.name || "Experiencia")
         await this.xrSession.enterXR()
 

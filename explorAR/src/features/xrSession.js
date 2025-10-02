@@ -1,14 +1,16 @@
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder } from "@babylonjs/core"
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, Color4 } from "@babylonjs/core"
 import "@babylonjs/core/XR"
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience.js"
 
 export class XRSession {
-    constructor() {
+    constructor(opts = {}) {
         this.engine = null
         this.scene = null
         this.canvas = null
         this.xrHelper = null
         this._onResize = null
+        // Guardar callback de salida (no-op si no lo pasan)
+        this.onExitCallback = (typeof opts.onExit === 'function') ? opts.onExit : () => { }
     }
 
     async init(titleText) {
@@ -19,6 +21,7 @@ export class XRSession {
         // 2) Motor + escena
         this.engine = new Engine(this.canvas, true)
         this.scene = new Scene(this.engine)
+        this.scene.clearColor = new Color4(0, 0, 0, 0)
 
         // Cámara “dummy” para que la escena no falle antes del XR
         const camera = new ArcRotateCamera("cam", Math.PI / 2, Math.PI / 4, 4, Vector3.Zero(), this.scene)
@@ -43,7 +46,10 @@ export class XRSession {
         if (loading) loading.style.display = "flex"
 
         // Crear experiencia XR
-        this.xrHelper = await WebXRDefaultExperience.CreateAsync(this.scene)
+        this.xrHelper = await WebXRDefaultExperience.CreateAsync(this.scene, {
+            disableDefaultUI: true,   // desactiva overlay/botón gris
+            disableTeleportation: true
+        });
 
         // HUD como overlay
         const root = document.getElementById("hud")
@@ -54,9 +60,21 @@ export class XRSession {
         await this.xrHelper.baseExperience.enterXRAsync(
             "immersive-ar",
             "local-floor",
-            undefined,
+            this.xrHelper.renderTarget,
             { optionalFeatures: ["dom-overlay"], domOverlay: { root } }
         )
+
+        // ÚNICO handler de salida: limpia y luego vuelve a UI
+        this.xrHelper.baseExperience.sessionManager.onXRSessionEnded.add(() => {
+            try {
+                // Asegurar que nunca quede el loop/canvas “pintando gris”
+                this.engine?.stopRenderLoop()
+                this.dispose()
+            } finally {
+                // Siempre es función válida (no-op si no la pasaron)
+                this.onExitCallback()
+            }
+        })
 
         // Mostrar mensaje de inicio solo 3 segundos
         const msg = document.getElementById("center-msg")
