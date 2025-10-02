@@ -47,22 +47,27 @@
       </div>
     </section>
 
-    <!-- GAME -->
+    <!-- Contenedor del juego / sesión WebXR -->
     <section id="game-container" class="screen">
+      <!-- Lienzo de render Babylon/WebXR -->
       <canvas id="renderCanvas"></canvas>
 
-      <!-- HUD AR (DOM Overlay) -->
-      <div id="hud" class="hud hidden">
+      <!-- HUD AR (DOM Overlay root único) -->
+      <div id="hud" class="hud hidden" aria-live="polite" aria-atomic="true">
+        <!-- Barra superior global (siempre visible) -->
         <div class="topbar">
-          <span id="shape-label">Esfera</span>
-          <button id="btn-exit">Salir</button>
-          <button id="btn-igame1" class="hud-btn">i</button> <!-- botón info -->
+          <span id="hud-score">PUNTOS: 0</span>
+          <span id="hud-timer">00:60</span>
+          <div class="spacer"></div>
+          <button id="btn-info" class="hud-btn" title="Información">i</button>
+          <button id="btn-exit" class="hud-btn danger" title="Salir">Salir</button>
         </div>
-        <div class="center-msg" id="center-msg">Mueve el teléfono para detectar una superficie</div>
-        <div class="bottombar">
-          <button id="btn-prev">←</button>
-          <button id="btn-next">→</button>
-        </div>
+
+        <!-- Mensaje central (aparece/desaparece) -->
+        <div id="center-msg" class="center-msg" role="status"></div>
+
+        <!-- Aquí se monta dinámicamente el panel del minijuego activo -->
+        <div id="hud-panel-slot"></div>
       </div>
     </section>
 
