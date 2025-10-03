@@ -1,44 +1,49 @@
-import { GameManager } from "./core/GameManager.js"
-import { UIController } from "./ui/UIController.js"
-import { Router } from "./router.js"
-import { experiencesConfig } from "../config/experienceConfig.js"
-import { Experience } from "./models/Experience.js"
+import { GameManager } from "./core/GameManager.js";
+import { UIController } from "./ui/UIController.js";
+import { Router } from "./router.js";
+import { HUDController } from "./ui/HUDController.js";
+import { experiencesConfig } from "../config/experienceConfig.js";
+import { Experience } from "./models/Experience.js";
 
-/*NO OLVIDAR NUNCA
-una sola fuente de verdad para navegación: el Router maneja onpopstate; nada de duplicarlo en main.
-ciclo de vida XR controlado: enterXRAsync solo tras click; en sessionEnded paras renderLoop, haces dispose y luego vuelves a la UI.
-callback onExit siempre definido (no-op por defecto) y asignado en el constructor.
-sin UI por defecto del helper: disableDefaultUI: true.
-canvas sin flashes: clearColor(0,0,0,0) y render loop arranca después de entrar a XR.
-*/
-
+// 1) Normaliza las experiencias desde el config
 const experiences = experiencesConfig.map(cfg =>
-    new Experience(cfg.id, cfg.name, cfg.image, cfg.modelPath || null, cfg.description, cfg.minigames || [])
-)
+    new Experience(
+        cfg.id,
+        cfg.name,
+        cfg.image,
+        cfg.modelPath || null,
+        cfg.description,
+        cfg.minigames || []
+    )
+);
 
-const gameManager = new GameManager()
+// 2) Instancias base
+const hud = new HUDController();
+const gameManager = new GameManager({ hud });     // <- sin onExit aquí (evitamos referencia circular)
+const uiController = new UIController({ experiences });
 
-// 1) UI primero (sin handlers)
-const uiController = new UIController({ experiences })
+// 3) Router (única autoridad de navegación)
+const router = new Router({ experiences, uiController, gameManager });
+router.init();
 
-// 2) Router con referencias a UI y Game
-const router = new Router({ experiences, uiController, gameManager })
-router.init()
-
-// 2.1) Si la XR se cierra (ej. botón Atrás), volver al lobby SIN push extra
+// 4) onExit: cuando termina la XRSession (incluye botón Atrás)
+//    vuelve al lobby SIN pushState extra
 gameManager.setOnExit(() => {
-    router.goToLobby(false)   // no hace pushState; cierra XR y restaura UI
-})
+    router.goToLobby(false);
+});
 
-// 3) Inyecta handlers que llaman al router
+// 5) Handlers de UI -> Router (un solo onContinue)
 uiController.setHandlers({
     onSelectExperience: (exp) => {
-        console.log("Seleccionado:", exp.name)
+        console.log("Seleccionado:", exp.name);
     },
-    onContinue: (exp) => router.goToExperience(exp),
+    onContinue: async (exp) => {
+        // El Router hace: pushState, showGame, startExperience
+        // y (con el cambio que te di) también game.launchPuzzle(...)
+        await router.goToExperience(exp);
+    },
     onBack: () => router.goToLobby(),
-})
+});
 
-// 4) Inicia UI
-uiController.init()
-
+// 6) Inicia la UI en modo lista
+uiController.init();

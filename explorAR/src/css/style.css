@@ -238,3 +238,34 @@ header h1 {
 #center-msg.hidden {
   opacity: 0;
 }
+
+#hud {
+  pointer-events: none;
+}
+
+#hud .hud-btn,
+#hud .panel * {
+  pointer-events: auto;
+}
+
+.center-msg.hidden {
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.panel {
+  width: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+.topbar {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+}
+
+.spacer {
+  flex: 1;
+}

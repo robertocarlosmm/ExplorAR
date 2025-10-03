@@ -21,7 +21,11 @@ export class Router {
     async goToExperience(exp, push = true) {
         if (push) window.history.pushState({ expId: exp.id }, "", `/experiencia/${exp.name}`)
         this.ui.showGame()
-        await this.game.startExperience(exp)
+        await this.game.startExperience(exp);
+        await this.game.launchPuzzle({
+            imageUrl: exp?.minigames?.[0]?.image || null,
+            grid: exp?.minigames?.[0]?.grid ?? 3
+        });
         this.ui.updateHUD({ showInfo: true, showNav: true })
     }
 

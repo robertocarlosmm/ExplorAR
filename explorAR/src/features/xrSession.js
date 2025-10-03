@@ -31,7 +31,7 @@ export class XRSession {
         new HemisphericLight("light", new Vector3(0, 1, 0), this.scene)
 
         // Objeto de prueba
-        MeshBuilder.CreateBox("box", { size: 1 }, this.scene)
+        //MeshBuilder.CreateBox("box", { size: 1 }, this.scene)
 
         console.log("Destino:", titleText)
 
