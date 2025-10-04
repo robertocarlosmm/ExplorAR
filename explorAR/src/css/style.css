@@ -233,6 +233,7 @@ header h1 {
 #center-msg {
   opacity: 1;
   transition: opacity 1s ease;
+  pointer-events: none; 
 }
 
 #center-msg.hidden {

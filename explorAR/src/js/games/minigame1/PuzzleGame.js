@@ -31,6 +31,9 @@ export class PuzzleGame {
         this.board = new TransformNode("puzzle-board", this.scene);
         this.board.position.copyFrom(boardPos);
 
+        // Proyectaremos el drag en Y = board.position.y
+        this._boardPlaneP.copyFrom(this.board.position);
+
         // Plano base visible SIEMPRE (guía)
         const size = 0.72;
         const gridMesh = MeshBuilder.CreateGround("board-grid", { width: size, height: size }, this.scene);
@@ -39,6 +42,7 @@ export class PuzzleGame {
         gridMat.diffuseColor = new Color3(0.9, 0.9, 0.9);
         gridMat.alpha = 0.5; // semitransparente
         gridMesh.material = gridMat;
+        gridMesh.isPickable = false; // la guía no debe interceptar picks
 
         // Líneas de guía (slots)
         this._buildSlots(size);
@@ -91,27 +95,82 @@ export class PuzzleGame {
         // mantenemos solo el ground semitransparente para arrancar.
     }
 
+    // aparecer piezas dispersas fuera del tablero
     async _spawnPieces(size) {
         const n = this.grid;
         const cell = size / n;
         const half = size / 2;
 
+        // Tamaño de pieza y margen para no invadir el tablero
+        const pieceSize = cell * 0.95;
+        const pieceHalf = pieceSize * 0.5;
+        const margin = 0.03;                 // 3 cm fuera del borde
+
+        // Centro más cercano permitido (hacia la cámara) sin tocar el tablero
+        const safeZ = -(half + pieceHalf + margin);
+
+        // Área de aparición (siempre fuera del tablero)
+        const rect = {
+            xMin: -half - 0.20,                   // abre 20 cm a cada lado
+            xMax: half + 0.20,
+            zMin: safeZ - 0.40,                  // más cerca de cámara
+            zMax: safeZ - 0.02                   // cerca del borde, pero fuera
+        };
+
+        // Dispersión con separación mínima (blue-noise simple)
+        const minDist = Math.max(cell * 1.10, pieceSize * 1.05);
+        const maxTriesPerPoint = 60;
+        const positions = [];
+
+        const rand = (a, b) => a + Math.random() * (b - a);
+        const dist2 = (p, q) => (p.x - q.x) ** 2 + (p.z - q.z) ** 2;
+
+        for (let k = 0; k < n * n; k++) {
+            let ok = false;
+            for (let t = 0; t < maxTriesPerPoint; t++) {
+                const cand = { x: rand(rect.xMin, rect.xMax), z: rand(rect.zMin, rect.zMax) };
+                if (positions.every(p => dist2(p, cand) >= minDist * minDist)) {
+                    positions.push(cand);
+                    ok = true;
+                    break;
+                }
+            }
+            if (!ok) {
+                // Respaldo: grilla con jitter dentro del rect
+                const row = Math.floor(k / n), col = k % n;
+                const jitter = a => (Math.random() * 2 - 1) * a;
+                const gx = -half + (col + 0.5) * cell + jitter(0.02);
+                const gz = (safeZ - 0.20) - row * (cell * 0.95) + jitter(0.02);
+                positions.push({
+                    x: Math.min(rect.xMax, Math.max(rect.xMin, gx)),
+                    z: Math.min(rect.zMax, Math.max(rect.zMin, gz))
+                });
+            }
+        }
+
+        // Crear piezas y aplicar posiciones
         for (let i = 0; i < n * n; i++) {
-            // pieza como plano elevado
-            const piece = MeshBuilder.CreateGround(`piece-${i}`, { width: cell * 0.95, height: cell * 0.95 }, this.scene);
+            const piece = MeshBuilder.CreateGround(
+                `piece-${i}`,
+                { width: pieceSize, height: pieceSize },
+                this.scene
+            );
             piece.parent = this.board;
-            // dispersión alrededor (frente del tablero)
-            const rx = (Math.random() * size) - half;
-            const rz = half + 0.35 + Math.random() * 0.35; // delante del borde
-            piece.position.set(rx, this._anchorY, rz);
-            // material de color (luego reemplaza por textura recortada)
+
+            const { x, z } = positions[i];
+            piece.position.set(x, this._anchorY, z);      // ~1 cm sobre el tablero
+
             const mat = new StandardMaterial(`p-mat-${i}`, this.scene);
-            mat.diffuseColor = new Color3(0.5 + Math.random() * 0.5, 0.5 + Math.random() * 0.5, 0.5 + Math.random() * 0.5);
+            mat.diffuseColor = new Color3(
+                0.35 + 0.65 * Math.random(),
+                0.35 + 0.65 * Math.random(),
+                0.35 + 0.65 * Math.random()
+            );
             piece.material = mat;
 
-            // rotación aleatoria en cuartos
-            const k = [0, Math.PI / 2, Math.PI, 3 * Math.PI / 2][(Math.random() * 4) | 0];
-            piece.rotation.y = k;
+            // 0°, 90°, 180°, 270°
+            const krot = [0, Math.PI / 2, Math.PI, 3 * Math.PI / 2][(Math.random() * 4) | 0];
+            piece.rotation.y = krot;
 
             this.pieces.push({ index: i, mesh: piece, correctSlotIndex: i, encajada: false, rotCount: 0 });
         }
@@ -135,14 +194,17 @@ export class PuzzleGame {
                 this.activePiece = null;
             } else if (type === 3) { // POINTERMOVE
                 if (!this.activePiece) return;
-                // proyectar sobre el plano del tablero (y = board.y)
                 const ray = this.scene.createPickingRay(this.scene.pointerX, this.scene.pointerY);
-                const t = (this._boardPlaneP.subtract(ray.origin)).dot(this._boardPlaneN) / ray.direction.dot(this._boardPlaneN);
-                if (t > 0) {
-                    const hit = ray.origin.add(ray.direction.scale(t));
-                    const local = hit.subtract(this.board.position);
-                    const target = local.add(this._dragOffset);
-                    this.activePiece.mesh.position.set(target.x, this._anchorY, target.z);
+                const planeY = this.board.position.y;
+                const denom = ray.direction.y;
+                if (Math.abs(denom) > 1e-6) {
+                    const t = (planeY - ray.origin.y) / denom;
+                    if (t > 0) {
+                        const hit = ray.origin.add(ray.direction.scale(t));
+                        const local = hit.subtract(this.board.position);
+                        const target = local.add(this._dragOffset);
+                        this.activePiece.mesh.position.set(target.x, this._anchorY, target.z);
+                    }
                 }
             }
         });

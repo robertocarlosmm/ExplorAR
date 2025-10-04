@@ -37,10 +37,8 @@ uiController.setHandlers({
     onSelectExperience: (exp) => {
         console.log("Seleccionado:", exp.name);
     },
-    onContinue: async (exp) => {
-        // El Router hace: pushState, showGame, startExperience
-        // y (con el cambio que te di) también game.launchPuzzle(...)
-        await router.goToExperience(exp);
+    onContinue: async (exp) => { 
+        await router.goToExperience(exp); 
     },
     onBack: () => router.goToLobby(),
 });
