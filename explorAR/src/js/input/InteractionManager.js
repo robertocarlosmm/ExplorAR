@@ -1,11 +1,11 @@
-// src/js/input/InteractionManager.js
-import { PointerEventTypes, Vector3, Plane } from "@babylonjs/core";
+// InteractionManager.js
+import { PointerEventTypes, Vector3, Plane, Ray, Matrix } from "@babylonjs/core";
 
 /**
  * InteractionManager
  * -------------------
  * Gestor centralizado de interacciones táctiles / XR dentro de la escena.
- * En esta fase solo detecta eventos DOWN / MOVE / UP y muestra logs.
+ * En esta fase permite arrastrar objetos (piezas) sobre el plano visible del tablero.
  */
 export class InteractionManager {
     /**
@@ -20,10 +20,10 @@ export class InteractionManager {
         this.activeTarget = null;
         this.dragOffset = new Vector3(0, 0, 0);
 
-        // Mapa de elementos arrastrables registrados
+        // Mapa de objetos arrastrables y sus configuraciones
         this.draggables = new Map();
 
-        // Referencia para remover observadores
+        // Referencia al observador principal
         this._pointerObserver = null;
     }
 
@@ -59,7 +59,7 @@ export class InteractionManager {
         console.log("[InteractionManager] Recursos liberados");
     }
 
-    /** Registra un objeto como arrastrable (por ahora, solo logs) */
+    /** Registra un objeto como arrastrable */
     registerDraggable(mesh, options = {}) {
         this.draggables.set(mesh, options);
         console.log(`[InteractionManager] Registrado: ${mesh.name}`);
@@ -75,7 +75,7 @@ export class InteractionManager {
         console.log("[InteractionManager] Todos los draggables eliminados");
     }
 
-    /** Eventos internos del puntero */
+    /** Maneja los eventos internos del puntero */
     _handlePointerEvent(pi) {
         switch (pi.type) {
             case PointerEventTypes.POINTERDOWN:
@@ -90,6 +90,7 @@ export class InteractionManager {
         }
     }
 
+    /** Cuando el usuario toca una pieza */
     _onPointerDown(pi) {
         const pick = pi.pickInfo;
         if (!pick?.hit) return;
@@ -106,18 +107,47 @@ export class InteractionManager {
         onDragStart?.(mesh, pick.pickedPoint);
     }
 
+    /** Cuando el usuario arrastra el dedo */
     _onPointerMove(pi) {
         if (!this.activeTarget) return;
         if (pi.event.pointerId !== this.activePointerId) return;
 
-        const { onDrag } = this.draggables.get(this.activeTarget) || {};
-        const pick = pi.pickInfo;
-        if (pick?.hit) {
-            console.log(`[InteractionManager] MOVE id=${pi.event.pointerId}`);
-            onDrag?.(this.activeTarget, pick.pickedPoint);
+        const data = this.draggables.get(this.activeTarget);
+        if (!data || !data.planeNode) return;
+
+        // Crear un rayo desde la cámara hacia el puntero (según coordenadas de pantalla)
+        const pickRay = this.scene.createPickingRay(
+            pi.event.offsetX,
+            pi.event.offsetY,
+            Matrix.Identity(),
+            this.scene.activeCamera,
+            false
+        );
+
+        // ✅ Plano corregido: usamos el mismo plano del tablero (orientación frontal)
+        const planeNormal = data.planeNode.forward;      // Normal del tablero
+        const planePoint = data.planeNode.position;      // Un punto sobre el tablero
+        const plane = Plane.FromPositionAndNormal(planePoint, planeNormal);
+
+        const distance = pickRay.intersectsPlane(plane);
+
+        if (distance) {
+            // Calculamos el punto de intersección entre el rayo y el plano
+            const hitPoint = pickRay.origin.add(pickRay.direction.scale(distance));
+
+            // Actualizamos la posición de la pieza ligeramente sobre el tablero
+            const offset = data.yOffset ?? 0.01;
+            const newPos = hitPoint.add(planeNormal.scale(offset));
+
+            this.activeTarget.position.copyFrom(newPos);
         }
+
+        // Callback opcional de depuración
+        const { onDrag } = data;
+        onDrag?.(this.activeTarget, this.activeTarget.position);
     }
 
+    /** Cuando el usuario suelta la pieza */
     _onPointerUp(pi) {
         if (pi.event.pointerId !== this.activePointerId) return;
         const mesh = this.activeTarget;
@@ -132,7 +162,7 @@ export class InteractionManager {
         this.activeTarget = null;
     }
 
-    /** Permite rotar manualmente la pieza activa (para botones ↺/↻) */
+    /** Rotar manualmente la pieza activa (para botones ↺/↻ en fases posteriores) */
     rotateActive(stepRadians) {
         if (this.activeTarget) {
             this.activeTarget.rotation.y += stepRadians;

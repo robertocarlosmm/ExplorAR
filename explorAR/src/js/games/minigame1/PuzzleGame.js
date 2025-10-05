@@ -21,7 +21,7 @@ export class PuzzleGame {
     }
 
     async start() {
-        // 1️⃣ Crear tablero frente a la cámara
+        // 1Crear tablero frente a la cámara
         const cam = this.scene.activeCamera;
         const forward = cam.getForwardRay(1.0).direction;
         const boardPos = cam.position.add(forward.scale(1.0));
@@ -39,35 +39,35 @@ export class PuzzleGame {
         gridMesh.material = gridMat;
         gridMesh.isPickable = false;
 
+        // Crear slots y piezas
         this._buildSlots(size);
         await this._spawnPieces(size);
 
-        // 🧩 TEMPORAL FASE 2: instanciación y prueba del InteractionManager
-        // En Fase 3 moveremos las piezas y eliminaremos estos logs.
+        // FASE 3: integración real con InteractionManager
         this.interactionManager = new InteractionManager(this.scene);
         this.interactionManager.enable();
 
-        // 🧩 TEMPORAL FASE 2: registrar piezas solo para imprimir eventos
+        // Registrar cada pieza con movimiento real sobre el tablero
         this.pieces.forEach((p) => {
             this.interactionManager.registerDraggable(p.mesh, {
-                planeNode: this.board,
-                onDragStart: () => console.log(`[DragStart] ${p.mesh.name}`),
-                onDrag: (_, pos) => console.log(`[Drag] ${p.mesh.name} → ${pos.toString()}`),
-                onDragEnd: () => console.log(`[DragEnd] ${p.mesh.name}`)
+                planeNode: this.board,          // plano base de movimiento
+                yOffset: this._anchorY,         // altura ligera sobre el tablero
+                onDragStart: () => this.hud.message(`Moviendo ${p.mesh.name}`, 500),
+                onDragEnd: () => this.hud.message(`${p.mesh.name} soltada`, 500)
             });
         });
-        // 🧩 FIN TEMPORAL FASE 2
 
-        // 3️⃣ HUD básico
+        // HUD básico
         this.hud.showPanel(PuzzlePanel, {
-            // 🧩 TEMPORAL FASE 2: rotaciones aún no activas
-            onRotateLeft: () => console.log("Rotate Left (pendiente Fase 3)"),
-            onRotateRight: () => console.log("Rotate Right (pendiente Fase 3)"),
+            // La rotación se implementará en fases posteriores
+            onRotateLeft: () => console.log("Rotate Left (pendiente Fase 4)"),
+            onRotateRight: () => console.log("Rotate Right (pendiente Fase 4)"),
             onHint: () => this._useHint()
         });
         this.hud.setTime(60);
         this.hud.startTimer(60, null, () => this._fail());
     }
+
 
     dispose() {
         this.hud.stopTimer();
@@ -99,33 +99,42 @@ export class PuzzleGame {
     }
 
     async _spawnPieces(size) {
-        const n = this.grid;
+        // Configuración de grilla
+        const n = this.grid;               // Por ejemplo, 3 → 3x3 = 9 piezas
+        const count = n * n;
         const cell = size / n;
-        const half = size / 2;
         const pieceSize = cell * 0.95;
-        const pieceHalf = pieceSize * 0.5;
-        const margin = 0.03;
-        const safeZ = -(half + pieceHalf + margin);
+        const spacing = pieceSize * 1.1;   // Separación lateral entre piezas
 
-        const rect = {
-            xMin: -half - 0.20,
-            xMax: half + 0.20,
-            zMin: safeZ - 0.40,
-            zMax: safeZ - 0.02
-        };
+        // Definir el punto base detrás del tablero
+        // El tablero ya tiene su posición en el mundo
+        const boardPos = this.board.position.clone();
 
-        const rand = (a, b) => a + Math.random() * (b - a);
-        const positions = [];
-        for (let i = 0; i < n * n; i++) {
-            positions.push({ x: rand(rect.xMin, rect.xMax), z: rand(rect.zMin, rect.zMax) });
-        }
+        // Vector "hacia atrás" relativo a la cámara (opuesto al forward del tablero)
+        const backDir = this.board.forward.scale(-1);
 
-        for (let i = 0; i < n * n; i++) {
-            const piece = MeshBuilder.CreateGround(`piece-${i}`, { width: pieceSize, height: pieceSize }, this.scene);
+        // Colocar la fila de piezas a cierta distancia detrás del tablero
+        const separation = 0.35; // metros detrás del tablero
+        const basePos = boardPos.add(backDir.scale(separation));
+
+        // Crear todas las piezas en una fila, centradas horizontalmente
+        for (let i = 0; i < count; i++) {
+            const offsetX = (i - (count - 1) / 2) * spacing;
+
+            // Crear la pieza (plana, tipo cuadrado)
+            const piece = MeshBuilder.CreateGround(
+                `piece-${i}`,
+                { width: pieceSize, height: pieceSize },
+                this.scene
+            );
+
+            // Parentarla al tablero (así hereda su orientación)
             piece.parent = this.board;
-            const { x, z } = positions[i];
-            piece.position.set(x, this._anchorY, z);
 
+            // Posición local respecto al tablero
+            piece.position = new Vector3(offsetX, this._anchorY, -size / 2 - pieceSize * 0.8);
+
+            // Material visible y diferenciado
             const mat = new StandardMaterial(`p-mat-${i}`, this.scene);
             mat.diffuseColor = new Color3(
                 0.35 + 0.65 * Math.random(),
@@ -133,8 +142,15 @@ export class PuzzleGame {
                 0.35 + 0.65 * Math.random()
             );
             piece.material = mat;
+
+            // Guardar posición inicial (local)
+            piece.metadata = { startPos: piece.position.clone() };
+
+            // Agregar a la lista de piezas
             this.pieces.push({ mesh: piece });
         }
+
+        console.log(`[PuzzleGame] ${count} piezas spawneadas detrás del tablero.`);
     }
 
     // ---------------- HUD y lógica menor ----------------
