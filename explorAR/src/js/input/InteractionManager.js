@@ -1,5 +1,5 @@
-// InteractionManager.js
-import { PointerEventTypes, Vector3, Plane, Ray, Matrix } from "@babylonjs/core";
+// src/js/input/InteractionManager.js
+import { PointerEventTypes, Vector3, Plane, Matrix } from "@babylonjs/core";
 
 /**
  * InteractionManager
@@ -36,7 +36,7 @@ export class InteractionManager {
             (pi) => this._handlePointerEvent(pi)
         );
 
-        console.log("[InteractionManager] Activado y escuchando eventos XR");
+        console.log("[InteractionManager] Activado y escuchando eventos XR/táctiles");
     }
 
     /** Desactiva el escuchador */
@@ -107,7 +107,7 @@ export class InteractionManager {
         onDragStart?.(mesh, pick.pickedPoint);
     }
 
-    /** Cuando el usuario arrastra el dedo */
+    /** Cuando el usuario arrastra el dedo o controlador */
     _onPointerMove(pi) {
         if (!this.activeTarget) return;
         if (pi.event.pointerId !== this.activePointerId) return;
@@ -115,30 +115,25 @@ export class InteractionManager {
         const data = this.draggables.get(this.activeTarget);
         if (!data || !data.planeNode) return;
 
-        // Crear un rayo desde la cámara hacia el puntero (según coordenadas de pantalla)
+        // ✅ Usamos coordenadas genéricas de la escena (compatibles con XR y táctil)
         const pickRay = this.scene.createPickingRay(
-            pi.event.offsetX,
-            pi.event.offsetY,
+            this.scene.pointerX,
+            this.scene.pointerY,
             Matrix.Identity(),
             this.scene.activeCamera,
             false
         );
 
-        // ✅ Plano corregido: usamos el mismo plano del tablero (orientación frontal)
-        const planeNormal = data.planeNode.forward;      // Normal del tablero
-        const planePoint = data.planeNode.position;      // Un punto sobre el tablero
+        // Plano base (por ejemplo el tablero)
+        const planeNormal = data.planeNode.forward; // orientación del tablero
+        const planePoint = data.planeNode.position; // un punto en el tablero
         const plane = Plane.FromPositionAndNormal(planePoint, planeNormal);
 
         const distance = pickRay.intersectsPlane(plane);
-
         if (distance) {
-            // Calculamos el punto de intersección entre el rayo y el plano
             const hitPoint = pickRay.origin.add(pickRay.direction.scale(distance));
-
-            // Actualizamos la posición de la pieza ligeramente sobre el tablero
             const offset = data.yOffset ?? 0.01;
             const newPos = hitPoint.add(planeNormal.scale(offset));
-
             this.activeTarget.position.copyFrom(newPos);
         }
 
@@ -162,7 +157,7 @@ export class InteractionManager {
         this.activeTarget = null;
     }
 
-    /** Rotar manualmente la pieza activa (para botones ↺/↻ en fases posteriores) */
+    /** Rotar manualmente la pieza activa (para fases posteriores) */
     rotateActive(stepRadians) {
         if (this.activeTarget) {
             this.activeTarget.rotation.y += stepRadians;
@@ -172,7 +167,6 @@ export class InteractionManager {
         }
     }
 
-    /** Forzar selección programática */
     setActive(mesh) {
         this.activeTarget = mesh;
         console.log(`[InteractionManager] Activo forzado: ${mesh.name}`);

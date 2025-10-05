@@ -1,4 +1,4 @@
-import { XRSession } from "../../features/xrSession.js"
+import { XRSession } from "../features/xrSession.js"
 import { PuzzleGame } from "../games/minigame1/PuzzleGame.js"
 import { preloadAssets } from "./assetLoader.js";
 

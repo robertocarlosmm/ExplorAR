@@ -11,6 +11,8 @@ import {
     PointerEventTypes
 } from "@babylonjs/core";
 import "@babylonjs/core/XR";
+import { setupPlaneDetection } from "../core/xr/planeDetection.js";
+import { setupAnchors } from "../core/xr/anchors.js";
 
 /**
  * Controla la creación, inicio y salida de una sesión WebXR (modo AR)
@@ -23,7 +25,8 @@ export class XRSession {
         this.canvas = null;
         this.xrHelper = null;
         this._onResize = null;
-
+        this.planeDetection = null;
+        this.anchorSystem = null
         // Callback al salir de XR
         this.onExitCallback =
             typeof opts.onExit === "function" ? opts.onExit : () => { };
@@ -69,14 +72,14 @@ export class XRSession {
         if (loading) loading.style.display = "flex";
 
         try {
-            // 1️⃣ Crear experiencia WebXR sin UI gris
+            // Crear experiencia WebXR sin UI gris
             this.xrHelper = await WebXRDefaultExperience.CreateAsync(this.scene, {
                 disableDefaultUI: true,
                 disableTeleportation: true
             });
             console.log("[XRSession] WebXRDefaultExperience creada correctamente");
 
-            // 2️⃣ Habilitar multitouch (todos los controladores generan punteros)
+            // Habilitar multitouch (todos los controladores generan punteros)
             const fm = this.xrHelper.baseExperience.featuresManager;
             fm.enableFeature(WebXRFeatureName.POINTER_SELECTION, "latest", {
                 xrInput: this.xrHelper.input,
@@ -84,12 +87,22 @@ export class XRSession {
             });
             console.log("[XRSession] Pointer Selection multitouch habilitado");
 
-            // 3️⃣ Overlay DOM (HUD)
+            /*deteccion de planos y anclaje*/
+            this.planeDetection = await setupPlaneDetection(fm);
+            this.anchorSystem = await setupAnchors(fm);
+            if (!this.planeDetection) {
+                console.warn("[XRSession] Plane Detection no disponible o no compatible.");
+            }
+            if (!this.anchorSystem) {
+                console.warn("[XRSession] Anchor System no disponible o no compatible.");
+            }
+
+            // Overlay DOM (HUD)
             const root = document.getElementById("hud");
             if (!root) throw new Error("No se encontró #hud para dom-overlay");
             root.classList.remove("hidden");
 
-            // 4️⃣ Entrar a XR con overlay activo
+            // Entrar a XR con overlay activo
             await this.xrHelper.baseExperience.enterXRAsync(
                 "immersive-ar",
                 "local-floor",
@@ -101,7 +114,7 @@ export class XRSession {
             );
             console.log("[XRSession] Entrando a modo AR inmersivo...");
 
-            // 5️⃣ Salida limpia
+            // Salida limpia
             this.xrHelper.baseExperience.sessionManager.onXRSessionEnded.add(() => {
                 try {
                     this.engine?.stopRenderLoop();
@@ -111,17 +124,17 @@ export class XRSession {
                 }
             });
 
-            // 6️⃣ Mensaje inicial (opcional)
+            // Mensaje inicial (opcional)
             const msg = document.getElementById("center-msg");
             if (msg) {
                 msg.style.display = "block";
                 setTimeout(() => msg.classList.add("hidden"), 3000);
             }
 
-            // 7️⃣ Render loop principal
+            // Render loop principal
             this.engine.runRenderLoop(() => this.scene.render());
 
-            // 8️⃣ Log táctil de diagnóstico (multitouch)
+            // Log táctil de diagnóstico (multitouch)
             this.scene.onPointerObservable.add((pi) => {
                 if (pi.type === PointerEventTypes.POINTERDOWN) {
                     console.log(
