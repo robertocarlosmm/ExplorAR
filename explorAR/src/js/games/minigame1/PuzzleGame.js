@@ -15,6 +15,7 @@ export class PuzzleGame {
         this.hintsLeft = 3;
         this.rotationsForPenalty = 0;
         this._pointerObs = null;
+        this._dragPointerId = null;
         this._dragOffset = new Vector3(0, 0, 0);
         this._boardPlaneN = new Vector3(0, 1, 0); // tablero en XZ
         this._boardPlaneP = new Vector3(0, 0, 0);
@@ -49,6 +50,7 @@ export class PuzzleGame {
 
         // 2) Generar piezas dispersas
         await this._spawnPieces(size);
+        this._attachPointerDrag();
 
         // 3) HUD: panel + acciones
         this.hud.showPanel(PuzzlePanel, {
@@ -280,4 +282,72 @@ export class PuzzleGame {
         this.hud.message("Se acabó el tiempo. Inténtalo de nuevo.", 3000);
         // podrías reiniciar: this.dispose(); await this.start();
     }
+
+    _attachPointerDrag() {
+        const getPlaneY = () => this.board.position.y;
+
+        this._pointerObs = this.scene.onPointerObservable.add((pi) => {
+            const evt = pi.event;
+            const pid = evt?.pointerId ?? 0;
+
+            // DOWN: seleccionar pieza
+            if (pi.type === 1 /* PointerEventTypes.POINTERDOWN */) {
+                const pick = this.scene.pick(
+                    this.scene.pointerX,
+                    this.scene.pointerY,
+                    (m) => this.pieces.some(p => p.mesh === m && !p.encajada)
+                );
+                if (pick?.hit && pick.pickedMesh) {
+                    this.activePiece = pick.pickedMesh;
+                    this._dragPointerId = pid;
+
+                    // offset dedo↔pieza en el plano del tablero
+                    const ray = this.scene.createPickingRay(this.scene.pointerX, this.scene.pointerY);
+                    const denom = ray.direction.y;
+                    if (Math.abs(denom) > 1e-6) {
+                        const t = (getPlaneY() - ray.origin.y) / denom;
+                        if (t > 0) {
+                            const hit = ray.origin.add(ray.direction.scale(t));
+                            const local = hit.subtract(this.board.position);
+                            this._dragOffset.copyFrom(
+                                this.activePiece.position.subtract(new Vector3(local.x, this._anchorY, local.z))
+                            );
+                        }
+                    }
+                }
+                return;
+            }
+
+            // MOVE: arrastrar con el mismo dedo
+            if (pi.type === 3 /* PointerEventTypes.POINTERMOVE */) {
+                if (!this.activePiece || pid !== this._dragPointerId) return;
+
+                const ray = this.scene.createPickingRay(this.scene.pointerX, this.scene.pointerY);
+                const denom = ray.direction.y;
+                if (Math.abs(denom) > 1e-6) {
+                    const t = (getPlaneY() - ray.origin.y) / denom;
+                    if (t > 0) {
+                        const hit = ray.origin.add(ray.direction.scale(t));
+                        const local = hit.subtract(this.board.position);
+                        const target = local.add(this._dragOffset);
+                        this.activePiece.position.set(target.x, this._anchorY, target.z);
+                    }
+                }
+                return;
+            }
+
+            // UP/LEAVE: soltar (queda donde la sueltas)
+            if (pi.type === 2 /* POINTERUP */ ||
+                pi.type === 4 /* POINTERPICK */ ||
+                pi.type === 5 /* POINTERTAP */ ||
+                pi.type === 7 /* POINTERDOUBLETAP */) {
+                if (pid === this._dragPointerId) {
+                    this._dragPointerId = null;
+                    this.activePiece = null;
+                }
+                return;
+            }
+        });
+    }
+
 }

@@ -6,7 +6,7 @@
   --shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Reset */
+/* ===== Reset / Base ===== */
 html,
 body {
   height: 100%;
@@ -14,7 +14,6 @@ body {
   padding: 0;
 }
 
-/* Base */
 body {
   font-family: 'Inter', sans-serif;
   background: var(--bg);
@@ -22,8 +21,24 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+
+  /* Fase 0: robustez móvil */
+  overscroll-behavior: none;
+  /* evita pull-to-refresh/scroll chaining */
+  -webkit-user-select: none;
+  user-select: none;
+  /* evita selección accidental */
+  -webkit-touch-callout: none;
+  /* sin menú táctil */
 }
 
+canvas,
+#hud {
+  -webkit-tap-highlight-color: transparent;
+  /* sin destello al tocar */
+}
+
+/* ===== Layout principal ===== */
 .container {
   width: 100%;
   max-width: 480px;
@@ -188,8 +203,9 @@ header h1 {
   display: none;
 }
 
-/*HUD*/
+/* ===== HUD / Overlay AR ===== */
 
+/* Top-right floating (si lo usas) */
 .hud {
   position: absolute;
   top: 10px;
@@ -197,6 +213,27 @@ header h1 {
   z-index: 10;
 }
 
+/* Overlay global con DOM Overlay (id="hud") */
+#hud {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+
+  /* clave AR: dejar pasar eventos al canvas salvo en controles */
+  pointer-events: none;
+}
+
+/* solo controles del HUD reciben eventos */
+#hud .hud-btn,
+#hud .panel *,
+#hud button,
+#hud a,
+#hud input,
+#hud select {
+  pointer-events: auto;
+}
+
+/* Botones del HUD */
 .hud-btn {
   background: rgba(255, 255, 255, 0.8);
   border: none;
@@ -205,6 +242,7 @@ header h1 {
   height: 48px;
   font-size: 20px;
   cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
 }
 
 .hud-btn:hover {
@@ -212,6 +250,64 @@ header h1 {
   background: rgba(80, 80, 80, 0.9);
 }
 
+/* Barras y paneles del HUD */
+.topbar {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.panel {
+  width: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 12px;
+}
+
+#hud .bottombar,
+#hud .center-msg {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+#hud .bottombar {
+  bottom: 0;
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+#hud .center-msg {
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
+  padding: 8px 12px;
+}
+
+/* Mensaje central (animación fade) */
+#center-msg {
+  opacity: 1;
+  transition: opacity 1s ease;
+  pointer-events: none;
+}
+
+#center-msg.hidden {
+  opacity: 0;
+}
+
+.center-msg.hidden {
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+/* Pantalla de carga */
 #loading-screen {
   display: none;
   /* oculto por defecto */
@@ -229,44 +325,17 @@ header h1 {
   /* por encima de todo */
 }
 
-/*Mensaje de indicación*/
-#center-msg {
-  opacity: 1;
-  transition: opacity 1s ease;
-  pointer-events: none; 
+/* Canvas AR: debe recibir todos los gestos */
+#renderCanvas {
+  touch-action: none;
+  /* evita que el navegador consuma el gesto */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-#center-msg.hidden {
-  opacity: 0;
-}
-
-#hud {
-  pointer-events: none;
-}
-
-#hud .hud-btn,
-#hud .panel * {
-  pointer-events: auto;
-}
-
-.center-msg.hidden {
-  opacity: 0;
-  transition: opacity .2s;
-}
-
-.panel {
-  width: 100%;
-  position: absolute;
-  left: 0;
-  bottom: 0;
-}
-
-.topbar {
-  display: flex;
-  gap: .75rem;
-  align-items: center;
-}
-
-.spacer {
-  flex: 1;
+/* ===== Accesibilidad ===== */
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }
