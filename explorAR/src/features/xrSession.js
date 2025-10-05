@@ -1,120 +1,171 @@
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, MeshBuilder, Color4 } from "@babylonjs/core"
-import "@babylonjs/core/XR"
-import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience.js"
+// src/features/xrSession.js
+import {
+    Engine,
+    Scene,
+    ArcRotateCamera,
+    Vector3,
+    HemisphericLight,
+    Color4,
+    WebXRDefaultExperience,
+    WebXRFeatureName,
+    PointerEventTypes
+} from "@babylonjs/core";
+import "@babylonjs/core/XR";
 
+/**
+ * Controla la creación, inicio y salida de una sesión WebXR (modo AR)
+ * con soporte multitáctil y overlay DOM personalizado (#hud).
+ */
 export class XRSession {
     constructor(opts = {}) {
-        this.engine = null
-        this.scene = null
-        this.canvas = null
-        this.xrHelper = null
-        this._onResize = null
-        // Guardar callback de salida (no-op si no lo pasan)
-        this.onExitCallback = (typeof opts.onExit === 'function') ? opts.onExit : () => { }
+        this.engine = null;
+        this.scene = null;
+        this.canvas = null;
+        this.xrHelper = null;
+        this._onResize = null;
+
+        // Callback al salir de XR
+        this.onExitCallback =
+            typeof opts.onExit === "function" ? opts.onExit : () => { };
     }
 
+    /** Inicializa motor y escena (sin entrar aún en XR) */
     async init(titleText) {
-        // 1) Canvas fijo
-        this.canvas = document.getElementById("renderCanvas")
-        if (!this.canvas) throw new Error("No se encontrÃ³ #renderCanvas en el DOM")
+        // 1️⃣ Canvas
+        this.canvas = document.getElementById("renderCanvas");
+        if (!this.canvas) throw new Error("No se encontró #renderCanvas en el DOM");
 
-        // 2) Motor + escena
-        this.engine = new Engine(this.canvas, true)
-        this.scene = new Scene(this.engine)
-        this.scene.clearColor = new Color4(0, 0, 0, 0)
+        // 2️⃣ Motor + escena
+        this.engine = new Engine(this.canvas, true);
+        this.scene = new Scene(this.engine);
+        this.scene.clearColor = new Color4(0, 0, 0, 0);
 
-        // CÃ¡mara â€œdummyâ€ para que la escena no falle antes del XR
-        const camera = new ArcRotateCamera("cam", Math.PI / 2, Math.PI / 4, 4, Vector3.Zero(), this.scene)
-        camera.attachControl(this.canvas, true)
+        // Cámara previa (antes de XR)
+        const camera = new ArcRotateCamera(
+            "cam",
+            Math.PI / 2,
+            Math.PI / 4,
+            4,
+            Vector3.Zero(),
+            this.scene
+        );
+        camera.attachControl(this.canvas, true);
 
-        // Luz bÃ¡sica
-        new HemisphericLight("light", new Vector3(0, 1, 0), this.scene)
+        // Luz básica
+        new HemisphericLight("light", new Vector3(0, 1, 0), this.scene);
 
-        // Objeto de prueba
-        //MeshBuilder.CreateBox("box", { size: 1 }, this.scene)
+        console.log("[XRSession] Escena inicializada:", titleText);
 
-        console.log("Destino:", titleText)
-
-        // 3) Resize listener (pero SIN renderLoop aÃºn)
-        this._onResize = () => { if (this.engine) this.engine.resize() }
-        window.addEventListener("resize", this._onResize)
+        // 3️⃣ Listener de resize
+        this._onResize = () => {
+            if (this.engine) this.engine.resize();
+        };
+        window.addEventListener("resize", this._onResize);
     }
 
+    /** Entra al modo WebXR (immersive-ar) con overlay DOM y multitouch */
     async enterXR() {
-        // Overlay opcional de carga
-        const loading = document.getElementById("loading-screen")
-        if (loading) loading.style.display = "flex"
+        const loading = document.getElementById("loading-screen");
+        if (loading) loading.style.display = "flex";
 
-        // Crear experiencia XR
-        this.xrHelper = await WebXRDefaultExperience.CreateAsync(this.scene, {
-            disableDefaultUI: true,   // desactiva overlay/botÃ³n gris
-            disableTeleportation: true
-        });
+        try {
+            // 1️⃣ Crear experiencia WebXR sin UI gris
+            this.xrHelper = await WebXRDefaultExperience.CreateAsync(this.scene, {
+                disableDefaultUI: true,
+                disableTeleportation: true
+            });
+            console.log("[XRSession] WebXRDefaultExperience creada correctamente");
 
-        // HUD como overlay
-        const root = document.getElementById("hud")
-        if (!root) throw new Error("No se encontrÃ³ #hud para dom-overlay")
-        root.classList.remove("hidden")
+            // 2️⃣ Habilitar multitouch (todos los controladores generan punteros)
+            const fm = this.xrHelper.baseExperience.featuresManager;
+            fm.enableFeature(WebXRFeatureName.POINTER_SELECTION, "latest", {
+                xrInput: this.xrHelper.input,
+                enablePointerSelectionOnAllControllers: true
+            });
+            console.log("[XRSession] Pointer Selection multitouch habilitado");
 
-        // Entrar a AR
-        await this.xrHelper.baseExperience.enterXRAsync(
-            "immersive-ar",
-            "local-floor",
-            this.xrHelper.renderTarget,
-            { optionalFeatures: ["dom-overlay"], domOverlay: { root } }
-        )
+            // 3️⃣ Overlay DOM (HUD)
+            const root = document.getElementById("hud");
+            if (!root) throw new Error("No se encontró #hud para dom-overlay");
+            root.classList.remove("hidden");
 
-        // ÃšNICO handler de salida: limpia y luego vuelve a UI
-        this.xrHelper.baseExperience.sessionManager.onXRSessionEnded.add(() => {
-            try {
-                // Asegurar que nunca quede el loop/canvas â€œpintando grisâ€
-                this.engine?.stopRenderLoop()
-                this.dispose()
-            } finally {
-                // Siempre es funciÃ³n vÃ¡lida (no-op si no la pasaron)
-                this.onExitCallback()
+            // 4️⃣ Entrar a XR con overlay activo
+            await this.xrHelper.baseExperience.enterXRAsync(
+                "immersive-ar",
+                "local-floor",
+                this.xrHelper.renderTarget,
+                {
+                    optionalFeatures: ["dom-overlay"],
+                    domOverlay: { root }
+                }
+            );
+            console.log("[XRSession] Entrando a modo AR inmersivo...");
+
+            // 5️⃣ Salida limpia
+            this.xrHelper.baseExperience.sessionManager.onXRSessionEnded.add(() => {
+                try {
+                    this.engine?.stopRenderLoop();
+                    this.dispose();
+                } finally {
+                    this.onExitCallback();
+                }
+            });
+
+            // 6️⃣ Mensaje inicial (opcional)
+            const msg = document.getElementById("center-msg");
+            if (msg) {
+                msg.style.display = "block";
+                setTimeout(() => msg.classList.add("hidden"), 3000);
             }
-        })
 
-        // Mostrar mensaje de inicio solo 3 segundos
-        const msg = document.getElementById("center-msg")
-        if (msg) {
-            msg.style.display = "block"        // asegurar que aparezca
-            setTimeout(() => {
-                msg.classList.add("hidden")
-            }, 3000)
+            // 7️⃣ Render loop principal
+            this.engine.runRenderLoop(() => this.scene.render());
+
+            // 8️⃣ Log táctil de diagnóstico (multitouch)
+            this.scene.onPointerObservable.add((pi) => {
+                if (pi.type === PointerEventTypes.POINTERDOWN) {
+                    console.log(
+                        `[Touch] id=${pi.event.pointerId}, tipo=${pi.event.pointerType}`
+                    );
+                }
+            });
+
+            console.log("✅ WebXR iniciado con DOM Overlay y multitouch activo");
+        } catch (err) {
+            console.error("❌ Error al iniciar WebXR:", err);
+            alert(
+                "Error al iniciar la experiencia AR.\nRevisa la consola para más detalles."
+            );
+        } finally {
+            // 9️⃣ Quitar loader siempre
+            if (loading) loading.style.display = "none";
         }
-
-        // Ahora sÃ­ arranca el loop
-        this.engine.runRenderLoop(() => this.scene.render())
-
-        // Quitar overlay de carga
-        if (loading) loading.style.display = "none"
-
-        console.log("WebXR iniciado con DOM Overlay")
     }
 
+    /** Sale de la sesión XR y limpia recursos */
     async exit() {
         try {
-            await this.xrHelper?.baseExperience?.exitXRAsync()
+            await this.xrHelper?.baseExperience?.exitXRAsync();
         } catch (e) {
-            console.warn("Error al salir de XR:", e)
+            console.warn("Error al salir de XR:", e);
         }
-        this.dispose()
+        this.dispose();
     }
 
+    /** Libera recursos y elimina listeners */
     dispose() {
         if (this.engine) {
-            this.engine.stopRenderLoop()
-            this.scene?.dispose()
-            this.engine?.dispose()
+            this.engine.stopRenderLoop();
+            this.scene?.dispose();
+            this.engine?.dispose();
         }
         if (this._onResize) {
-            window.removeEventListener("resize", this._onResize)
+            window.removeEventListener("resize", this._onResize);
         }
-        this.engine = null
-        this.scene = null
-        this.xrHelper = null
-        this._onResize = null
+        this.engine = null;
+        this.scene = null;
+        this.xrHelper = null;
+        this._onResize = null;
+        console.log("[XRSession] Recursos liberados");
     }
 }
