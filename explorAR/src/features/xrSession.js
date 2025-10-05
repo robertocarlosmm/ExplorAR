@@ -16,18 +16,18 @@ export class XRSession {
     async init(titleText) {
         // 1) Canvas fijo
         this.canvas = document.getElementById("renderCanvas")
-        if (!this.canvas) throw new Error("No se encontró #renderCanvas en el DOM")
+        if (!this.canvas) throw new Error("No se encontrÃ³ #renderCanvas en el DOM")
 
         // 2) Motor + escena
         this.engine = new Engine(this.canvas, true)
         this.scene = new Scene(this.engine)
         this.scene.clearColor = new Color4(0, 0, 0, 0)
 
-        // Cámara “dummy” para que la escena no falle antes del XR
+        // CÃ¡mara â€œdummyâ€ para que la escena no falle antes del XR
         const camera = new ArcRotateCamera("cam", Math.PI / 2, Math.PI / 4, 4, Vector3.Zero(), this.scene)
         camera.attachControl(this.canvas, true)
 
-        // Luz básica
+        // Luz bÃ¡sica
         new HemisphericLight("light", new Vector3(0, 1, 0), this.scene)
 
         // Objeto de prueba
@@ -35,7 +35,7 @@ export class XRSession {
 
         console.log("Destino:", titleText)
 
-        // 3) Resize listener (pero SIN renderLoop aún)
+        // 3) Resize listener (pero SIN renderLoop aÃºn)
         this._onResize = () => { if (this.engine) this.engine.resize() }
         window.addEventListener("resize", this._onResize)
     }
@@ -47,13 +47,13 @@ export class XRSession {
 
         // Crear experiencia XR
         this.xrHelper = await WebXRDefaultExperience.CreateAsync(this.scene, {
-            disableDefaultUI: true,   // desactiva overlay/botón gris
+            disableDefaultUI: true,   // desactiva overlay/botÃ³n gris
             disableTeleportation: true
         });
 
         // HUD como overlay
         const root = document.getElementById("hud")
-        if (!root) throw new Error("No se encontró #hud para dom-overlay")
+        if (!root) throw new Error("No se encontrÃ³ #hud para dom-overlay")
         root.classList.remove("hidden")
 
         // Entrar a AR
@@ -64,14 +64,14 @@ export class XRSession {
             { optionalFeatures: ["dom-overlay"], domOverlay: { root } }
         )
 
-        // ÚNICO handler de salida: limpia y luego vuelve a UI
+        // ÃšNICO handler de salida: limpia y luego vuelve a UI
         this.xrHelper.baseExperience.sessionManager.onXRSessionEnded.add(() => {
             try {
-                // Asegurar que nunca quede el loop/canvas “pintando gris”
+                // Asegurar que nunca quede el loop/canvas â€œpintando grisâ€
                 this.engine?.stopRenderLoop()
                 this.dispose()
             } finally {
-                // Siempre es función válida (no-op si no la pasaron)
+                // Siempre es funciÃ³n vÃ¡lida (no-op si no la pasaron)
                 this.onExitCallback()
             }
         })
@@ -85,7 +85,7 @@ export class XRSession {
             }, 3000)
         }
 
-        // Ahora sí arranca el loop
+        // Ahora sÃ­ arranca el loop
         this.engine.runRenderLoop(() => this.scene.render())
 
         // Quitar overlay de carga
