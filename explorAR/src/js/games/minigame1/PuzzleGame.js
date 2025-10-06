@@ -191,7 +191,18 @@ export class PuzzleGame {
             this.hud.message("No encajó", 600);
             console.log(`[SNAP ❌] ${pieceObj.mesh.name} (dmin=${dist.toFixed(3)})`);
         }
+
+        // 🔍 Mostrar posiciones de todas las piezas después de soltar una
+        console.log("=== Estado actual de las piezas ===");
+        this.pieces.forEach((p, i) => {
+            const pos = p.mesh.position;
+            console.log(
+                `piece-${i}: (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`
+            );
+        });
+        console.log("===================================");
     }
+
 
     // ---------- HUD ----------
 
