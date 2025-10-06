@@ -13,6 +13,7 @@ import {
 import "@babylonjs/core/XR";
 import { setupPlaneDetection } from "../core/xr/planeDetection.js";
 import { setupAnchors } from "../core/xr/anchors.js";
+import { attachBoardToFirstPlane } from "../core/xr/anchorBoard.js";
 
 /**
  * Controla la creación, inicio y salida de una sesión WebXR (modo AR)
@@ -90,6 +91,15 @@ export class XRSession {
             /*deteccion de planos y anclaje*/
             this.planeDetection = await setupPlaneDetection(fm);
             this.anchorSystem = await setupAnchors(fm);
+
+            // Fase 3.3: emitir evento surfaceDetected con la primera superficie
+            if (this.planeDetection) {
+                attachBoardToFirstPlane(this.planeDetection, this.scene, (pos) => {
+                    const event = new CustomEvent("surfaceDetected", { detail: { position: pos } });
+                    window.dispatchEvent(event);
+                });
+            }
+
             if (!this.planeDetection) {
                 console.warn("[XRSession] Plane Detection no disponible o no compatible.");
             }

@@ -1,179 +1,105 @@
 // src/js/input/InteractionManager.js
-import { PointerEventTypes, Vector3, Plane, Matrix } from "@babylonjs/core";
+import { PointerDragBehavior, Vector3 } from "@babylonjs/core";
 
 /**
  * InteractionManager
  * -------------------
- * Gestor centralizado de interacciones táctiles / XR dentro de la escena.
- * En esta fase permite arrastrar objetos (piezas) sobre el plano visible del tablero.
+ * Gestiona arrastre de piezas dentro de un plano (eje Y fijo),
+ * usando PointerDragBehavior nativo de BabylonJS.
  */
 export class InteractionManager {
     /**
-     * @param {BABYLON.Scene} scene - Escena Babylon activa.
+     * @param {BABYLON.Scene} scene - Escena activa.
      */
     constructor(scene) {
         this.scene = scene;
         this.enabled = false;
 
-        // Estado interno
-        this.activePointerId = null;
-        this.activeTarget = null;
-        this.dragOffset = new Vector3(0, 0, 0);
-
-        // Mapa de objetos arrastrables y sus configuraciones
+        // Mapa de objetos arrastrables
         this.draggables = new Map();
 
-        // Referencia al observador principal
+        // Estado
         this._pointerObserver = null;
     }
 
-    /** Activa el escuchador principal de punteros */
+    /** Activa el observador de punteros (por compatibilidad futura con XR/táctil) */
     enable() {
         if (this.enabled) return;
         this.enabled = true;
-
-        this._pointerObserver = this.scene.onPointerObservable.add(
-            (pi) => this._handlePointerEvent(pi)
-        );
-
-        console.log("[InteractionManager] Activado y escuchando eventos XR/táctiles");
+        console.log("[InteractionManager] Activado (modo PointerDragBehavior).");
     }
 
-    /** Desactiva el escuchador */
+    /** Desactiva el observador */
     disable() {
         if (!this.enabled) return;
         this.enabled = false;
-        if (this._pointerObserver) {
-            this.scene.onPointerObservable.remove(this._pointerObserver);
-            this._pointerObserver = null;
-        }
-        console.log("[InteractionManager] Desactivado");
+        console.log("[InteractionManager] Desactivado.");
     }
 
     /** Limpieza total */
     dispose() {
         this.disable();
+        this.draggables.forEach((data, mesh) => {
+            if (data.behavior) {
+                mesh.removeBehavior(data.behavior);
+            }
+        });
         this.draggables.clear();
-        this.activePointerId = null;
-        this.activeTarget = null;
         console.log("[InteractionManager] Recursos liberados");
     }
 
-    /** Registra un objeto como arrastrable */
+    /**
+     * Registra un mesh como arrastrable dentro de un plano horizontal.
+     * @param {BABYLON.Mesh} mesh 
+     * @param {Object} options 
+     */
     registerDraggable(mesh, options = {}) {
-        this.draggables.set(mesh, options);
-        console.log(`[InteractionManager] Registrado: ${mesh.name}`);
+        const fixedY = options.fixedY ?? 0;
+        const dragPlaneNormal = options.dragPlaneNormal ?? new Vector3(0, 1, 0);
+        const behavior = new PointerDragBehavior({ dragPlaneNormal });
+
+        // Ajuste del comportamiento del drag
+        behavior.useObjectOrientationForDragging = false;
+        behavior.moveAttached = false;
+
+        // Evento: inicio del arrastre
+        behavior.onDragStartObservable.add(() => {
+            console.log(`[InteractionManager] START → ${mesh.name}`);
+            options.onDragStart?.(mesh);
+        });
+
+        // Evento: durante arrastre
+        behavior.onDragObservable.add((event) => {
+            const pos = event.dragPlanePoint.clone();
+            pos.y = fixedY; // mantener fijo el eje Y
+            mesh.position.copyFrom(pos);
+            options.onDrag?.(mesh, pos);
+        });
+
+        // Evento: fin del arrastre
+        behavior.onDragEndObservable.add(() => {
+            console.log(`[InteractionManager] END → ${mesh.name} @ ${mesh.position.toString()}`);
+            options.onDragEnd?.(mesh);
+        });
+
+        mesh.addBehavior(behavior);
+        this.draggables.set(mesh, { behavior, ...options });
+
+        const p = mesh.position.clone();
+        console.log(`[InteractionManager] Registrado: ${mesh.name} @ (${p.x.toFixed(3)}, ${p.y.toFixed(3)}, ${p.z.toFixed(3)})`);
     }
 
+    /** Elimina un draggable */
     unregister(mesh) {
+        const data = this.draggables.get(mesh);
+        if (data?.behavior) mesh.removeBehavior(data.behavior);
         this.draggables.delete(mesh);
         console.log(`[InteractionManager] Eliminado: ${mesh.name}`);
     }
 
     unregisterAll() {
+        this.draggables.forEach((data, mesh) => mesh.removeBehavior(data.behavior));
         this.draggables.clear();
         console.log("[InteractionManager] Todos los draggables eliminados");
-    }
-
-    /** Maneja los eventos internos del puntero */
-    _handlePointerEvent(pi) {
-        switch (pi.type) {
-            case PointerEventTypes.POINTERDOWN:
-                this._onPointerDown(pi);
-                break;
-            case PointerEventTypes.POINTERMOVE:
-                this._onPointerMove(pi);
-                break;
-            case PointerEventTypes.POINTERUP:
-                this._onPointerUp(pi);
-                break;
-        }
-    }
-
-    /** Cuando el usuario toca una pieza */
-    _onPointerDown(pi) {
-        const pick = pi.pickInfo;
-        if (!pick?.hit) return;
-
-        const mesh = pick.pickedMesh;
-        if (!this.draggables.has(mesh)) return; // No es arrastrable
-
-        this.activePointerId = pi.event.pointerId;
-        this.activeTarget = mesh;
-        this.dragOffset = pick.pickedPoint.subtract(mesh.position);
-
-        console.log(`[InteractionManager] DOWN en ${mesh.name}`);
-        const { onDragStart } = this.draggables.get(mesh);
-        onDragStart?.(mesh, pick.pickedPoint);
-    }
-
-    /** Cuando el usuario arrastra el dedo o controlador */
-    _onPointerMove(pi) {
-        if (!this.activeTarget) return;
-        if (pi.event.pointerId !== this.activePointerId) return;
-
-        const data = this.draggables.get(this.activeTarget);
-        if (!data || !data.planeNode) return;
-
-        // ✅ Usamos coordenadas genéricas de la escena (compatibles con XR y táctil)
-        const pickRay = this.scene.createPickingRay(
-            this.scene.pointerX,
-            this.scene.pointerY,
-            Matrix.Identity(),
-            this.scene.activeCamera,
-            false
-        );
-
-        // Plano base (por ejemplo el tablero)
-        const planeNormal = data.planeNode.forward; // orientación del tablero
-        const planePoint = data.planeNode.position; // un punto en el tablero
-        const plane = Plane.FromPositionAndNormal(planePoint, planeNormal);
-
-        const distance = pickRay.intersectsPlane(plane);
-        if (distance) {
-            const hitPoint = pickRay.origin.add(pickRay.direction.scale(distance));
-            const offset = data.yOffset ?? 0.01;
-            const newPos = hitPoint.add(planeNormal.scale(offset));
-            this.activeTarget.position.copyFrom(newPos);
-        }
-
-        // Callback opcional de depuración
-        const { onDrag } = data;
-        onDrag?.(this.activeTarget, this.activeTarget.position);
-    }
-
-    /** Cuando el usuario suelta la pieza */
-    _onPointerUp(pi) {
-        if (pi.event.pointerId !== this.activePointerId) return;
-        const mesh = this.activeTarget;
-        if (!mesh) return;
-
-        console.log(`[InteractionManager] UP en ${mesh.name}`);
-        const { onDragEnd } = this.draggables.get(mesh) || {};
-        onDragEnd?.(mesh);
-
-        // Reset
-        this.activePointerId = null;
-        this.activeTarget = null;
-    }
-
-    /** Rotar manualmente la pieza activa (para fases posteriores) */
-    rotateActive(stepRadians) {
-        if (this.activeTarget) {
-            this.activeTarget.rotation.y += stepRadians;
-            console.log(
-                `[InteractionManager] Rotado ${this.activeTarget.name} en ${stepRadians.toFixed(2)} rad`
-            );
-        }
-    }
-
-    setActive(mesh) {
-        this.activeTarget = mesh;
-        console.log(`[InteractionManager] Activo forzado: ${mesh.name}`);
-    }
-
-    clearActive() {
-        this.activeTarget = null;
-        console.log("[InteractionManager] Activo limpiado");
     }
 }
