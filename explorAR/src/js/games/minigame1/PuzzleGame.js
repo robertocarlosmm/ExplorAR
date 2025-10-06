@@ -12,7 +12,6 @@ export class PuzzleGame {
 
         this.board = null;
         this.slots = [];          // { index, center: Vector3 }
-        this.slotMeshes = [];     // planes finos para highlight
         this.slotOccupant = [];   // index -> mesh | null
         this.pieces = [];         // { mesh, startPos, slotIndex }
 
@@ -23,8 +22,6 @@ export class PuzzleGame {
         this._cell = 0;
         this._half = 0;
         this._pieceHalf = 0;
-
-        this._highlightIdx = -1;
 
         this.interactionManager = null;
     }
@@ -50,8 +47,8 @@ export class PuzzleGame {
         gridMesh.material = gridMat;
         gridMesh.isPickable = false;
 
-        // Crear slots, highlight y piezas
-        this._buildSlotsAndHighlights(size);
+        // Crear SOLO slots (sin highlight)
+        this._buildSlots(size);
         await this._spawnPieces(size);
 
         // InteractionManager
@@ -67,7 +64,7 @@ export class PuzzleGame {
 
         const snapThreshold = this._cell * 0.35; // 35% de la celda
 
-        this.pieces.forEach((p, idx) => {
+        this.pieces.forEach((p) => {
             this.interactionManager.registerDraggable(p.mesh, {
                 planeNode: this.board,
                 fixedYLocal: this._anchorY,
@@ -79,11 +76,8 @@ export class PuzzleGame {
                         p.slotIndex = null;
                     }
                 },
-                onDragMove: (_, localPos) => {
-                    this._updateHighlight(localPos, snapThreshold);
-                },
+                // sin onDragMove (se quitó highlight)
                 onDragEnd: (mesh, localPos) => {
-                    this._clearHighlight();
                     this._trySnap(p, localPos, snapThreshold);
                 }
             });
@@ -102,24 +96,20 @@ export class PuzzleGame {
     dispose() {
         this.hud.stopTimer();
         this.pieces.forEach((p) => p.mesh.dispose());
-        this.slotMeshes.forEach((m) => m.dispose());
         this.board?.dispose();
         this.interactionManager?.dispose();
 
         this.pieces = [];
         this.slots = [];
-        this.slotMeshes = [];
         this.slotOccupant = [];
     }
 
     // ---------- construcción ----------
 
-    _buildSlotsAndHighlights(size) {
+    _buildSlots(size) {
         const n = this.grid;
         this._cell = size / n;
         this._half = size / 2;
-
-        const highlightY = this._anchorY + 0.001; // un poco encima
 
         for (let r = 0; r < n; r++) {
             for (let c = 0; c < n; c++) {
@@ -129,23 +119,8 @@ export class PuzzleGame {
 
                 this.slots.push({ index, center: new Vector3(cx, 0, cz) });
                 this.slotOccupant[index] = null;
-
-                // mesh de highlight
-                const hl = MeshBuilder.CreateGround(`slot-${index}`, { width: this._cell, height: this._cell }, this.scene);
-                hl.parent = this.board;
-                hl.position = new Vector3(cx, highlightY, cz);
-                const mat = new StandardMaterial(`slot-mat-${index}`, this.scene);
-                mat.diffuseColor = new Color3(0.3, 0.3, 0.3);
-                mat.alpha = 0.15;
-                mat.emissiveColor = new Color3(0, 0, 0);
-                hl.material = mat;
-                hl.isPickable = false;
-                this.slotMeshes.push(hl);
             }
         }
-
-        // Coordenadas de referencia (útil en depuración)
-        // console.table(this.slots.map(s => ({index:s.index, x:s.center.x, z:s.center.z})));
     }
 
     async _spawnPieces(size) {
@@ -163,7 +138,11 @@ export class PuzzleGame {
             piece.position = new Vector3(offsetX, this._anchorY, -this._half - pieceSize * 0.5);
 
             const mat = new StandardMaterial(`p-mat-${i}`, this.scene);
-            mat.diffuseColor = new Color3(0.35 + 0.65 * Math.random(), 0.35 + 0.65 * Math.random(), 0.35 + 0.65 * Math.random());
+            mat.diffuseColor = new Color3(
+                0.35 + 0.65 * Math.random(),
+                0.35 + 0.65 * Math.random(),
+                0.35 + 0.65 * Math.random()
+            );
             piece.material = mat;
 
             this.pieces.push({
@@ -174,32 +153,6 @@ export class PuzzleGame {
         }
 
         console.log(`[PuzzleGame] ${count} piezas spawneadas detrás del tablero.`);
-    }
-
-    // ---------- highlight ----------
-
-    _updateHighlight(localPos, threshold) {
-        const { idx, dist } = this._nearestSlot(localPos);
-        const newIdx = dist <= threshold ? idx : -1;
-        if (newIdx === this._highlightIdx) return;
-
-        this._clearHighlight();
-
-        if (newIdx >= 0) {
-            const m = this.slotMeshes[newIdx];
-            m.material.emissiveColor = new Color3(0.1, 0.8, 0.1);
-            m.material.alpha = 0.35;
-            this._highlightIdx = newIdx;
-        }
-    }
-
-    _clearHighlight() {
-        if (this._highlightIdx >= 0) {
-            const m = this.slotMeshes[this._highlightIdx];
-            m.material.emissiveColor = new Color3(0, 0, 0);
-            m.material.alpha = 0.15;
-            this._highlightIdx = -1;
-        }
     }
 
     // ---------- snap ----------
