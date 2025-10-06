@@ -119,28 +119,43 @@ export class PuzzleGame {
     }
 
     // --- Snap ---
-    _checkSnap(mesh) {
-        const threshold = 0.05;
-        let closest = null;
+    _checkSnap(piece /* Mesh */) {
+        // Distancia de snap basada en el tamaño de celda: más robusto si cambias el tablero
+        const n = this.grid;
+        const size = 0.72; // el mismo valor que usas al crear el ground del tablero
+        const cell = size / n;
+        const threshold = cell * 0.35; // ~35% de la celda suele sentirse bien
+
+        // Como las piezas son hijas de this.board, usamos coordenadas **locales al tablero**
+        const pieceLocal = piece.position;
+
+        let closestSlot = null;
         let minDist = Infinity;
 
         for (const slot of this.slots) {
-            const slotPos = this.board.position.add(slot.center);
-            const dist = Vector3.Distance(mesh.position, slotPos);
+            // comparamos SOLO XZ (la Y la fijamos con fixedY/_anchorY)
+            const dx = pieceLocal.x - slot.center.x;
+            const dz = pieceLocal.z - slot.center.z;
+            const dist = Math.sqrt(dx * dx + dz * dz);
+
             if (dist < minDist) {
                 minDist = dist;
-                closest = slot;
+                closestSlot = slot;
             }
         }
 
-        if (minDist < threshold) {
-            const snapPos = this.board.position.add(closest.center);
-            mesh.position.copyFrom(snapPos);
-            this._addScore(50);
+        if (closestSlot && minDist < threshold) {
+            // encaje directo en LOCAL: no hay que transformar a mundo
+            piece.position.set(closestSlot.center.x, this._anchorY, closestSlot.center.z);
             this.hud.message("¡Encajó correctamente!", 1000);
-            console.log(`[SNAP] ${mesh.name} encajada en slot ${closest.index}`);
+            console.log(`[SNAP ✅] ${piece.name} → slot ${closestSlot.index} (d=${minDist.toFixed(3)})`);
+            this._addScore(50);
+
+            // (Opcional) marcar slot como ocupado:
+            // closestSlot.occupied = true; piece.metadata.slotIndex = closestSlot.index;
+
         } else {
-            console.log(`[SNAP FAIL] ${mesh.name} lejos (${minDist.toFixed(3)})`);
+            console.log(`[SNAP ❌] ${piece.name} fuera de umbral (dmin=${minDist.toFixed(3)})`);
         }
     }
 
