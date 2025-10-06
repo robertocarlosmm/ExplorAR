@@ -1,105 +1,118 @@
 // src/js/input/InteractionManager.js
-import { PointerDragBehavior, Vector3 } from "@babylonjs/core";
+import { Vector3, Matrix } from "@babylonjs/core";
+import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
 
 /**
  * InteractionManager
  * -------------------
- * Gestiona arrastre de piezas dentro de un plano (eje Y fijo),
- * usando PointerDragBehavior nativo de BabylonJS.
+ * Arrastra meshes sobre un plano dado (el tablero). Entrega siempre posiciones **locales al tablero**.
  */
 export class InteractionManager {
-    /**
-     * @param {BABYLON.Scene} scene - Escena activa.
-     */
     constructor(scene) {
         this.scene = scene;
         this.enabled = false;
-
-        // Mapa de objetos arrastrables
-        this.draggables = new Map();
-
-        // Estado
-        this._pointerObserver = null;
+        this._draggables = new Map();
     }
 
-    /** Activa el observador de punteros (por compatibilidad futura con XR/táctil) */
     enable() {
         if (this.enabled) return;
         this.enabled = true;
         console.log("[InteractionManager] Activado (modo PointerDragBehavior).");
     }
 
-    /** Desactiva el observador */
     disable() {
         if (!this.enabled) return;
+        for (const { behavior } of this._draggables.values()) {
+            behavior.detach();
+        }
+        this._draggables.clear();
         this.enabled = false;
         console.log("[InteractionManager] Desactivado.");
     }
 
-    /** Limpieza total */
     dispose() {
         this.disable();
-        this.draggables.forEach((data, mesh) => {
-            if (data.behavior) {
-                mesh.removeBehavior(data.behavior);
-            }
-        });
-        this.draggables.clear();
         console.log("[InteractionManager] Recursos liberados");
     }
 
     /**
-     * Registra un mesh como arrastrable dentro de un plano horizontal.
-     * @param {BABYLON.Mesh} mesh 
-     * @param {Object} options 
+     * Registra un mesh con arrastre sobre el plano de planeNode.
+     * options:
+     *  - planeNode: TransformNode del tablero (obligatorio)
+     *  - fixedYLocal: número (altura local constante, ej. 0.01)
+     *  - bounds: {minX,maxX,minZ,maxZ} (opc)
+     *  - onDragStart(mesh)
+     *  - onDragMove(mesh, localPos)
+     *  - onDragEnd(mesh, localPos)
      */
-    registerDraggable(mesh, options = {}) {
-        const fixedY = options.fixedY ?? 0;
-        const dragPlaneNormal = options.dragPlaneNormal ?? new Vector3(0, 1, 0);
-        const behavior = new PointerDragBehavior({ dragPlaneNormal });
+    registerDraggable(mesh, options) {
+        const opts = {
+            planeNode: null,
+            fixedYLocal: 0,
+            bounds: null,
+            onDragStart: null,
+            onDragMove: null,
+            onDragEnd: null,
+            ...options
+        };
+        if (!opts.planeNode) {
+            console.warn("[InteractionManager] planeNode requerido");
+            return;
+        }
 
-        // Ajuste del comportamiento del drag
-        behavior.useObjectOrientationForDragging = false;
-        behavior.moveAttached = false;
-
-        // Evento: inicio del arrastre
-        behavior.onDragStartObservable.add(() => {
-            console.log(`[InteractionManager] START → ${mesh.name}`);
-            options.onDragStart?.(mesh);
+        const behavior = new PointerDragBehavior({
+            dragPlaneNormal: Vector3.Up(),
+            useObjectOrientationForDragging: false
         });
-
-        // Evento: durante arrastre
-        behavior.onDragObservable.add((event) => {
-            const pos = event.dragPlanePoint.clone();
-            pos.y = fixedY; // mantener fijo el eje Y
-            mesh.position.copyFrom(pos);
-            options.onDrag?.(mesh, pos);
-        });
-
-        // Evento: fin del arrastre
-        behavior.onDragEndObservable.add(() => {
-            console.log(`[InteractionManager] END → ${mesh.name} @ ${mesh.position.toString()}`);
-            options.onDragEnd?.(mesh);
-        });
+        behavior.updateDragPlane = false; // plano fijo (Y)
 
         mesh.addBehavior(behavior);
-        this.draggables.set(mesh, { behavior, ...options });
 
-        const p = mesh.position.clone();
-        console.log(`[InteractionManager] Registrado: ${mesh.name} @ (${p.x.toFixed(3)}, ${p.y.toFixed(3)}, ${p.z.toFixed(3)})`);
-    }
+        let invBoardWorld = null;
 
-    /** Elimina un draggable */
-    unregister(mesh) {
-        const data = this.draggables.get(mesh);
-        if (data?.behavior) mesh.removeBehavior(data.behavior);
-        this.draggables.delete(mesh);
-        console.log(`[InteractionManager] Eliminado: ${mesh.name}`);
-    }
+        behavior.onDragStartObservable.add(() => {
+            // matriz inversa del tablero para llevar mundo -> local tablero
+            opts.planeNode.computeWorldMatrix(true);
+            invBoardWorld = opts.planeNode.getWorldMatrix().invert();
+            opts.onDragStart?.(mesh);
+            console.log("[InteractionManager] START →", mesh.name);
+        });
 
-    unregisterAll() {
-        this.draggables.forEach((data, mesh) => mesh.removeBehavior(data.behavior));
-        this.draggables.clear();
-        console.log("[InteractionManager] Todos los draggables eliminados");
+        behavior.onDragObservable.add((evt) => {
+            if (!invBoardWorld) return;
+
+            // Punto en mundo reportado por el behavior
+            const world = evt.dragPlanePoint ?? evt.draggedPosition ?? mesh.getAbsolutePosition();
+
+            // Convertir a local del tablero
+            const local = Vector3.TransformCoordinates(world, invBoardWorld);
+            local.y = opts.fixedYLocal ?? 0;
+
+            // Límites (si se pidieron)
+            if (opts.bounds) {
+                const b = opts.bounds;
+                if (local.x < b.minX) local.x = b.minX;
+                if (local.x > b.maxX) local.x = b.maxX;
+                if (local.z < b.minZ) local.z = b.minZ;
+                if (local.z > b.maxZ) local.z = b.maxZ;
+            }
+
+            // Aplicar directamente en local
+            mesh.position.copyFrom(local);
+            opts.onDragMove?.(mesh, local);
+        });
+
+        behavior.onDragEndObservable.add(() => {
+            const local = mesh.position.clone(); // ya es local al tablero
+            opts.onDragEnd?.(mesh, local);
+            console.log("[InteractionManager] END →", mesh.name, "@", local);
+        });
+
+        const abs = mesh.getAbsolutePosition();
+        console.log(
+            `[InteractionManager] Registrado: ${mesh.name} @ (${abs.x.toFixed(3)}, ${abs.y.toFixed(3)}, ${abs.z.toFixed(3)})`
+        );
+
+        this._draggables.set(mesh, { behavior, options: opts });
     }
 }
