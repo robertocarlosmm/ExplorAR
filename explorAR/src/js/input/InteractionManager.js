@@ -61,7 +61,7 @@ export class InteractionManager {
             return;
         }
 
-        // ðŸ”¹ Usa la orientación real del tablero como plano de arrastre
+        //  Usa la orientación real del tablero como plano de arrastre
         const boardNormal = opts.planeNode.up.clone();
         const behavior = new PointerDragBehavior({
             dragPlaneNormal: boardNormal,
@@ -69,16 +69,17 @@ export class InteractionManager {
         });
         behavior.updateDragPlane = false; // plano fijo
 
+
         mesh.addBehavior(behavior);
 
         let invBoardWorld = null;
 
         behavior.onDragStartObservable.add(() => {
-            // matriz inversa del tablero: mundo â†’ local
+            // matriz inversa del tablero: mundo -> local
             opts.planeNode.computeWorldMatrix(true);
             invBoardWorld = opts.planeNode.getWorldMatrix().invert();
             opts.onDragStart?.(mesh);
-            console.log("[InteractionManager] START â†’", mesh.name);
+            console.log("[InteractionManager] START ->", mesh.name);
         });
 
         behavior.onDragObservable.add((evt) => {
@@ -108,7 +109,7 @@ export class InteractionManager {
         behavior.onDragEndObservable.add(() => {
             const local = mesh.position.clone(); // ya en local
             opts.onDragEnd?.(mesh, local);
-            console.log("[InteractionManager] END â†’", mesh.name, "@", local);
+            console.log("[InteractionManager] END ->", mesh.name, "@", local);
         });
 
         // Log inicial

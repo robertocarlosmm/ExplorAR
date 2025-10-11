@@ -83,6 +83,35 @@ export class PuzzleGame {
             });
         });
 
+        // === Prevención de desplazamiento inicial ===
+        let firstTouch = true;
+
+        // Recorremos los draggables y sobreescribimos su onDragStart para interceptar el primer toque
+        this.pieces.forEach((p) => {
+            const original = this.interactionManager._draggables.get(p.mesh);
+            if (!original) return;
+
+            const behavior = original.behavior;
+            behavior.onDragStartObservable.addOnce(() => {
+                if (firstTouch) {
+                    firstTouch = false;
+
+                    // Detectamos si todas las piezas cambiaron su posición (p.ej. salto en Z)
+                    const deltas = this.pieces.map(pp => pp.mesh.position.z - pp.startPos.z);
+                    const promedioDeltaZ = deltas.reduce((a, b) => a + b, 0) / deltas.length;
+                    const saltoDetectado = Math.abs(promedioDeltaZ) > 0.02; // umbral de ~2cm
+
+                    if (saltoDetectado) {
+                        console.warn("[PuzzleGame] Desplazamiento detectado en primer toque. Restaurando posiciones...");
+                        this.pieces.forEach(pp => {
+                            pp.mesh.position.copyFrom(pp.startPos);
+                        });
+                    }
+                }
+            });
+        });
+
+
         // HUD
         this.hud.showPanel(PuzzlePanel, {
             onRotateLeft: () => { },  // sin rotación por ahora
@@ -135,7 +164,15 @@ export class PuzzleGame {
 
             const piece = MeshBuilder.CreateGround(`piece-${i}`, { width: pieceSize, height: pieceSize }, this.scene);
             piece.parent = this.board;
-            piece.position = new Vector3(offsetX, this._anchorY, -this._half - pieceSize * 0.5);
+            //piece.position = new Vector3(offsetX, this._anchorY, -this._half - pieceSize * 0.5);
+            /////////////////////////
+            const forwardPush = 1.05; // ajustable: 0.8–1.2 según tu caso
+            piece.position = new Vector3(
+                offsetX,
+                this._anchorY,
+                -this._half - pieceSize * 0.5 + forwardPush
+            );
+            ///////////////////////
 
             const mat = new StandardMaterial(`p-mat-${i}`, this.scene);
             mat.diffuseColor = new Color3(
@@ -183,16 +220,16 @@ export class PuzzleGame {
 
             this._addScore(10);
             this.hud.message(`Encajó en ${idx}`, 600);
-            console.log(`[SNAP âœ…] ${pieceObj.mesh.name} â†’ slot ${idx} (d=${dist.toFixed(3)})`);
+            console.log(`[SNAP ] ${pieceObj.mesh.name} -> slot ${idx} (d=${dist.toFixed(3)})`);
         } else {
             // volver al origen
             pieceObj.mesh.position.copyFrom(pieceObj.startPos);
             pieceObj.slotIndex = null;
             this.hud.message("No encajó", 600);
-            console.log(`[SNAP âŒ] ${pieceObj.mesh.name} (dmin=${dist.toFixed(3)})`);
+            console.log(`[SNAP ] ${pieceObj.mesh.name} (dmin=${dist.toFixed(3)})`);
         }
 
-        // ðŸ” Mostrar posiciones de todas las piezas despuí©s de soltar una
+        // - Mostrar posiciones de todas las piezas después de soltar una
         console.log("=== Estado actual de las piezas ===");
         this.pieces.forEach((p, i) => {
             const pos = p.mesh.position;
@@ -219,6 +256,6 @@ export class PuzzleGame {
     }
 
     _fail() {
-        this.hud.message("Se acabó el tiempo. Intí©ntalo de nuevo.", 3000);
+        this.hud.message("Se acabó el tiempo. Inténtalo de nuevo.", 3000);
     }
 }
