@@ -1,5 +1,5 @@
 // src/js/games/minigame1/PuzzleGame.js
-import { MeshBuilder, StandardMaterial, Color3, Vector3, TransformNode } from "@babylonjs/core";
+import { MeshBuilder, StandardMaterial, Color3, Vector3, TransformNode, Texture } from "@babylonjs/core";
 import { PuzzlePanel } from "../../panels/minigame1Panel.js";
 import { InteractionManager } from "../../input/InteractionManager.js";
 
@@ -152,6 +152,8 @@ export class PuzzleGame {
         }
     }
 
+
+    /*
     async _spawnPieces(size) {
         const n = this.grid;
         const count = n * n;
@@ -191,6 +193,73 @@ export class PuzzleGame {
 
         console.log(`[PuzzleGame] ${count} piezas spawneadas detrás del tablero.`);
     }
+*/
+
+    async _spawnPieces(size) {
+        const n = this.grid;
+        const count = n * n;
+        const pieceSize = this._cell * 0.95;
+        this._pieceHalf = pieceSize * 0.5;
+
+        console.log(`[PuzzleGame] Cargando textura base: ${this.imageUrl}`);
+
+        // Carga la textura base (una sola vez)
+        const baseTexture = new Texture(this.imageUrl, this.scene, true, false, Texture.TRILINEAR_SAMPLINGMODE, null, null, null, false);
+        baseTexture.wrapU = baseTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
+
+        // Tras el borde inferior del tablero
+        for (let i = 0; i < count; i++) {
+            const offsetX = (i - (count - 1) / 2) * (pieceSize * 1.1);
+
+            const piece = MeshBuilder.CreateGround(`piece-${i}`, { width: pieceSize, height: pieceSize }, this.scene);
+            piece.parent = this.board;
+
+            const forwardPush = 1.05; // ajustable: 0.8–1.2 según tu caso
+            piece.position = new Vector3(
+                offsetX,
+                this._anchorY,
+                -this._half - pieceSize * 0.5 + forwardPush
+            );
+
+            // === Material con la textura completa ===
+            /*const mat = new StandardMaterial(`p-mat-${i}`, this.scene);
+            mat.diffuseTexture = texture;
+            mat.specularColor = new Color3(0, 0, 0);
+            piece.material = mat;*/
+            this._applyImageFragment(piece, i, n, baseTexture);
+            // =======================================
+
+            this.pieces.push({
+                mesh: piece,
+                startPos: piece.position.clone(),
+                slotIndex: null
+            });
+        }
+
+        console.log(`[PuzzleGame] ${count} piezas spawneadas con textura completa.`);
+    }
+
+    //asignar texturas a las piezas
+    _applyImageFragment(piece, index, n, baseTexture) {
+        const row = Math.floor(index / n);
+        const col = index % n;
+
+        const mat = new StandardMaterial(`p-mat-${index}`, this.scene);
+
+        // Clonamos la textura base para esta pieza
+        mat.diffuseTexture = baseTexture.clone();
+        mat.diffuseTexture.wrapU = mat.diffuseTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
+
+        // Escala y desplazamiento UV correctos
+        mat.diffuseTexture.uScale = 1 / n;
+        mat.diffuseTexture.vScale = 1 / n;
+        mat.diffuseTexture.uOffset = col / n;
+        mat.diffuseTexture.vOffset = (n - 1 - row) / n; // asegura orientación correcta
+
+        mat.specularColor = new Color3(0, 0, 0);
+        piece.material = mat;
+    }
+
 
     // ---------- snap ----------
 
