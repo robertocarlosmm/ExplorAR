@@ -23,7 +23,8 @@ export class Router {
         this.ui.showGame()
         await this.game.startExperience(exp);
         await this.game.launchPuzzle({
-            imageUrl: exp?.minigames?.[0]?.image || null,
+            imageUrl: exp?.minigames?.[0]?.assets?.find(a => a.key === "board")?.url
+                || null,
             grid: exp?.minigames?.[0]?.grid ?? 3
         });
         this.ui.updateHUD({ showInfo: true, showNav: true })
