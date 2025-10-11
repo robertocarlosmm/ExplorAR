@@ -70,7 +70,10 @@ export class PuzzleGame {
                 fixedYLocal: this._anchorY,
                 bounds,
                 onDragStart: () => {
-                    // si estaba ocupando un slot, liberarlo mientras se arrastra
+                    // Evitar mover si ya está bloqueada
+                    if (p.locked) return false;
+
+                    // Liberar slot anterior si lo tenía
                     if (p.slotIndex != null) {
                         this.slotOccupant[p.slotIndex] = null;
                         p.slotIndex = null;
@@ -228,11 +231,18 @@ export class PuzzleGame {
             piece.material = mat;*/
             this._applyImageFragment(piece, i, n, baseTexture);
             // =======================================
+            //auxiliar espejo
+            const raux = Math.floor(i / n);
+            const caux = i % n;
+            const mirrorRow = n - 1 - raux;
+            const aux = mirrorRow * n + caux;
 
             this.pieces.push({
                 mesh: piece,
                 startPos: piece.position.clone(),
-                slotIndex: null
+                slotIndex: null,
+                correctIndex: aux, // ✅ índice del slot correcto
+                locked: false    // inicializamos la propiedad
             });
         }
 
@@ -281,32 +291,50 @@ export class PuzzleGame {
         const { idx, dist } = this._nearestSlot(localPos);
 
         if (dist <= threshold && this.slotOccupant[idx] == null) {
-            // encajar
             const target = this.slots[idx].center;
             pieceObj.mesh.position.set(target.x, this._anchorY, target.z);
-            this.slotOccupant[idx] = pieceObj.mesh;
             pieceObj.slotIndex = idx;
+            this.slotOccupant[idx] = pieceObj.mesh;
 
-            this._addScore(10);
-            this.hud.message(`Encajó en ${idx}`, 600);
-            console.log(`[SNAP ] ${pieceObj.mesh.name} -> slot ${idx} (d=${dist.toFixed(3)})`);
+            const isCorrect = pieceObj.correctIndex === idx;
+
+            if (isCorrect) {
+                pieceObj.locked = true; // 🔒 se bloquea (no se moverá más)
+                this._addScore(10);
+                this.hud.message("¡Correcto!", 600);
+            } else {
+                pieceObj.locked = false; // 🔓 puede volver a moverse
+                this._addScore(2);
+                this.hud.message("Encajó, pero no es el lugar correcto", 600);
+            }
+
+            this._checkCompletion();
         } else {
-            // volver al origen
             pieceObj.mesh.position.copyFrom(pieceObj.startPos);
             pieceObj.slotIndex = null;
             this.hud.message("No encajó", 600);
-            console.log(`[SNAP ] ${pieceObj.mesh.name} (dmin=${dist.toFixed(3)})`);
         }
 
-        // - Mostrar posiciones de todas las piezas después de soltar una
         console.log("=== Estado actual de las piezas ===");
         this.pieces.forEach((p, i) => {
             const pos = p.mesh.position;
             console.log(
-                `piece-${i}: (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)})`
+                `piece-${i}: (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)}) ${p.locked ? "[LOCKED]" : ""}`
             );
         });
         console.log("===================================");
+    }
+
+    // ---------- verificación de finalización ----------
+
+    _checkCompletion() {
+        const allCorrect = this.pieces.every(p => p.locked === true);
+
+        if (allCorrect) {
+            console.log("[PuzzleGame] 🏆 Puzzle completado!");
+            this.hud.message("¡Puzzle completado!", 2000);
+            this._onWin();
+        }
     }
 
 
