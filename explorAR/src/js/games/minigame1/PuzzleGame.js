@@ -37,7 +37,7 @@ export class PuzzleGame {
         this.board.position.copyFrom(boardPos);
         console.log("[PuzzleGame] Tablero colocado en posición detectada:", boardPos);
 
-        // Ground del tablero (solo guía)
+        // Ground del tablero (solo guí­a)
         const size = 0.72;
         const gridMesh = MeshBuilder.CreateGround("board-grid", { width: size, height: size }, this.scene);
         gridMesh.parent = this.board;
@@ -183,16 +183,16 @@ export class PuzzleGame {
 
             this._addScore(10);
             this.hud.message(`Encajó en ${idx}`, 600);
-            console.log(`[SNAP ✅] ${pieceObj.mesh.name} → slot ${idx} (d=${dist.toFixed(3)})`);
+            console.log(`[SNAP âœ…] ${pieceObj.mesh.name} â†’ slot ${idx} (d=${dist.toFixed(3)})`);
         } else {
             // volver al origen
             pieceObj.mesh.position.copyFrom(pieceObj.startPos);
             pieceObj.slotIndex = null;
             this.hud.message("No encajó", 600);
-            console.log(`[SNAP ❌] ${pieceObj.mesh.name} (dmin=${dist.toFixed(3)})`);
+            console.log(`[SNAP âŒ] ${pieceObj.mesh.name} (dmin=${dist.toFixed(3)})`);
         }
 
-        // 🔍 Mostrar posiciones de todas las piezas después de soltar una
+        // ðŸ” Mostrar posiciones de todas las piezas despuí©s de soltar una
         console.log("=== Estado actual de las piezas ===");
         this.pieces.forEach((p, i) => {
             const pos = p.mesh.position;
@@ -219,6 +219,6 @@ export class PuzzleGame {
     }
 
     _fail() {
-        this.hud.message("Se acabó el tiempo. Inténtalo de nuevo.", 3000);
+        this.hud.message("Se acabó el tiempo. Intí©ntalo de nuevo.", 3000);
     }
 }

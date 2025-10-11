@@ -35,11 +35,11 @@ export class XRSession {
 
     /** Inicializa motor y escena (sin entrar aún en XR) */
     async init(titleText) {
-        // 1️⃣ Canvas
+        // 1ï¸âƒ£ Canvas
         this.canvas = document.getElementById("renderCanvas");
         if (!this.canvas) throw new Error("No se encontró #renderCanvas en el DOM");
 
-        // 2️⃣ Motor + escena
+        // 2ï¸âƒ£ Motor + escena
         this.engine = new Engine(this.canvas, true);
         this.scene = new Scene(this.engine);
         this.scene.clearColor = new Color4(0, 0, 0, 0);
@@ -60,7 +60,7 @@ export class XRSession {
 
         console.log("[XRSession] Escena inicializada:", titleText);
 
-        // 3️⃣ Listener de resize
+        // 3ï¸âƒ£ Listener de resize
         this._onResize = () => {
             if (this.engine) this.engine.resize();
         };
@@ -153,14 +153,14 @@ export class XRSession {
                 }
             });
 
-            console.log("✅ WebXR iniciado con DOM Overlay y multitouch activo");
+            console.log("WebXR iniciado con DOM Overlay y multitouch activo");
         } catch (err) {
-            console.error("❌ Error al iniciar WebXR:", err);
+            console.error("Error al iniciar WebXR:", err);
             alert(
                 "Error al iniciar la experiencia AR.\nRevisa la consola para más detalles."
             );
         } finally {
-            // 9️⃣ Quitar loader siempre
+            // 9ï¸âƒ£ Quitar loader siempre
             if (loading) loading.style.display = "none";
         }
     }

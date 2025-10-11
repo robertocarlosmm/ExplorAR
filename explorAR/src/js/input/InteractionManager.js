@@ -5,7 +5,8 @@ import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDra
 /**
  * InteractionManager
  * -------------------
- * Arrastra meshes sobre un plano dado (el tablero). Entrega siempre posiciones **locales al tablero**.
+ * Gestiona arrastres de objetos (meshes) sobre un plano base,
+ * usando PointerDragBehavior, con posiciones locales al tablero.
  */
 export class InteractionManager {
     constructor(scene) {
@@ -36,11 +37,11 @@ export class InteractionManager {
     }
 
     /**
-     * Registra un mesh con arrastre sobre el plano de planeNode.
+     * Registra un mesh con arrastre sobre el plano del tablero.
      * options:
      *  - planeNode: TransformNode del tablero (obligatorio)
      *  - fixedYLocal: número (altura local constante, ej. 0.01)
-     *  - bounds: {minX,maxX,minZ,maxZ} (opc)
+     *  - bounds: {minX,maxX,minZ,maxZ} (opcional)
      *  - onDragStart(mesh)
      *  - onDragMove(mesh, localPos)
      *  - onDragEnd(mesh, localPos)
@@ -60,22 +61,24 @@ export class InteractionManager {
             return;
         }
 
+        // ðŸ”¹ Usa la orientación real del tablero como plano de arrastre
+        const boardNormal = opts.planeNode.up.clone();
         const behavior = new PointerDragBehavior({
-            dragPlaneNormal: Vector3.Up(),
+            dragPlaneNormal: boardNormal,
             useObjectOrientationForDragging: false
         });
-        behavior.updateDragPlane = false; // plano fijo (Y)
+        behavior.updateDragPlane = false; // plano fijo
 
         mesh.addBehavior(behavior);
 
         let invBoardWorld = null;
 
         behavior.onDragStartObservable.add(() => {
-            // matriz inversa del tablero para llevar mundo -> local tablero
+            // matriz inversa del tablero: mundo â†’ local
             opts.planeNode.computeWorldMatrix(true);
             invBoardWorld = opts.planeNode.getWorldMatrix().invert();
             opts.onDragStart?.(mesh);
-            console.log("[InteractionManager] START →", mesh.name);
+            console.log("[InteractionManager] START â†’", mesh.name);
         });
 
         behavior.onDragObservable.add((evt) => {
@@ -84,11 +87,11 @@ export class InteractionManager {
             // Punto en mundo reportado por el behavior
             const world = evt.dragPlanePoint ?? evt.draggedPosition ?? mesh.getAbsolutePosition();
 
-            // Convertir a local del tablero
+            // Convertir a coordenadas locales del tablero
             const local = Vector3.TransformCoordinates(world, invBoardWorld);
             local.y = opts.fixedYLocal ?? 0;
 
-            // Límites (si se pidieron)
+            // Aplicar lí­mites si se definieron
             if (opts.bounds) {
                 const b = opts.bounds;
                 if (local.x < b.minX) local.x = b.minX;
@@ -97,17 +100,18 @@ export class InteractionManager {
                 if (local.z > b.maxZ) local.z = b.maxZ;
             }
 
-            // Aplicar directamente en local
+            // Aplicar la posición en el sistema local del tablero
             mesh.position.copyFrom(local);
             opts.onDragMove?.(mesh, local);
         });
 
         behavior.onDragEndObservable.add(() => {
-            const local = mesh.position.clone(); // ya es local al tablero
+            const local = mesh.position.clone(); // ya en local
             opts.onDragEnd?.(mesh, local);
-            console.log("[InteractionManager] END →", mesh.name, "@", local);
+            console.log("[InteractionManager] END â†’", mesh.name, "@", local);
         });
 
+        // Log inicial
         const abs = mesh.getAbsolutePosition();
         console.log(
             `[InteractionManager] Registrado: ${mesh.name} @ (${abs.x.toFixed(3)}, ${abs.y.toFixed(3)}, ${abs.z.toFixed(3)})`

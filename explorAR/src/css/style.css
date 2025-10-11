@@ -14,6 +14,15 @@ body {
   padding: 0;
 }
 
+body,
+button,
+input,
+textarea {
+  font-family: 'Inter', 'Noto Sans', 'Roboto', sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background: var(--bg);
@@ -221,6 +230,9 @@ header h1 {
 
   /* clave AR: dejar pasar eventos al canvas salvo en controles */
   pointer-events: none;
+  /* Ajuste automático a áreas seguras (notch / barra inferior) */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* solo controles del HUD reciben eventos */
@@ -255,6 +267,14 @@ header h1 {
   display: flex;
   gap: .75rem;
   align-items: center;
+  position: absolute;
+  top: calc(10px + env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  padding: 0 12px;
+  /* margen lateral seguro */
+  justify-content: center;
+  /* opcional: centra si prefieres */
 }
 
 .spacer {
@@ -277,7 +297,7 @@ header h1 {
 }
 
 #hud .bottombar {
-  bottom: 0;
+  bottom: calc(10px + env(safe-area-inset-bottom));
   padding: 12px;
   display: flex;
   justify-content: center;
@@ -327,11 +347,20 @@ header h1 {
 
 /* Canvas AR: debe recibir todos los gestos */
 #renderCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+
+  /* ya lo tenías: gestos al canvas, sin highlight */
   touch-action: none;
-  /* evita que el navegador consuma el gesto */
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+
+  z-index: 0;
+  /* debajo del HUD */
 }
 
 /* ===== Accesibilidad ===== */
