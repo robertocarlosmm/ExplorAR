@@ -210,30 +210,36 @@ export class PuzzleGame {
         const baseTexture = new Texture(this.imageUrl, this.scene, true, false, Texture.TRILINEAR_SAMPLINGMODE, null, null, null, false);
         baseTexture.wrapU = baseTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
 
+
         // Tras el borde inferior del tablero
+        const indices = Array.from({ length: count }, (_, i) => i);
+
+        // Mezclar el orden de aparición (Fisher–Yates shuffle)
+        for (let i = indices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indices[i], indices[j]] = [indices[j], indices[i]];
+        }
+
         for (let i = 0; i < count; i++) {
+            const index = indices[i]; // índice de la pieza (para textura y correctIndex)
             const offsetX = (i - (count - 1) / 2) * (pieceSize * 1.1);
 
-            const piece = MeshBuilder.CreateGround(`piece-${i}`, { width: pieceSize, height: pieceSize }, this.scene);
+            const piece = MeshBuilder.CreateGround(`piece-${index}`, { width: pieceSize, height: pieceSize }, this.scene);
             piece.parent = this.board;
 
-            const forwardPush = 1.05; // ajustable: 0.8–1.2 según tu caso
+            const forwardPush = 1.05;
             piece.position = new Vector3(
                 offsetX,
                 this._anchorY,
                 -this._half - pieceSize * 0.5 + forwardPush
             );
 
-            // === Material con la textura completa ===
-            /*const mat = new StandardMaterial(`p-mat-${i}`, this.scene);
-            mat.diffuseTexture = texture;
-            mat.specularColor = new Color3(0, 0, 0);
-            piece.material = mat;*/
-            this._applyImageFragment(piece, i, n, baseTexture);
-            // =======================================
-            //auxiliar espejo
-            const raux = Math.floor(i / n);
-            const caux = i % n;
+            // Asignar textura según su índice real (no el mezclado)
+            this._applyImageFragment(piece, index, n, baseTexture);
+
+            // Calcular índice correcto (espejo vertical)
+            const raux = Math.floor(index / n);
+            const caux = index % n;
             const mirrorRow = n - 1 - raux;
             const aux = mirrorRow * n + caux;
 
@@ -241,8 +247,8 @@ export class PuzzleGame {
                 mesh: piece,
                 startPos: piece.position.clone(),
                 slotIndex: null,
-                correctIndex: aux, // ✅ índice del slot correcto
-                locked: false    // inicializamos la propiedad
+                correctIndex: aux,
+                locked: false
             });
         }
 
@@ -337,6 +343,18 @@ export class PuzzleGame {
         }
     }
 
+    _onWin() {
+        // Detiene el temporizador y registra victoria
+        this.hud.stopTimer();
+        this.isCompleted = true;
+
+        console.log("[PuzzleGame] 🎉 ¡Victoria detectada!");
+        this.hud.message("¡Felicidades, completaste el puzzle!", 2000);
+
+        // Aquí luego podrás llamar a un panel de “Victoria” o a la siguiente pantalla
+        // Ejemplo:
+        // this.hud.showPanel(PuzzleWinPanel, { score: this.score });
+    }
 
     // ---------- HUD ----------
 
