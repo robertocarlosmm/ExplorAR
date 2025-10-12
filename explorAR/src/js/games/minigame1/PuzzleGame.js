@@ -155,49 +155,6 @@ export class PuzzleGame {
         }
     }
 
-
-    /*
-    async _spawnPieces(size) {
-        const n = this.grid;
-        const count = n * n;
-        const pieceSize = this._cell * 0.95;
-        this._pieceHalf = pieceSize * 0.5;
-
-        // Tras el borde inferior del tablero
-        for (let i = 0; i < count; i++) {
-            const offsetX = (i - (count - 1) / 2) * (pieceSize * 1.1);
-
-            const piece = MeshBuilder.CreateGround(`piece-${i}`, { width: pieceSize, height: pieceSize }, this.scene);
-            piece.parent = this.board;
-            //piece.position = new Vector3(offsetX, this._anchorY, -this._half - pieceSize * 0.5);
-            /////////////////////////
-            const forwardPush = 1.05; // ajustable: 0.8–1.2 según tu caso
-            piece.position = new Vector3(
-                offsetX,
-                this._anchorY,
-                -this._half - pieceSize * 0.5 + forwardPush
-            );
-            ///////////////////////
-
-            const mat = new StandardMaterial(`p-mat-${i}`, this.scene);
-            mat.diffuseColor = new Color3(
-                0.35 + 0.65 * Math.random(),
-                0.35 + 0.65 * Math.random(),
-                0.35 + 0.65 * Math.random()
-            );
-            piece.material = mat;
-
-            this.pieces.push({
-                mesh: piece,
-                startPos: piece.position.clone(),
-                slotIndex: null
-            });
-        }
-
-        console.log(`[PuzzleGame] ${count} piezas spawneadas detrás del tablero.`);
-    }
-*/
-
     async _spawnPieces(size) {
         const n = this.grid;
         const count = n * n;

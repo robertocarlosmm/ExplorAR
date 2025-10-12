@@ -38,4 +38,23 @@ export class GameManager {
         this._runningGame = new PuzzleGame({ scene, hud: this.hud, grid, imageUrl })
         await this._runningGame.start()
     }
+
+    restartCurrentMiniGame() {
+        // Reinicia solo el minijuego actual
+        const current = this.currentMiniGame
+        if (!current) return
+        this.stopMiniGame(current)
+        this.startMiniGame(current)
+    }
+
+    advanceToNextMiniGame() {
+        const next = this.getNextMiniGame()
+        if (next) {
+            this.startMiniGame(next)
+        } else {
+            // Si ya no hay más, salir al lobby o mostrar "Fin"
+            this.onExit?.()
+        }
+    }
+
 }

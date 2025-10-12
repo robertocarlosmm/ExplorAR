@@ -57,4 +57,43 @@ export class HUDController {
         this.slot.innerHTML = '';
         this.currentPanel = null;
     }
+
+    showEndPopup({
+        score,
+        onRetry,
+        onContinue,
+        timeExpired = false
+    }) {
+        const popup = document.getElementById('game-end-popup')
+        const scoreLabel = document.getElementById('popup-score')
+        const btnRetry = document.getElementById('btn-retry')
+        const btnContinue = document.getElementById('btn-continue')
+
+        if (!popup || !scoreLabel) return
+        scoreLabel.textContent = `Puntaje: ${score ?? 0}`
+
+        popup.classList.remove('hidden')
+        btnContinue.classList.toggle('hidden', timeExpired)
+
+        // Reset handlers (clonado para evitar listeners duplicados)
+        const newRetry = btnRetry.cloneNode(true)
+        const newContinue = btnContinue.cloneNode(true)
+        btnRetry.replaceWith(newRetry)
+        btnContinue.replaceWith(newContinue)
+
+        newRetry.addEventListener('click', () => {
+            popup.classList.add('hidden')
+            onRetry?.()
+        })
+        newContinue.addEventListener('click', () => {
+            popup.classList.add('hidden')
+            onContinue?.()
+        })
+    }
+
+    hideEndPopup() {
+        const popup = document.getElementById('game-end-popup')
+        if (popup) popup.classList.add('hidden')
+    }
+
 }

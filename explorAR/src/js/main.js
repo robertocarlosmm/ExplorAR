@@ -1,11 +1,10 @@
 import { GameManager } from "./core/GameManager.js";
 import { UIController } from "./ui/UIController.js";
-import { Router } from "./router.js";
 import { HUDController } from "./ui/HUDController.js";
 import { experiencesConfig } from "../config/experienceConfig.js";
 import { Experience } from "./models/Experience.js";
 
-// 1) Normaliza las experiencias desde el config
+// 1) Estructura de carga para las experiencias desde el config
 const experiences = experiencesConfig.map(cfg =>
     new Experience(
         cfg.id,
@@ -15,33 +14,73 @@ const experiences = experiencesConfig.map(cfg =>
         cfg.description,
         cfg.minigames || []
     )
-);
+)
 
 // 2) Instancias base
-const hud = new HUDController();
-const gameManager = new GameManager({ hud });     // <- sin onExit aquí (evitamos referencia circular)
-const uiController = new UIController({ experiences });
+const hud = new HUDController()
+const gameManager = new GameManager({ hud }) // <- sin onExit aquí (evitamos referencia circular)
+const uiController = new UIController({ experiences })
 
-// 3) Router (única autoridad de navegación)
-const router = new Router({ experiences, uiController, gameManager });
-router.init();
+// =========================================================
+// 3) NavService: navegación simple con una sola URL
+// =========================================================
+const Nav = (() => {
+    const goLobby = (push = true) => {
+        if (push) history.pushState({ view: "lobby" }, "", location.pathname)
+        gameManager.stopExperience()
+        uiController.hideGame()
+    }
 
-// 4) onExit: cuando termina la XRSession (incluye botón Atrás)
-//    vuelve al lobby SIN pushState extra
+    const goExperience = async (exp, push = true) => {
+        if (push) history.pushState({ view: "exp", expId: exp.id }, "", location.pathname)
+        uiController.showGame()
+        await gameManager.startExperience(exp)
+        await gameManager.launchPuzzle({
+            imageUrl:
+                exp?.minigames?.[0]?.assets?.find(a => a.key === "board")?.url || null,
+            grid: exp?.minigames?.[0]?.grid ?? 3
+        })
+        uiController.updateHUD({ showInfo: true, showNav: true })
+    }
+
+    // Soporte para botón atrás del navegador
+    window.onpopstate = async (ev) => {
+        if (ev.state?.view === "exp") {
+            const exp = experiences.find(e => e.id === ev.state.expId)
+            if (exp) return goExperience(exp, false)
+        }
+        return goLobby(false)
+    }
+
+    // Estado inicial
+    if (!history.state) {
+        history.replaceState({ view: "lobby" }, "", location.pathname)
+    }
+
+    return { goLobby, goExperience }
+})()
+
+// =========================================================
+// 4) Enlace entre GameManager y Nav (salir de XR => Lobby)
+// =========================================================
 gameManager.setOnExit(() => {
-    router.goToLobby(false);
-});
+    Nav.goLobby(false)
+})
 
-// 5) Handlers de UI -> Router (un solo onContinue)
+// =========================================================
+// 5) Handlers de UI -> Nav (sin Router)
+// =========================================================
 uiController.setHandlers({
     onSelectExperience: (exp) => {
-        console.log("Seleccionado:", exp.name);
+        console.log("Seleccionado:", exp.name)
     },
-    onContinue: async (exp) => { 
-        await router.goToExperience(exp); 
+    onContinue: async (exp) => {
+        await Nav.goExperience(exp)
     },
-    onBack: () => router.goToLobby(),
-});
+    onBack: () => Nav.goLobby()
+})
 
-// 6) Inicia la UI en modo lista
-uiController.init();
+// =========================================================
+// 6) Inicia la UI en modo lista (Lobby inicial)
+// =========================================================
+uiController.init()
