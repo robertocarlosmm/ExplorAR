@@ -1,3 +1,6 @@
+/* =========================================================
+  VARIABLES Y BASE
+========================================================= */
 :root {
   --bg: #f7f5e9;
   --brand: #8b3e0f;
@@ -6,7 +9,7 @@
   --shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* ===== Reset / Base ===== */
+/* Reset */
 html,
 body {
   height: 100%;
@@ -30,24 +33,20 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-
-  /* Fase 0: robustez móvil */
   overscroll-behavior: none;
-  /* evita pull-to-refresh/scroll chaining */
   -webkit-user-select: none;
   user-select: none;
-  /* evita selección accidental */
   -webkit-touch-callout: none;
-  /* sin menú táctil */
 }
 
 canvas,
 #hud {
   -webkit-tap-highlight-color: transparent;
-  /* sin destello al tocar */
 }
 
-/* ===== Layout principal ===== */
+/* =========================================================
+  LAYOUT PRINCIPAL
+========================================================= */
 .container {
   width: 100%;
   max-width: 480px;
@@ -86,7 +85,9 @@ header h1 {
   text-align: center;
 }
 
-/* Grid */
+/* =========================================================
+  GRID Y TARJETAS
+========================================================= */
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -99,7 +100,6 @@ header h1 {
   padding: 10px;
 }
 
-/* Tarjetas */
 .card {
   background: #000;
   border-radius: var(--radius);
@@ -139,15 +139,9 @@ header h1 {
   padding: 6px;
 }
 
-/* Footer */
-.footer-note {
-  margin-top: 12px;
-  font-size: 0.9rem;
-  color: #666;
-  text-align: center;
-}
-
-/* Pantalla detalle */
+/* =========================================================
+  PANTALLA DETALLE
+========================================================= */
 .detail-card {
   background: #000;
   border-radius: var(--radius);
@@ -172,7 +166,9 @@ header h1 {
   padding: 12px;
 }
 
-/* Botones */
+/* =========================================================
+  BOTONES Y FOOTER
+========================================================= */
 .buttons {
   display: flex;
   flex-direction: column;
@@ -208,34 +204,29 @@ header h1 {
   background: #f1e3d6;
 }
 
+.footer-note {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+}
+
 .hidden {
   display: none;
 }
 
-/* ===== HUD / Overlay AR ===== */
-
-/* Top-right floating (si lo usas) */
-.hud {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 10;
-}
-
-/* Overlay global con DOM Overlay (id="hud") */
+/* =========================================================
+  HUD / OVERLAY AR
+========================================================= */
 #hud {
   position: fixed;
   inset: 0;
   z-index: 10;
-
-  /* clave AR: dejar pasar eventos al canvas salvo en controles */
   pointer-events: none;
-  /* Ajuste automático a áreas seguras (notch / barra inferior) */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* solo controles del HUD reciben eventos */
 #hud .hud-btn,
 #hud .panel *,
 #hud button,
@@ -245,7 +236,6 @@ header h1 {
   pointer-events: auto;
 }
 
-/* Botones del HUD */
 .hud-btn {
   background: rgba(255, 255, 255, 0.8);
   border: none;
@@ -262,7 +252,6 @@ header h1 {
   background: rgba(80, 80, 80, 0.9);
 }
 
-/* Barras y paneles del HUD */
 .topbar {
   display: flex;
   gap: .75rem;
@@ -272,9 +261,7 @@ header h1 {
   left: 0;
   right: 0;
   padding: 0 12px;
-  /* margen lateral seguro */
   justify-content: center;
-  /* opcional: centra si prefieres */
 }
 
 .spacer {
@@ -311,7 +298,6 @@ header h1 {
   padding: 8px 12px;
 }
 
-/* Mensaje central (animación fade) */
 #center-msg {
   opacity: 1;
   transition: opacity 1s ease;
@@ -327,50 +313,38 @@ header h1 {
   transition: opacity .2s;
 }
 
-/* Pantalla de carga */
-#loading-screen {
-  display: none;
-  /* oculto por defecto */
-  position: fixed;
-  inset: 0;
-  /* ocupa toda la pantalla */
-  background: black;
-  /* negro sólido */
-  color: white;
-  font-size: 1.5em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  /* por encima de todo */
-}
-
-/* Canvas AR: debe recibir todos los gestos */
+/* =========================================================
+  CANVAS Y PANTALLA DE CARGA
+========================================================= */
 #renderCanvas {
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100vh;
   background: transparent;
-
-  /* ya lo tenías: gestos al canvas, sin highlight */
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-
   z-index: 0;
-  /* debajo del HUD */
 }
 
-/* ===== Accesibilidad ===== */
-:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
+#loading-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: black;
+  color: white;
+  font-size: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-/* ===== Popup de fin de minijuego ===== */
-
+/* =========================================================
+  POPUP DE FIN DE MINIJUEGO
+========================================================= */
 #game-end-popup {
   position: fixed;
   inset: 0;
@@ -380,7 +354,6 @@ header h1 {
   align-items: center;
   z-index: 50;
   pointer-events: auto;
-  /* para que capture clics encima del canvas */
   animation: popup-fade-in 0.25s ease-out;
 }
 
@@ -426,7 +399,7 @@ header h1 {
   transition: background 0.2s, transform 0.1s ease;
 }
 
-/* Reintentar = secundario */
+/* Botones popup */
 #btn-retry {
   background: transparent;
   border: 2px solid var(--brand);
@@ -437,7 +410,6 @@ header h1 {
   background: #f1e3d6;
 }
 
-/* Continuar = primario */
 #btn-continue {
   background: var(--brand);
   color: #fff;
@@ -454,7 +426,7 @@ header h1 {
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-/* Animaciones suaves */
+/* Animaciones */
 @keyframes popup-fade-in {
   from {
     opacity: 0;
@@ -475,4 +447,12 @@ header h1 {
     transform: scale(1);
     opacity: 1;
   }
+}
+
+/* =========================================================
+  ACCESIBILIDAD
+========================================================= */
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }
