@@ -264,6 +264,28 @@ header h1 {
   justify-content: center;
 }
 
+#hud .topbar #hud-score,
+#hud .topbar #hud-timer {
+  background: rgba(255, 255, 255, 0.85);
+  /* fondo blanco semitransparente */
+  color: #000;
+  /* texto negro para contraste */
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  /* borde sutil */
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-shadow: none;
+  line-height: 1.2;
+  display: inline-block;
+}
+
+/* Espacio entre puntaje y tiempo */
+#hud .topbar #hud-score {
+  margin-right: 6px;
+}
+
 .spacer {
   flex: 1;
 }
@@ -320,13 +342,19 @@ header h1 {
   position: fixed;
   inset: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   background: transparent;
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   z-index: 0;
+}
+
+@supports not (height: 100dvh) {
+  #renderCanvas {
+    height: 100vh;
+  }
 }
 
 #loading-screen {
