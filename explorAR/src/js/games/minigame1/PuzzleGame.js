@@ -311,6 +311,19 @@ export class PuzzleGame {
         // Aquí luego podrás llamar a un panel de “Victoria” o a la siguiente pantalla
         // Ejemplo:
         // this.hud.showPanel(PuzzleWinPanel, { score: this.score });
+        // Mostrar popup de fin de minijuego (victoria)
+        this.hud.showEndPopup({
+            score: this.score,                    // puntaje actual
+            onRetry: () => {
+                console.log("[PuzzleGame] Reintentar puzzle");
+                this._restart();                    // método que reinicia este puzzle
+            },
+            onContinue: () => {
+                console.log("[PuzzleGame] Continuar con siguiente minijuego (por ahora: exit)");
+                this._exit();                       // método temporal para salir
+            },
+            timeExpired: false                    // ganó, así que mostramos ambos botones
+        });
     }
 
     // ---------- HUD ----------
@@ -328,6 +341,25 @@ export class PuzzleGame {
     }
 
     _fail() {
-        this.hud.message("Se acabó el tiempo. Inténtalo de nuevo.", 3000);
+        this.hud.stopTimer();
+        this.hud.message("Se acabó el tiempo. Inténtalo de nuevo.", 2000);
+
+        // Mostrar popup sin botón de continuar
+        this.hud.showEndPopup({
+            score: this.score,
+            onRetry: () => {
+                console.log("[PuzzleGame] Reintentar tras perder");
+                this._restart();
+            },
+            onContinue: null,   // se oculta
+            timeExpired: true
+        });
     }
+
+    _restart() {
+        console.log("[PuzzleGame] Reiniciando minijuego...");
+        this.dispose();
+        this.start(); // vuelve a iniciar este mismo puzzle
+    }
+    
 }

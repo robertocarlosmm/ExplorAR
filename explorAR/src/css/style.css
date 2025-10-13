@@ -368,3 +368,111 @@ header h1 {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
+
+/* ===== Popup de fin de minijuego ===== */
+
+#game-end-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  pointer-events: auto;
+  /* para que capture clics encima del canvas */
+  animation: popup-fade-in 0.25s ease-out;
+}
+
+#game-end-popup.hidden {
+  display: none;
+}
+
+.popup-content {
+  background: var(--bg);
+  color: var(--text);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-align: center;
+  padding: 24px 28px;
+  width: 80%;
+  max-width: 320px;
+  animation: popup-scale-in 0.25s ease-out;
+}
+
+.popup-content h2 {
+  font-size: 1.4rem;
+  margin: 0 0 16px;
+  color: var(--brand);
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.popup-buttons button {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s ease;
+}
+
+/* Reintentar = secundario */
+#btn-retry {
+  background: transparent;
+  border: 2px solid var(--brand);
+  color: var(--brand);
+}
+
+#btn-retry:hover {
+  background: #f1e3d6;
+}
+
+/* Continuar = primario */
+#btn-continue {
+  background: var(--brand);
+  color: #fff;
+}
+
+#btn-continue:hover {
+  background: #722f0c;
+}
+
+#btn-continue.hidden {
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Animaciones suaves */
+@keyframes popup-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popup-scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

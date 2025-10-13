@@ -58,38 +58,40 @@ export class HUDController {
         this.currentPanel = null;
     }
 
-    showEndPopup({
-        score,
-        onRetry,
-        onContinue,
-        timeExpired = false
-    }) {
-        const popup = document.getElementById('game-end-popup')
-        const scoreLabel = document.getElementById('popup-score')
-        const btnRetry = document.getElementById('btn-retry')
-        const btnContinue = document.getElementById('btn-continue')
+    showEndPopup({ score, onRetry, onContinue, timeExpired = false }) {
+        console.log("HUD showEndPopup", { score, timeExpired });
 
-        if (!popup || !scoreLabel) return
-        scoreLabel.textContent = `Puntaje: ${score ?? 0}`
+        const popup = document.getElementById('game-end-popup');
+        const scoreLabel = document.getElementById('popup-score');
+        const btnRetry = document.getElementById('btn-retry');
+        const btnContinue = document.getElementById('btn-continue');
 
-        popup.classList.remove('hidden')
-        btnContinue.classList.toggle('hidden', timeExpired)
+        if (!popup || !scoreLabel) return;
+        scoreLabel.textContent = `Puntaje: ${score ?? 0}`;
+
+        popup.classList.remove('hidden');
 
         // Reset handlers (clonado para evitar listeners duplicados)
-        const newRetry = btnRetry.cloneNode(true)
-        const newContinue = btnContinue.cloneNode(true)
-        btnRetry.replaceWith(newRetry)
-        btnContinue.replaceWith(newContinue)
+        const newRetry = btnRetry.cloneNode(true);
+        const newContinue = btnContinue.cloneNode(true);
+        btnRetry.replaceWith(newRetry);
+        btnContinue.replaceWith(newContinue);
 
+        // ✅ aplicar visibilidad DESPUÉS de clonar
+        newContinue.classList.toggle('hidden', timeExpired);
+
+        // Handlers
         newRetry.addEventListener('click', () => {
-            popup.classList.add('hidden')
-            onRetry?.()
-        })
+            popup.classList.add('hidden');
+            onRetry?.();
+        });
+
         newContinue.addEventListener('click', () => {
-            popup.classList.add('hidden')
-            onContinue?.()
-        })
+            popup.classList.add('hidden');
+            onContinue?.();
+        });
     }
+
 
     hideEndPopup() {
         const popup = document.getElementById('game-end-popup')
