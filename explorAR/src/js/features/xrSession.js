@@ -182,13 +182,30 @@ export class XRSession {
             this.scene?.dispose();
             this.engine?.dispose();
         }
+
         if (this._onResize) {
             window.removeEventListener("resize", this._onResize);
         }
+
+        // 🧹 Limpieza extra: borrar referencias globales de Babylon
+        if (window.BABYLON?.EngineStore) {
+            try {
+                window.BABYLON.EngineStore.Instances = [];
+                window.BABYLON.EngineStore.LastCreatedEngine = null;
+            } catch (e) {
+                console.warn("[XRSession] No se pudo limpiar EngineStore:", e);
+            }
+        }
+
+        // 🧹 Limpieza de referencia al canvas
+        this.canvas = null;
+
         this.engine = null;
         this.scene = null;
         this.xrHelper = null;
         this._onResize = null;
-        console.log("[XRSession] Recursos liberados");
+
+        console.log("[XRSession] Recursos liberados completamente");
     }
+
 }
