@@ -2,14 +2,15 @@
 import { MeshBuilder, StandardMaterial, Color3, Vector3, TransformNode, Texture } from "@babylonjs/core";
 import { PuzzlePanel } from "../../panels/minigame1Panel.js";
 import { InteractionManager } from "../../input/InteractionManager.js";
+import { gameplayConfig } from "../../../config/gameplayConfig.js";
 
 export class PuzzleGame {
-    constructor({ scene, hud, grid = 3, imageUrl = null, duration = 60 }) {
+    constructor({ scene, hud, grid = 3, imageUrl = null}) {
         this.scene = scene;
         this.hud = hud;
         this.grid = grid;
         this.imageUrl = imageUrl;
-        this.timeLimit = duration;
+        this.timeLimit = gameplayConfig.timeSequence[0] || 60; // tiempo por defecto
 
         this.board = null;
         this.slots = [];          // { index, center: Vector3 }
