@@ -16,7 +16,7 @@ export class GameManager {
         if (this.xrSession) await this.stopExperience();
 
         this.xrSession = new XRSession({
-            onExit: this.onExit           // ⬅️ se pasa al XRSession
+            onExit: this.onExit           // se pasa al XRSession
         });
 
         await this.xrSession.init(experience?.name || "Experiencia");
@@ -30,7 +30,7 @@ export class GameManager {
     }
 
     //Minijuego 1: Puzzle
-    async launchPuzzle({ imageUrl, grid = 3 } = {}) {
+    async launchPuzzle({ imageUrl, grid = 3, duration = 60 } = {}) {
         const scene = this.xrSession?.scene
         if (!scene) { console.warn("XR no iniciado aún"); return }
         // cierra el juego anterior si lo hubiera

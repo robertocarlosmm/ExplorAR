@@ -14,11 +14,7 @@ export const gameplayConfig = {
     },
 
     // Configuración de tiempo por tipo de minijuego
-    timeLimits: {
-        puzzle3D: 60,  // segundos máximos
-        // trivia: 45,
-        // matching: 30
-    },
+    timeSequence: [65, 45, 50, 40],
 
     // Thresholds globales para estrellas finales
     stars: {

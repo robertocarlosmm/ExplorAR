@@ -2,6 +2,7 @@ import { GameManager } from "./core/GameManager.js";
 import { UIController } from "./ui/UIController.js";
 import { HUDController } from "./ui/HUDController.js";
 import { experiencesConfig } from "../config/experienceConfig.js";
+import { gameplayConfig } from "../config/gameplayConfig.js";   
 import { Experience } from "./models/Experience.js";
 
 // 1) Estructura de carga para las experiencias desde el config
@@ -38,7 +39,8 @@ const Nav = (() => {
         await gameManager.launchPuzzle({
             imageUrl:
                 exp?.minigames?.[0]?.assets?.find(a => a.key === "board")?.url || null,
-            grid: exp?.minigames?.[0]?.grid ?? 3
+            grid: exp?.minigames?.[0]?.grid ?? 3,
+            duration: exp?.minigames?.[0]?.duration ?? 60
         })
         uiController.updateHUD({ showInfo: true, showNav: true })
     }

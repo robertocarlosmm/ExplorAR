@@ -4,11 +4,12 @@ import { PuzzlePanel } from "../../panels/minigame1Panel.js";
 import { InteractionManager } from "../../input/InteractionManager.js";
 
 export class PuzzleGame {
-    constructor({ scene, hud, grid = 3, imageUrl = null }) {
+    constructor({ scene, hud, grid = 3, imageUrl = null, duration = 60 }) {
         this.scene = scene;
         this.hud = hud;
         this.grid = grid;
         this.imageUrl = imageUrl;
+        this.timeLimit = duration;
 
         this.board = null;
         this.slots = [];          // { index, center: Vector3 }
@@ -24,6 +25,8 @@ export class PuzzleGame {
         this._pieceHalf = 0;
 
         this.interactionManager = null;
+
+        this.onGameEnd = null;      // juego terminado
     }
 
     async start() {
@@ -121,8 +124,8 @@ export class PuzzleGame {
             onRotateRight: () => { },
             onHint: () => this._useHint()
         });
-        this.hud.setTime(60);
-        this.hud.startTimer(60, null, () => this._fail());
+        this.hud.setTime(this.timeLimit);
+        this.hud.startTimer(this.timeLimit, null, () => this._fail());
     }
 
     dispose() {
@@ -320,7 +323,8 @@ export class PuzzleGame {
             },
             onContinue: () => {
                 console.log("[PuzzleGame] Continuar con siguiente minijuego (por ahora: exit)");
-                this._exit();                       // método temporal para salir
+                this.onGameEnd?.();
+                //this._exit();                       // método temporal para salir
             },
             timeExpired: false                    // ganó, así que mostramos ambos botones
         });

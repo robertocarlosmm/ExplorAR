@@ -9,7 +9,6 @@ export const experiencesConfig = [
             id: "puzzle1",
             type: "puzzle3D",
             panel: "puzzle",
-            duration: 60,
             params: { grid: 3 },
             assets: [
                     { type: "image", key: "board", url: "/assets/games/Minigame1/Taquile_minijuego1.jpg" }
@@ -27,7 +26,6 @@ export const experiencesConfig = [
             id: "puzzle1",
             type: "puzzle3D",
             panel: "puzzle",
-            duration: 60,
             params: { grid: 3 },
             assets: [
                     { type: "image", key: "board", url: "/assets/games/Minigame1/vicos_minijuego1.jpg" }
@@ -45,7 +43,6 @@ export const experiencesConfig = [
             id: "puzzle1",
             type: "puzzle3D",
             panel: "puzzle",
-            duration: 60,
             params: { grid: 3 },
             assets: [
                     { type: "image", key: "board", url: "/assets/games/Minigame1/tambopata_minijuego1.jpg" }
@@ -63,7 +60,6 @@ export const experiencesConfig = [
             id: "puzzle1",
             type: "puzzle3D",
             panel: "puzzle",
-            duration: 60,
             params: { grid: 3 },
             assets: [
                     { type: "image", key: "board", url: "/assets/games/Minigame1/LomasLucumo_minijuego1.jpg" }
