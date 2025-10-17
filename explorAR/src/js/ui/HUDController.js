@@ -80,17 +80,29 @@ export class HUDController {
         // ✅ aplicar visibilidad DESPUÉS de clonar
         newContinue.classList.toggle('hidden', timeExpired);
 
+        // 💡 CORRECCIÓN CLAVE:
+        // si no está oculto por timeExpired, aseguramos su visibilidad real
+        if (!timeExpired) {
+            newContinue.style.opacity = "1";
+            newContinue.style.transform = "scale(1)";
+            newContinue.style.pointerEvents = "auto";
+        } else {
+            newContinue.style.opacity = "0";
+            newContinue.style.pointerEvents = "none";
+        }
+
         // Handlers
-        newRetry.addEventListener('click', () => {
-            popup.classList.add('hidden');
+        newRetry.addEventListener("click", () => {
+            popup.classList.add("hidden");
             onRetry?.();
         });
 
-        newContinue.addEventListener('click', () => {
-            popup.classList.add('hidden');
+        newContinue.addEventListener("click", () => {
+            popup.classList.add("hidden");
             onContinue?.();
         });
     }
+
 
 
     hideEndPopup() {

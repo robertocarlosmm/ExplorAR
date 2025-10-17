@@ -68,17 +68,16 @@ gameManager.setOnExit(() => {
 })
 
 // =========================================================
-// 5) Handlers de UI -> Nav (sin Router)
+// 5) Handlers de UI -> Nav 
 // =========================================================
 uiController.setHandlers({
-    onSelectExperience: (exp) => {
-        console.log("Seleccionado:", exp.name)
-    },
+    onSelectExperience: (exp) => console.log("Seleccionado:", exp.name),
     onContinue: async (exp) => {
-        await Nav.goExperience(exp)
+        // Se ejecuta DESPUÉS del tutorial
+        await Nav.goExperience(exp);
     },
     onBack: () => Nav.goLobby()
-})
+});
 
 // =========================================================
 // 6) Inicia la UI en modo lista (Lobby inicial)
