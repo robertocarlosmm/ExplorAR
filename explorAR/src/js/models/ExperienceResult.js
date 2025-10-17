@@ -21,4 +21,10 @@ export class ExperienceResult {
             this.stars = 0
         }
     }
+
+    updateResult(score) {
+        this.score += score;      // acumulativo por minijuego
+        this.finalize();          // recalcula estrellas si aplica
+    }
+
 }

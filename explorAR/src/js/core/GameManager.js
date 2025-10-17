@@ -3,10 +3,11 @@ import { PuzzleGame } from "../games/minigame1/PuzzleGame.js"
 import { preloadAssets } from "./assetLoader.js";
 
 export class GameManager {
-    constructor({ hud, onExit } = {}) {
+    constructor({ hud, game, onExit } = {}) {
         this.xrSession = null;
         this.hud = hud;
         this._runningGame = null;
+        this.game = game;
         this.onExit = (typeof onExit === 'function') ? onExit : () => { };
     }
 
@@ -30,14 +31,46 @@ export class GameManager {
     }
 
     //Minijuego 1: Puzzle
-    async launchPuzzle({ imageUrl, grid = 3, duration = 60 } = {}) {
-        const scene = this.xrSession?.scene
-        if (!scene) { console.warn("XR no iniciado aún"); return }
-        // cierra el juego anterior si lo hubiera
-        if (this._runningGame) { this._runningGame.dispose() }
-        this._runningGame = new PuzzleGame({ scene, hud: this.hud, grid, imageUrl })
-        await this._runningGame.start()
+    async launchPuzzle({ imageUrl, grid = 3, experienceId, minigameId } = {}) {
+        const scene = this.xrSession?.scene;
+        if (!scene) {
+            console.warn("XR no iniciado aún");
+            return;
+        }
+
+        // Asegurar limpieza de cualquier instancia previa
+        if (this._runningGame) this._runningGame.dispose();
+
+        const puzzle = new PuzzleGame({ scene, hud: this.hud, grid, imageUrl });
+
+        // callback al finalizar el minijuego
+        puzzle.onGameEnd = () => {
+            // 1. Guardar puntaje en el sistema global
+            this.game?.completeMinigame?.(puzzle.score);
+
+            // 2. Buscar el siguiente minijuego
+            const exp = this.game?.currentExperience;
+            const nextId = exp?.getNextMinigameId?.(minigameId);
+
+            if (nextId) {
+                const next = exp.getMinigameById(nextId);
+                console.log(`[GameManager] Avanzando al siguiente minijuego: ${nextId}`);
+                this.launchPuzzle({
+                    imageUrl: next.assets.find(a => a.key === "board")?.url || null,
+                    grid: next.params?.grid ?? 3,
+                    experienceId: exp.id,
+                    minigameId: nextId
+                });
+            } else {
+                console.log("[GameManager] Experiencia finalizada, volviendo al lobby.");
+                this.onExit?.();
+            }
+        };
+
+        this._runningGame = puzzle;
+        await puzzle.start();
     }
+
 
     restartCurrentMiniGame() {
         // Reinicia solo el minijuego actual

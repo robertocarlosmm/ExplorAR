@@ -3,6 +3,7 @@ import { UIController } from "./ui/UIController.js";
 import { HUDController } from "./ui/HUDController.js";
 import { experiencesConfig } from "../config/experienceConfig.js";
 import { Experience } from "./models/Experience.js";
+import { Game } from "./core/Game.js";
 
 // 1) Estructura de carga para las experiencias desde el config
 const experiences = experiencesConfig.map(cfg =>
@@ -17,9 +18,10 @@ const experiences = experiencesConfig.map(cfg =>
 )
 
 // 2) Instancias base
-const hud = new HUDController()
-const gameManager = new GameManager({ hud }) // <- sin onExit aquí (evitamos referencia circular)
-const uiController = new UIController({ experiences })
+const hud = new HUDController();
+const game = new Game(experiences);
+const gameManager = new GameManager({ hud, game }); // <- sin onExit aquí (evitamos referencia circular)
+const uiController = new UIController({ experiences });
 
 // =========================================================
 // 3) NavService: navegación simple con una sola URL
@@ -34,6 +36,7 @@ const Nav = (() => {
     const goExperience = async (exp, push = true) => {
         if (push) history.pushState({ view: "exp", expId: exp.id }, "", location.pathname)
         uiController.showGame()
+        game.selectExperience(exp.id)
         await gameManager.startExperience(exp)
         await gameManager.launchPuzzle({
             imageUrl:

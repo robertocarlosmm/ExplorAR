@@ -5,7 +5,7 @@ import { InteractionManager } from "../../input/InteractionManager.js";
 import { gameplayConfig } from "../../../config/gameplayConfig.js";
 
 export class PuzzleGame {
-    constructor({ scene, hud, grid = 3, imageUrl = null}) {
+    constructor({ scene, hud, grid = 3, imageUrl = null }) {
         this.scene = scene;
         this.hud = hud;
         this.grid = grid;
@@ -118,15 +118,16 @@ export class PuzzleGame {
             });
         });
 
-
         // HUD
         this.hud.showPanel(PuzzlePanel, {
-            onRotateLeft: () => { },  // sin rotación por ahora
+            onRotateLeft: () => { },
             onRotateRight: () => { },
             onHint: () => this._useHint()
         });
+        this.hud.setScore(0);          // 🧩 NUEVO: marcador visible en 0 al iniciar
         this.hud.setTime(this.timeLimit);
         this.hud.startTimer(this.timeLimit, null, () => this._fail());
+
     }
 
     dispose() {
@@ -363,8 +364,19 @@ export class PuzzleGame {
 
     _restart() {
         console.log("[PuzzleGame] Reiniciando minijuego...");
+
+        // Reset lógico del minijuego
+        this.score = 0;
+        this.hintsLeft = 3;
+        this.isCompleted = false;
+
+        // Reset visual del HUD
+        this.hud.setScore(0);
+        this.hud.stopTimer();
+
+        // Reconstruye escena y cronómetro
         this.dispose();
-        this.start(); // vuelve a iniciar este mismo puzzle
+        this.start();
     }
-    
+
 }
