@@ -12,7 +12,6 @@ export class UIController {
         this.btnBack = document.getElementById("btn-back")
 
         this.hud = document.getElementById("hud")
-        this.btnInfoGame1 = document.getElementById("btn-igame1")
         this.btnExit = document.getElementById("btn-exit")
 
         this.currentIndex = null
@@ -34,10 +33,6 @@ export class UIController {
 
         this.btnBack?.addEventListener("click", () => {
             this.handlers.onBack?.()
-        })
-
-        this.btnInfoGame1?.addEventListener("click", () => {
-            console.log("Botón info (i)")
         })
 
         this.btnExit?.addEventListener("click", () => {
