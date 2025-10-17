@@ -37,12 +37,16 @@ const Nav = (() => {
         if (push) history.pushState({ view: "exp", expId: exp.id }, "", location.pathname)
         uiController.showGame()
         game.selectExperience(exp.id)
-        await gameManager.startExperience(exp)
+        /*await gameManager.startExperience(exp)
         await gameManager.launchPuzzle({
             imageUrl:
                 exp?.minigames?.[0]?.assets?.find(a => a.key === "board")?.url || null,
             grid: exp?.minigames?.[0]?.grid ?? 3
-        })
+        })*/
+        ///////////////////////////////////
+        await gameManager.startExperience(exp);
+        gameManager.launchNextMinigame("minigame1");
+        ///////////////////////////////////////////
         uiController.updateHUD({ showInfo: true, showNav: true })
     }
 

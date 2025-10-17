@@ -598,3 +598,49 @@ header h1 {
   justify-content: center;
   pointer-events: auto;
 }
+
+/* ============================= */
+/* PANEL DE INFORMACIÓN - MINIJUEGO 2 */
+/* ============================= */
+
+#minigame2-info-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 2rem;
+  z-index: 20;
+  opacity: 0;
+  transform: scale(0.97);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#minigame2-info-panel.fade-in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+#minigame2-info-panel .panel-text {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  max-width: 700px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
+}
+
+#minigame2-info-panel h2 {
+  color: #ffdc7a;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+
+#minigame2-info-panel p {
+  font-size: 1.1rem;
+  line-height: 1.5;
+}

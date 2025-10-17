@@ -31,6 +31,7 @@ export class XRSession {
         // Callback al salir de XR
         this.onExitCallback =
             typeof opts.onExit === "function" ? opts.onExit : () => { };
+        this._suppressExitCb = false;
     }
 
     /** Inicializa motor y escena (sin entrar aún en XR) */
@@ -88,7 +89,7 @@ export class XRSession {
             });
             console.log("[XRSession] Pointer Selection multitouch habilitado");
 
-            /*deteccion de planos y anclaje*/
+            /* Detección de planos y anclaje */
             this.planeDetection = await setupPlaneDetection(fm);
             this.anchorSystem = await setupAnchors(fm);
 
@@ -124,13 +125,21 @@ export class XRSession {
             );
             console.log("[XRSession] Entrando a modo AR inmersivo...");
 
-            // Salida limpia
+            // ================================
+            // 🔧 Salida limpia controlada
+            // ================================
+            this._suppressExitCb = false; // flag de control
+
             this.xrHelper.baseExperience.sessionManager.onXRSessionEnded.add(() => {
                 try {
                     this.engine?.stopRenderLoop();
                     this.dispose();
                 } finally {
-                    this.onExitCallback();
+                    // Solo invocar callback si no es salida silenciosa
+                    if (!this._suppressExitCb && typeof this.onExitCallback === "function") {
+                        this.onExitCallback();
+                    }
+                    this._suppressExitCb = false; // reset siempre
                 }
             });
 
@@ -147,32 +156,36 @@ export class XRSession {
             // Log táctil de diagnóstico (multitouch)
             this.scene.onPointerObservable.add((pi) => {
                 if (pi.type === PointerEventTypes.POINTERDOWN) {
-                    console.log(
-                        `[Touch] id=${pi.event.pointerId}, tipo=${pi.event.pointerType}`
-                    );
+                    console.log(`[Touch] id=${pi.event.pointerId}, tipo=${pi.event.pointerType}`);
                 }
             });
 
             console.log("WebXR iniciado con DOM Overlay y multitouch activo");
         } catch (err) {
             console.error("Error al iniciar WebXR:", err);
-            alert(
-                "Error al iniciar la experiencia AR.\nRevisa la consola para más detalles."
-            );
+            alert("Error al iniciar la experiencia AR.\nRevisa la consola para más detalles.");
         } finally {
-            // 9ï¸âƒ£ Quitar loader siempre
+            // Quitar loader siempre
             if (loading) loading.style.display = "none";
         }
     }
 
     /** Sale de la sesión XR y limpia recursos */
-    async exit() {
+    async exit(silent = false) {
         try {
+            // Registrar si la salida debe suprimir el callback externo
+            this._suppressExitCb = !!silent;
+
+            console.log("[XRSession] Saliendo de XR...", silent ? "(silencioso)" : "");
             await this.xrHelper?.baseExperience?.exitXRAsync();
         } catch (e) {
             console.warn("Error al salir de XR:", e);
         }
+
+        // Liberar recursos gráficos
         this.dispose();
+
+        console.log("[XRSession] Recursos liberados completamente");
     }
 
     /** Libera recursos y elimina listeners */

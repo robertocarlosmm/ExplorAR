@@ -117,32 +117,42 @@ export class UIController {
     }
 
     showTutorial({ title, description, imageUrl, buttonText = "Listo", onStart }) {
-        console.log("Mostrando tutorial...");
+        console.log("[UIController] Mostrando tutorial dentro del HUD...");
+
+        // 1️⃣ Obtener contenedor seguro dentro del HUD
         let slot = document.getElementById("hud-panel-slot");
         if (!slot) {
             console.warn("[UI] #hud-panel-slot no existe; usando #hud como contenedor");
-            slot = this.hud;                                  // fallback seguro
+            slot = this.hud;
         }
 
+        // 2️⃣ Cargar y montar el panel de tutorial
         import("../panels/tutorialPanel.js").then(({ TutorialPanel }) => {
-            slot.innerHTML = TutorialPanel.template({ title, description, imageUrl, buttonText });
-            console.log("despues del slot");
+            slot.innerHTML = TutorialPanel.template({
+                title,
+                description,
+                imageUrl,
+                buttonText,
+            });
+
+            // Forzar el estilo fullscreen previsto por tu CSS
+            const panel = slot.querySelector(".panel-tutorial");
+            if (panel) {
+                panel.classList.add("panel-fullscreen"); // asegura cobertura total
+                slot.style.pointerEvents = "auto";       // permite interacción
+                slot.style.background = "transparent";   // sin fondo extra
+            }
+
+            // 3️⃣ Vincular evento del botón
             TutorialPanel.mount(slot.firstElementChild, {
                 onStart: () => {
+                    // Limpiar el tutorial al continuar
                     slot.innerHTML = "";
-                    slot.classList.remove("active");
-                    // 💡 neutraliza cualquier resto visual del slot
-                    slot.style.background = "transparent";
                     slot.style.pointerEvents = "none";
-
                     this.hud?.classList.remove("hud-active");
                     if (this.hud) this.hud.style.background = "transparent";
-
-                    onStart?.();
-                }
-
-
-
+                    onStart?.(); // continuar flujo (Nav.goExperience o siguiente minijuego)
+                },
             });
         });
     }
