@@ -124,7 +124,7 @@ export class PuzzleGame {
             onRotateRight: () => { },
             onHint: () => this._useHint()
         });
-        this.hud.setScore(0);          // 🧩 NUEVO: marcador visible en 0 al iniciar
+        this.hud.setScore(0);          // NUEVO: marcador visible en 0 al iniciar
         this.hud.setTime(this.timeLimit);
         this.hud.startTimer(this.timeLimit, null, () => this._fail());
 
@@ -268,11 +268,11 @@ export class PuzzleGame {
 
             if (isCorrect) {
                 pieceObj.locked = true; // 🔒 se bloquea (no se moverá más)
-                this._addScore(10);
+                this._addScore(gameplayConfig.scoring.puzzle3D.perPiece);
                 this.hud.message("¡Correcto!", 600);
             } else {
                 pieceObj.locked = false; // 🔓 puede volver a moverse
-                this._addScore(2);
+                this._applyPenalty();
                 this.hud.message("Encajó, pero no es el lugar correcto", 600);
             }
 
@@ -344,6 +344,19 @@ export class PuzzleGame {
     _addScore(delta) {
         this.score = Math.max(0, this.score + delta);
         this.hud.setScore(this.score);
+    }
+
+    _applyPenalty() {
+        const penaltySeconds = gameplayConfig.scoring.puzzle3D.timePenalty;
+        const penaltyPoitns = gameplayConfig.scoring.puzzle3D.pointsPenalty;
+
+        console.log(`[PuzzleGame] Penalización: -${penaltyPoitns} puntos`);
+        this._addScore(-penaltyPoitns);
+        console.log(`[PuzzleGame] Penalización: -${penaltySeconds}s`);
+        this.hud.decreaseTime(penaltySeconds);
+
+        // Opcional: pequeña animación o feedback
+        this.hud.message(`-${penaltySeconds}s`, 1000);
     }
 
     _fail() {

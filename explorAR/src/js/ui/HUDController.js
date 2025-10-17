@@ -103,6 +103,12 @@ export class HUDController {
         });
     }
 
+    // En HUDController.js
+    decreaseTime(seconds) {
+        if (!this.timerRemaining) return;
+        this.timerRemaining = Math.max(0, this.timerRemaining - seconds);
+        this.setTime(this.timerRemaining);
+    }
 
 
     hideEndPopup() {

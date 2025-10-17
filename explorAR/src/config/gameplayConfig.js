@@ -2,11 +2,12 @@ export const gameplayConfig = {
     // Reglas de puntuación por tipo de minijuego
     scoring: {
         puzzle3D: {
-            base: 200,               // puntaje fijo al completar
-            perPiece: 50,            // bonus por pieza correctamente encajada
-            timeBonusPerSec: 2,      // bonus por cada segundo sobrante
-            wrongRotationPenalty: 10,// penalización por rotación incorrecta
-            dropPenalty: 0           // penalización al soltar fuera de lugar
+            base: 90,                   // puntaje fijo al completar
+            perPiece: 10,               // bonus por pieza correctamente encajada
+            timeBonusPerSec: 1,         // bonus por cada segundo sobrante
+            pointsPenalty: 2,           // penalización por posición incorrecta
+            timePenalty: 2,             // penalización por posición incorrecta
+            dropPenalty: 0              // penalización al soltar fuera de lugar
         },
         // Aquí en el futuro puedes añadir más minijuegos:
         // trivia: { ... },
