@@ -1,3 +1,6 @@
+/* =========================================================
+  VARIABLES Y BASE
+========================================================= */
 :root {
   --bg: #f7f5e9;
   --brand: #8b3e0f;
@@ -14,7 +17,15 @@ body {
   padding: 0;
 }
 
-/* Base */
+body,
+button,
+input,
+textarea {
+  font-family: 'Inter', 'Noto Sans', 'Roboto', sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background: var(--bg);
@@ -22,8 +33,20 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
+canvas,
+#hud {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* =========================================================
+  LAYOUT PRINCIPAL
+========================================================= */
 .container {
   width: 100%;
   max-width: 480px;
@@ -62,7 +85,9 @@ header h1 {
   text-align: center;
 }
 
-/* Grid */
+/* =========================================================
+  GRID Y TARJETAS
+========================================================= */
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -75,7 +100,6 @@ header h1 {
   padding: 10px;
 }
 
-/* Tarjetas */
 .card {
   background: #000;
   border-radius: var(--radius);
@@ -115,15 +139,9 @@ header h1 {
   padding: 6px;
 }
 
-/* Footer */
-.footer-note {
-  margin-top: 12px;
-  font-size: 0.9rem;
-  color: #666;
-  text-align: center;
-}
-
-/* Pantalla detalle */
+/* =========================================================
+  PANTALLA DETALLE
+========================================================= */
 .detail-card {
   background: #000;
   border-radius: var(--radius);
@@ -148,7 +166,9 @@ header h1 {
   padding: 12px;
 }
 
-/* Botones */
+/* =========================================================
+  BOTONES Y FOOTER
+========================================================= */
 .buttons {
   display: flex;
   flex-direction: column;
@@ -184,17 +204,36 @@ header h1 {
   background: #f1e3d6;
 }
 
+.footer-note {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+}
+
 .hidden {
   display: none;
 }
 
-/*HUD*/
+/* =========================================================
+  HUD / OVERLAY AR
+========================================================= */
+#hud {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
 
-.hud {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 10;
+#hud .hud-btn,
+#hud .panel *,
+#hud button,
+#hud a,
+#hud input,
+#hud select {
+  pointer-events: auto;
 }
 
 .hud-btn {
@@ -205,6 +244,7 @@ header h1 {
   height: 48px;
   font-size: 20px;
   cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
 }
 
 .hud-btn:hover {
@@ -212,29 +252,349 @@ header h1 {
   background: rgba(80, 80, 80, 0.9);
 }
 
-#loading-screen {
-  display: none;
-  /* oculto por defecto */
+.topbar {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  position: absolute;
+  top: calc(10px + env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  padding: 0 12px;
+  justify-content: center;
+}
+
+#hud .topbar #hud-score,
+#hud .topbar #hud-timer {
+  background: rgba(255, 255, 255, 0.85);
+  /* fondo blanco semitransparente */
+  color: #000;
+  /* texto negro para contraste */
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  /* borde sutil */
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-shadow: none;
+  line-height: 1.2;
+  display: inline-block;
+}
+
+/* Espacio entre puntaje y tiempo */
+#hud .topbar #hud-score {
+  margin-right: 6px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.panel {
+  width: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 12px;
+}
+
+#hud .bottombar,
+#hud .center-msg {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+#hud .bottombar {
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+#hud .center-msg {
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
+  padding: 8px 12px;
+}
+
+#center-msg {
+  opacity: 1;
+  transition: opacity 1s ease;
+  pointer-events: none;
+}
+
+#center-msg.hidden {
+  opacity: 0;
+}
+
+.center-msg.hidden {
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.hud-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+/* =========================================================
+  CANVAS Y PANTALLA DE CARGA
+========================================================= */
+#renderCanvas {
   position: fixed;
   inset: 0;
-  /* ocupa toda la pantalla */
+  width: 100vw;
+  height: 100dvh;
+  background: transparent;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 0;
+}
+
+@supports not (height: 100dvh) {
+  #renderCanvas {
+    height: 100vh;
+  }
+}
+
+#loading-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
   background: black;
-  /* negro sólido */
   color: white;
   font-size: 1.5em;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  /* por encima de todo */
 }
 
-/*Mensaje de indicación*/
-#center-msg {
+/* =========================================================
+  POPUP DE FIN DE MINIJUEGO
+========================================================= */
+#game-end-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  pointer-events: auto;
+  animation: popup-fade-in 0.25s ease-out;
+}
+
+#game-end-popup.hidden {
+  display: none;
+}
+
+.popup-content {
+  background: var(--bg);
+  color: var(--text);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-align: center;
+  padding: 24px 28px;
+  width: 80%;
+  max-width: 320px;
+  animation: popup-scale-in 0.25s ease-out;
+}
+
+.popup-content h2 {
+  font-size: 1.4rem;
+  margin: 0 0 16px;
+  color: var(--brand);
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.popup-buttons button {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s ease;
+}
+
+/* Botones popup */
+#btn-retry {
+  background: transparent;
+  border: 2px solid var(--brand);
+  color: var(--brand);
+}
+
+#btn-retry:hover {
+  background: #f1e3d6;
+}
+
+#btn-continue,
+#btn-continue-detail {
+  background: var(--brand);
+  color: #fff;
+}
+
+#btn-continue,
+#btn-continue-detail {
+  background: #722f0c;
+}
+
+/* Popup: estado visible por defecto cuando NO tiene .hidden */
+#hud #btn-continue {
   opacity: 1;
-  transition: opacity 1s ease;
+  transform: scale(1);
+  pointer-events: auto;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-#center-msg.hidden {
+/* Popup: oculto cuando el HUDController agrega .hidden (por timeout) */
+#hud #btn-continue.hidden {
   opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+}
+
+/*Pantalla de detalle → botón siempre visible */
+#experience-detail #btn-continue-detail {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+/* Animaciones */
+@keyframes popup-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popup-scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* =========================================================
+  ACCESIBILIDAD
+========================================================= */
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* =========================================================
+  TUTORIAL PANEL (corrigido)
+========================================================= */
+#hud-panel-slot {
+  position: absolute;
+  inset: 0;
+  display: block;
+  /* no forzamos flex aquí */
+  z-index: 30;
+  /* debajo de topbar (si lo necesitas), pero suficiente para overlays */
+  background: transparent;
+  pointer-events: none;
+  /* no captura eventos si no hay panel montado */
+}
+
+.panel-tutorial {
+  position: absolute;
+  /* se posiciona dentro del HUD */
+  inset: 0;
+  /* ocupa todo el área */
+  background-color: #fffbe9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  border-radius: 0;
+  /* SIN borde redondeado global */
+  z-index: 40;
+  /* encima del HUD */
+}
+
+.tutorial-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #8b3e00;
+  margin-bottom: 1rem;
+}
+
+.tutorial-desc {
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 1.5rem;
+  max-width: 320px;
+}
+
+.tutorial-image img {
+  width: 100%;
+  max-width: 280px;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+#btn-start {
+  background-color: #8b3e00;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.8rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+#btn-start:hover {
+  background-color: #722f0c;
+}
+
+.panel.panel-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  left: auto !important;
+  bottom: auto !important;
+  padding: 0;
+  /* el propio panel decide su padding */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
 }

@@ -25,10 +25,10 @@ export class Game {
     }
 
     completeMinigame(score) {
-        if (!this.currentExperience) return
+        if (!this.currentExperience) return;
 
-        const result = this.player.getExperienceResult(this.currentExperience.id)
-        result.updateResult(score)
+        const result = this.player.getExperienceResult(this.currentExperience.id);
+        result.updateResult(score);
     }
 
     unlockIcon(iconName) {

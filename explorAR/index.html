@@ -2,14 +2,20 @@
 <html lang="es">
 
 <head>
+  <!-- Codificación y pantalla completa real -->
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+
+  <!-- Orientación fija en vertical -->
   <meta name="screen-orientation" content="portrait" />
   <meta name="x5-orientation" content="portrait" />
   <title>ExplorAR</title>
   <!-- Fuente Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet" />
 </head>
 
 <body>
@@ -42,27 +48,43 @@
       </div>
 
       <div class="buttons">
-        <button class="btn primary" id="btn-continue">Continuar</button>
+        <button class="btn primary" id="btn-continue-detail">Continuar</button>
         <button class="btn secondary" id="btn-back">Regresar</button>
       </div>
     </section>
 
-    <!-- GAME -->
+    <!-- Contenedor del juego / sesión WebXR -->
     <section id="game-container" class="screen">
+      <!-- Lienzo de render Babylon/WebXR -->
       <canvas id="renderCanvas"></canvas>
 
-      <!-- HUD AR (DOM Overlay) -->
-      <div id="hud" class="hud hidden">
+      <!-- HUD AR (DOM Overlay root único) -->
+      <div id="hud" class="hud hidden" aria-live="polite" aria-atomic="true">
+        <!-- Barra superior global (siempre visible) -->
         <div class="topbar">
-          <span id="shape-label">Esfera</span>
-          <button id="btn-exit">Salir</button>
-          <button id="btn-igame1" class="hud-btn">i</button> <!-- botón info -->
+          <span id="hud-score">PUNTOS: 0</span>
+          <span id="hud-timer">00:00</span>
+          <div class="spacer"></div>
+          <button id="btn-exit" class="hud-btn danger" title="Salir">Salir</button>
         </div>
-        <div class="center-msg" id="center-msg">Mueve el teléfono para detectar una superficie</div>
-        <div class="bottombar">
-          <button id="btn-prev">←</button>
-          <button id="btn-next">→</button>
+
+        <!-- Mensaje central (aparece/desaparece) -->
+        <div id="center-msg" class="center-msg" role="status"></div>
+
+        <!-- Aquí se monta dinámicamente el panel del minijuego activo -->
+        <div id="hud-panel-slot"></div>
+
+        <!-- POPUP -->
+        <div id="game-end-popup" class="hidden popup">
+          <div class="popup-content">
+            <h2 id="popup-score">Puntaje: 0</h2>
+            <div class="popup-buttons">
+              <button id="btn-retry">Reintentar</button>
+              <button id="btn-continue">Continuar</button>
+            </div>
+          </div>
         </div>
+        
       </div>
     </section>
 
