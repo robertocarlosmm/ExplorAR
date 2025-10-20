@@ -50,3 +50,5 @@ export function show(experienceData, onReady) {
         onReady?.();
     });
 }
+
+export const Minigame2InfoPanel = { show, hide };

@@ -42,14 +42,21 @@ export async function startEquipmentGame(gameManager) {
     // 5) Cargar el panel informativo del destino
     const { Minigame2InfoPanel } = await import("../../panels/minigame2Panel.js");
 
+    // 6) Obtener experiencia actual
     const exp =
         gameManager?.experienceManager?.currentExperience ??
-        gameManager?.game?.currentExperience ?? {
-            name: "Destino desconocido",
-            description: "Descripción no disponible.",
-        };
+        gameManager?.game?.currentExperience;
 
-    // 6) Montar el panel de tutorial con las acciones
+    //console.log("[EquipmentLauncher] Experiencia actual:", exp);
+
+    // 7) Buscar el texto "information" del minijuego 2
+    const infoText =
+        exp?.minigames
+            ?.find((m) => m.id === "equipment")
+            ?.params?.information ??
+        "No hay información disponible para este destino.";
+
+    // 8) Montar el panel de tutorial con las acciones
     TutorialPanel.mount(slot.firstElementChild, {
         onStart: () => {
             // Limpiar el slot y dejar el HUD listo
@@ -62,17 +69,17 @@ export async function startEquipmentGame(gameManager) {
             hud?.classList?.remove("hud-active");
             if (hud) hud.style.background = "transparent";
 
-            // Mostrar panel de información del destino
+            // 9) Mostrar panel de información del destino
             Minigame2InfoPanel.show(
-                { name: exp?.name, description: exp?.description },
+                {
+                    name: exp?.name,
+                    description: infoText,
+                },
                 () => {
-                    if (typeof gameManager?.initMinigame2Scene === "function") {
-                        gameManager.initMinigame2Scene();
-                    } else {
-                        console.warn(
-                            "[EquipmentLauncher] gameManager.initMinigame2Scene() no está definido."
-                        );
-                    }
+                    console.log(
+                        `[EquipmentGame] El jugador está listo para iniciar el minijuego 2 (${exp?.name}).`
+                    );
+                    // En el futuro: aquí irá gameManager.initMinigame2Scene()
                 }
             );
         },
