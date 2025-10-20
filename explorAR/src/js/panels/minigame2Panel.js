@@ -1,54 +1,60 @@
-// ui/panels/minigame2InfoPanel.js
-// -------------------------------------------------------------
-// Panel dinámico de información del destino (Minijuego 2)
-// -------------------------------------------------------------
-// Crea, muestra y destruye su propio panel en tiempo de ejecución
-// -------------------------------------------------------------
-
+// ui/panels/minigame2Panel.js
 let panel = null;
+let _savedTopbarDisplay = null;
 
-/**
- * Elimina el panel del DOM (si existe)
- */
 export function hide() {
-    if (panel) {
-        panel.classList.add("hidden");
-        setTimeout(() => panel?.remove(), 200); // Espera la transición antes de eliminar
-        panel = null;
-    }
+  // Restaurar topbar si la ocultamos
+  const topbar =
+    document.getElementById("hud-topbar") ||
+    document.querySelector("#hud .topbar");
+
+  if (topbar && _savedTopbarDisplay !== null) {
+    topbar.style.display = _savedTopbarDisplay;
+    _savedTopbarDisplay = null;
+  }
+
+  if (panel) {
+    panel.classList.add("hidden");
+    setTimeout(() => panel?.remove(), 180);
+    panel = null;
+  }
 }
 
-/**
- * Crea y muestra el panel de información del destino actual.
- * @param {{ name: string, description: string }} experienceData
- * @param {Function} onReady callback al presionar "¡Listo!"
- */
 export function show(experienceData, onReady) {
-    hide();
+  hide();
 
-    // Crear estructura del panel
-    panel = document.createElement("section");
-    panel.id = "minigame2-info-panel";
-    panel.className = "panel fade-in";
+  // 1) (Opcional pero recomendado) ocultar la topbar mientras mostramos la Info
+  const topbar =
+    document.getElementById("hud-topbar") ||
+    document.querySelector("#hud .topbar");
+  if (topbar) {
+    _savedTopbarDisplay = topbar.style.display || "";
+    topbar.style.display = "none"; // 👈 oculta PUNTOS/TIEMPO/Salir
+  }
 
-    panel.innerHTML = `
+  // 2) Contenedor fullscreen con el MISMO layout que el tutorial
+  panel = document.createElement("section");
+  panel.id = "minigame2-info-panel";
+  panel.className = "panel panel-fullscreen panel-info fade-in";
+
+  panel.innerHTML = `
     <div class="panel-text">
-        <h2>${experienceData?.name ?? "Destino desconocido"}</h2>
-        <p>${experienceData?.description ?? "Descripción no disponible."}</p>
-        <button id="btn-ready-m2" class="btn-primary">¡Listo!</button>
-        </div>
-    `;
+      <h2>${experienceData?.name ?? "Destino desconocido"}</h2>
+      <p>${experienceData?.description ?? "Descripción no disponible."}</p>
+      <button id="btn-ready-m2" class="btn-primary">¡Listo!</button>
+    </div>
+  `;
 
-    // Inyectar en el body o HUD (elige contenedor principal de panels)
-    const hud = document.getElementById("hud") ?? document.body;
-    hud.appendChild(panel);
+  // 3) Inserta en <body> para salir de stacking contexts del HUD
+  //    y asegura que esté siempre por encima.
+  document.body.appendChild(panel);
+  panel.style.zIndex = "2147483647"; // 👈 por encima de cualquier HUD
 
-    // Manejar evento de botón
-    const btnReady = panel.querySelector("#btn-ready-m2");
-    btnReady.addEventListener("click", () => {
-        hide();
-        onReady?.();
-    });
+  const btnReady = panel.querySelector("#btn-ready-m2");
+  btnReady.addEventListener("click", () => {
+    hide();
+    onReady?.();
+  });
 }
 
 export const Minigame2InfoPanel = { show, hide };
