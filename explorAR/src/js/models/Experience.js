@@ -17,6 +17,7 @@ export class Experience {
                     type: a.type,               // "image" | "texture" | "audio" | "model" ...
                     key: a.key,                // identificador único dentro del minijuego
                     url: a.url,
+                    feedback: a.feedback ?? {},
                     meta: a.meta ?? {},
                 })) : [],
             }))

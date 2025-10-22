@@ -11,18 +11,39 @@ export const experiencesConfig = [
                 panel: "puzzle",
                 params: { grid: 3 },
                 assets: [
-                        { type: "image", key: "board", url: "/assets/games/Minigame1/Taquile_minijuego1.jpg" }
-                    ]
+                    { type: "image", key: "board", url: "/assets/games/Minigame1/Taquile_minijuego1.jpg" }
+                ]
             },
             {
                 id: "equipment",
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: "Isla del Lago Titicaca (3937 m s. n. m.), reconocida por su tradición textil declarada Patrimonio de la UNESCO. El acceso es en bote desde Puno y luego una caminata de más de 500 gradas. El clima frío y la fuerte radiación exigen buena condición física, ropa abrigadora, calzado adecuado e hidratación. La visita se centra en la convivencia con familias locales y la valoración de sus costumbres."
+                    information: "Isla del Lago Titicaca (3937 m s. n. m.), reconocida por su tradición textil. El acceso es en bote desde Puno y luego una caminata de más de 500 gradas.",
+                    correctos: ["ticket_lancha", "casaca", "calzado_trekking", "protector_solar"],
+                    incorrectos: ["sandalias", "botas_caucho", "guantes_trabajo", "paraguas"],
+                    feedbacks: {
+                        ticket_lancha: "Necesitarás un pase para llegar a la isla.",
+                        casaca: "Las temperaturas son frías, conviene abrigarse.",
+                        calzado_trekking: "El recorrido incluye muchas gradas, usa calzado firme.",
+                        protector_solar: "La radiación es intensa, debes protegerte del sol."
+                    }
                 },
-                assets: []   
+                assets: [
+                    // Correctos
+                    { type: "image", key: "ticket_lancha", url: "/assets/games/Minigame2/ticket_lancha.png" },
+                    { type: "image", key: "casaca", url: "/assets/games/Minigame2/casaca.png" },
+                    { type: "image", key: "calzado_trekking", url: "/assets/games/Minigame2/calzado_trekking.png" },
+                    { type: "image", key: "protector_solar", url: "/assets/games/Minigame2/protector_solar.png" },
+
+                    // Incorrectos
+                    { type: "image", key: "sandalias", url: "/assets/games/Minigame2/sandalias.png" },
+                    { type: "image", key: "botas_caucho", url: "/assets/games/Minigame2/botas_caucho.png" },
+                    { type: "image", key: "guantes_trabajo", url: "/assets/games/Minigame2/guantes_trabajo.png" },
+                    { type: "image", key: "paraguas", url: "/assets/games/Minigame2/paraguas.png" }
+                ]
             }
+
         ]
     },
     {
@@ -37,23 +58,43 @@ export const experiencesConfig = [
                 panel: "puzzle",
                 params: { grid: 3 },
                 assets: [
-                        { type: "image", key: "board", url: "/assets/games/Minigame1/vicos_minijuego1.jpg" }
-                    ]
+                    { type: "image", key: "board", url: "/assets/games/Minigame1/vicos_minijuego1.jpg" }
+                ]
             },
             {
                 id: "equipment",
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: "Comunidad andina en Áncash con turismo vivencial coordinado con la Asociación Cuyayqui Wayi; estadía en casas familiares de servicios básicos y participación en faenas agrícolas y caminatas en terreno irregular. La iluminación nocturna es no uniforme en la zona y las noches son frías, por lo que la planificación y la coordinación previas son parte de la experiencia."
+                    information: "Comunidad andina en Áncash, con turismo vivencial en el Callejón de Huaylas.",
+                    correctos: ["comunicacion", "bolsa_dormir", "linterna", "baston_trekking"],
+                    incorrectos: ["sandalias", "vinoculares", "protector_solar", "poncho_impermeable"],
+                    feedbacks: {
+                        comunicacion: "Conviene estar en contacto con la comunidad local.",
+                        bolsa_dormir: "Pasarás la noche en condiciones sencillas, algo para dormir será útil.",
+                        linterna: "La iluminación no siempre está disponible, podrías necesitar luz.",
+                        baston_trekking: "El terreno es irregular, algo de apoyo te ayudará a avanzar."
+                    }
                 },
-                assets: []    
+                assets: [
+                    // Correctos
+                    { type: "image", key: "comunicacion", url: "/assets/games/Minigame2/comunicacion.png" },
+                    { type: "image", key: "bolsa_dormir", url: "/assets/games/Minigame2/bolsa_de_dormir.png" },
+                    { type: "image", key: "linterna", url: "/assets/games/Minigame2/linterna.png" },
+                    { type: "image", key: "baston_trekking", url: "/assets/games/Minigame2/baston_trekking.png" },
+
+                    // Incorrectos
+                    { type: "image", key: "sandalias", url: "/assets/games/Minigame2/sandalias.png" },
+                    { type: "image", key: "vinoculares", url: "/assets/games/Minigame2/vinoculares.png" },
+                    { type: "image", key: "protector_solar", url: "/assets/games/Minigame2/protector_solar.png" },
+                    { type: "image", key: "poncho_impermeable", url: "/assets/games/Minigame2/poncho_impermeable.png" }
+                ]
             }
         ]
     },
     {
         id: "tambopata",
-        name: "Tambopata",
+        name: "Corredor Ecoturístico Tambopata",
         image: "/assets/images/tambopata_foto.jpg",
         description: "Reserva amazónica del Madre de Dios, con gran biodiversidad.",
         minigames: [
@@ -63,18 +104,39 @@ export const experiencesConfig = [
                 panel: "puzzle",
                 params: { grid: 3 },
                 assets: [
-                        { type: "image", key: "board", url: "/assets/games/Minigame1/tambopata_minijuego1.jpg" }
-                    ]
+                    { type: "image", key: "board", url: "/assets/games/Minigame1/tambopata_minijuego1.jpg" }
+                ]
             },
             {
                 id: "equipment",
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: "Destino amazónico cercano a Puerto Maldonado, al que se accede en pocos minutos desde la ciudad y con traslados que combinan tramos fluviales y caminatas por senderos húmedos. El clima es lluvioso y caluroso, con abundante presencia de mosquitos. La experiencia incluye guías locales, observación responsable de fauna, convivencia con comunidades amazónicas y actividades de aventura como zipline."
+                    information: "Corredor Ecoturístico Tambopata, zona selvática con abundante fauna, lluvias frecuentes y traslado fluvial.",
+                    correctos: ["ticket", "botas_caucho", "repelente", "poncho_impermeable"],
+                    incorrectos: ["casaca", "bufanda", "guantes_trabajo", "bolsa_dormir"],
+                    feedbacks: {
+                        ticket: "Necesitarás un pase para el transporte fluvial.",
+                        botas_caucho: "El terreno es húmedo y fangoso, las botas te serán útiles.",
+                        repelente: "En la selva abundan mosquitos, protégete de ellos.",
+                        poncho_impermeable: "Las lluvias son frecuentes, te conviene llevar protección."
+                    }
                 },
-                assets: []
+                assets: [
+                    // Correctos
+                    { type: "image", key: "ticket", url: "/assets/games/Minigame2/ticket.png" },
+                    { type: "image", key: "botas_caucho", url: "/assets/games/Minigame2/botas_caucho.png" },
+                    { type: "image", key: "repelente", url: "/assets/games/Minigame2/repelente.png" },
+                    { type: "image", key: "poncho_impermeable", url: "/assets/games/Minigame2/poncho_impermeable.png" },
+
+                    // Incorrectos
+                    { type: "image", key: "casaca", url: "/assets/games/Minigame2/casaca.png" },
+                    { type: "image", key: "bufanda", url: "/assets/games/Minigame2/bufanda.png" },
+                    { type: "image", key: "guantes_trabajo", url: "/assets/games/Minigame2/guantes_trabajo.png" },
+                    { type: "image", key: "bolsa_dormir", url: "/assets/games/Minigame2/bolsa_de_dormir.png" }
+                ]
             }
+
         ]
     },
     {
@@ -89,18 +151,38 @@ export const experiencesConfig = [
                 panel: "puzzle",
                 params: { grid: 3 },
                 assets: [
-                        { type: "image", key: "board", url: "/assets/games/Minigame1/LomasLucumo_minijuego1.jpg" }
-                    ]
+                    { type: "image", key: "board", url: "/assets/games/Minigame1/LomasLucumo_minijuego1.jpg" }
+                ]
             },
             {
                 id: "equipment",
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: "Área natural cercana a Lima que se cubre de vegetación durante la temporada de lomas, usualmente entre agosto y diciembre, aunque puede variar según el clima de cada año. El ingreso es regulado por la comunidad y el recorrido implica senderos empinados, caminatas largas y fuerte radiación solar, lo que exige buena preparación física. La experiencia se complementa con guías locales y talleres ambientales que promueven la conservación del entorno."
+                    information: "Lomas de Lúcumo, zona árida al sur de Lima, ideal para caminatas y observación natural durante los meses secos.",
+                    correctos: ["ticket", "calzado_trekking", "protector_solar", "termo_agua"],
+                    incorrectos: ["botas_caucho", "poncho_impermeable", "bufanda", "casaca"],
+                    feedbacks: {
+                        ticket: "El ingreso requiere un boleto, no olvides llevarlo.",
+                        calzado_trekking: "Los senderos son empinados, usa calzado firme.",
+                        protector_solar: "El sol es intenso, protégelo con bloqueador y gorra.",
+                        termo_agua: "Necesitarás mantenerte hidratado durante la caminata."
+                    }
                 },
-                assets: []
+                assets: [
+                    // Correctos
+                    { type: "image", key: "ticket", url: "/assets/games/Minigame2/ticket.png" },
+                    { type: "image", key: "calzado_trekking", url: "/assets/games/Minigame2/calzado_trekking.png" },
+                    { type: "image", key: "protector_solar", url: "/assets/games/Minigame2/protector_solar.png" },
+                    { type: "image", key: "termo_agua", url: "/assets/games/Minigame2/termo_agua.png" },
+
+                    // Incorrectos
+                    { type: "image", key: "botas_caucho", url: "/assets/games/Minigame2/botas_caucho.png" },
+                    { type: "image", key: "poncho_impermeable", url: "/assets/games/Minigame2/poncho_impermeable.png" },
+                    { type: "image", key: "bufanda", url: "/assets/games/Minigame2/bufanda.png" },
+                    { type: "image", key: "casaca", url: "/assets/games/Minigame2/casaca.png" }
+                ]
             }
         ]
-    } 
+    }
 ]
