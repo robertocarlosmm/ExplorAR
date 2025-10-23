@@ -3,7 +3,7 @@
 // Launcher del Minijuego 2: "Preparación y equipamiento"
 // Reutiliza la misma lógica de tutorial del minijuego 1.
 // ------------------------------------------------------
-
+import { EquipmentGame } from "./EquipmentGame.js";
 /**
  * Lanza el flujo completo del Minijuego 2.
  * @param {GameManager} gameManager
@@ -50,6 +50,7 @@ export async function startEquipmentGame(gameManager) {
     //console.log("[EquipmentLauncher] Experiencia actual:", exp);
 
     // 7) Buscar el texto "information" del minijuego 2
+    const minigameData = exp?.minigames?.find((m) => m.id === "equipment");
     const infoText =
         exp?.minigames
             ?.find((m) => m.id === "equipment")
@@ -75,11 +76,41 @@ export async function startEquipmentGame(gameManager) {
                     name: exp?.name,
                     description: infoText,
                 },
-                () => {
-                    console.log(
-                        `[EquipmentGame] El jugador está listo para iniciar el minijuego 2 (${exp?.name}).`
-                    );
-                    // En el futuro: aquí irá gameManager.initMinigame2Scene()
+                async () => {
+                    console.log("[EquipmentLauncher] ✅ Jugador listo. Iniciando XR...");
+
+                    // ✅ INICIAR SESIÓN XR
+                    await gameManager.startExperience(exp);
+
+                    // ✅ CREAR INSTANCIA DEL JUEGO
+                    const equipment = new EquipmentGame({
+                        scene: gameManager.xrSession?.scene,
+                        hud: gameManager.hud,
+                        params: minigameData?.params
+                    });
+
+                    // ✅ CONECTAR onGameEnd
+                    equipment.onGameEnd = async () => {
+                        console.log("[EquipmentLauncher] 🎮 Juego terminado. Cerrando XR...");
+
+                        await gameManager.closeXRSession();
+                        await new Promise(r => setTimeout(r, 150));
+
+                        // Buscar siguiente minijuego
+                        const nextId = exp?.getNextMinigameId?.("equipment") ?? null;
+
+                        if (nextId) {
+                            console.log(`[EquipmentLauncher] ➡️ Avanzando a: ${nextId}`);
+                            gameManager.launchNextMinigame(nextId);
+                        } else {
+                            console.log("[EquipmentLauncher] 🏁 Experiencia completa. Volviendo al lobby.");
+                            gameManager.onExit?.();
+                        }
+                    };
+
+                    console.log("[EquipmentLauncher] 🚀 Llamando a equipment.start()...");
+                    await equipment.start();
+                    
                 }
             );
         },

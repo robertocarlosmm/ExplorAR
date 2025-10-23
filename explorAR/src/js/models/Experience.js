@@ -28,8 +28,14 @@ export class Experience {
     getMinigame(i = 0) { return this.minigames[i] ?? null; }
     getMinigameById(id) { return this.minigames.find(m => m.id === id) ?? null; }
     getNextMinigameId(currentId) {
-        const i = this.minigames.findIndex(m => m.id === currentId);
-        return (i >= 0 && i + 1 < this.minigames.length) ? this.minigames[i + 1].id : null;
+        const currentIndex = this.minigames.findIndex(m => m.id === currentId);
+        
+        // Si no se encuentra o es el último, retornar null
+        if (currentIndex === -1 || currentIndex >= this.minigames.length - 1) {
+            return null;
+        }
+        
+        return this.minigames[currentIndex + 1].id;
     }
 
     // Helpers de assets
