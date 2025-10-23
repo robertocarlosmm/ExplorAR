@@ -19,7 +19,8 @@ export const experiencesConfig = [
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: "Isla del Lago Titicaca (3937 m s. n. m.), reconocida por su tradición textil. El acceso es en bote desde Puno y luego una caminata de más de 500 gradas.",
+                    information: 
+                    "Isla del Lago Titicaca (3937 m s. n. m.), reconocida por su tradición textil declarada Patrimonio de la UNESCO. El acceso es en bote desde Puno y luego una caminata de más de 500 gradas. El clima frío y la fuerte radiación exigen buena condición física, ropa abrigadora, calzado adecuado e hidratación. La visita se centra en la convivencia con familias locales y la valoración de sus costumbres.",
                     correctos: ["ticket_lancha", "casaca", "calzado_trekking", "protector_solar"],
                     incorrectos: ["sandalias", "botas_caucho", "guantes_trabajo", "paraguas"],
                     feedbacks: {
@@ -66,7 +67,8 @@ export const experiencesConfig = [
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: "Comunidad andina en Áncash, con turismo vivencial en el Callejón de Huaylas.",
+                    information: 
+                    "Comunidad andina en Áncash con turismo vivencial coordinado con la Asociación Cuyayqui Wayi; estadía en casas familiares de servicios básicos y participación en faenas agrícolas y caminatas en terreno irregular. La iluminación nocturna es no uniforme en la zona y las noches son frías, por lo que la planificación y la coordinación previas son parte de la experiencia.",
                     correctos: ["comunicacion", "bolsa_dormir", "linterna", "baston_trekking"],
                     incorrectos: ["sandalias", "vinoculares", "protector_solar", "poncho_impermeable"],
                     feedbacks: {
@@ -112,7 +114,8 @@ export const experiencesConfig = [
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: "Corredor Ecoturístico Tambopata, zona selvática con abundante fauna, lluvias frecuentes y traslado fluvial.",
+                    information: 
+                    "Destino amazónico cercano a Puerto Maldonado, al que se accede en pocos minutos desde la ciudad y con traslados que combinan tramos fluviales y caminatas por senderos húmedos. El clima es lluvioso y caluroso, con abundante presencia de mosquitos. La experiencia incluye guías locales, observación responsable de fauna, convivencia con comunidades amazónicas y actividades de aventura como zipline.",
                     correctos: ["ticket", "botas_caucho", "repelente", "poncho_impermeable"],
                     incorrectos: ["casaca", "bufanda", "guantes_trabajo", "bolsa_dormir"],
                     feedbacks: {
@@ -159,7 +162,8 @@ export const experiencesConfig = [
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: "Lomas de Lúcumo, zona árida al sur de Lima, ideal para caminatas y observación natural durante los meses secos.",
+                    information: 
+                    "Área natural cercana a Lima que se cubre de vegetación durante la temporada de lomas, usualmente entre agosto y diciembre, aunque puede variar según el clima de cada año. El ingreso es regulado por la comunidad y el recorrido implica senderos empinados, caminatas largas y fuerte radiación solar, lo que exige buena preparación física. La experiencia se complementa con guías locales y talleres ambientales que promueven la conservación del entorno.",
                     correctos: ["ticket", "calzado_trekking", "protector_solar", "termo_agua"],
                     incorrectos: ["botas_caucho", "poncho_impermeable", "bufanda", "casaca"],
                     feedbacks: {

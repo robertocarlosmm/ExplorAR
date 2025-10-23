@@ -10,7 +10,11 @@ export const gameplayConfig = {
             dropPenalty: 0              // penalización al soltar fuera de lugar
         },
         // Aquí en el futuro puedes añadir más minijuegos:
-        // trivia: { ... },
+        equipment: { 
+            base: 60,                   // puntaje fijo al completar
+            timeBonusPerSec: 2,         // bonus por cada segundo sobrante
+            dropPenalty: 0 
+        },
         // matching: { ... }
     },
 
@@ -22,6 +26,33 @@ export const gameplayConfig = {
         three: 3000,  // 3 estrellas si score total >= 3000
         two: 2000,    // 2 estrellas si score total >= 2000
         one: 1        // 1 estrella si score total >= 1
+    },
+
+    minigames: {
+        minigame1: {
+            tutorialTitle: "Descubre el lugar oculto",
+            tutorialDesc: "Mueve las piezas para ver la imagen oculta",
+            tutorialImage: "/assets/tutorial/minigame1Tutorial.png",
+            showInfoPanel: false, // Este NO usa panel de información
+        },
+        minigame2: {
+            tutorialTitle: "Prepárate antes de viajar",
+            tutorialDesc: "Elige bien tu equipamiento. Conoce el contexto para no olvidar nada.",
+            tutorialImage: "/assets/tutorial/minigame2Tutorial.png",
+            showInfoPanel: true, // Este SÍ usa panel de información
+        },
+        minigame3: {
+            tutorialTitle: "Título del minijuego 3",
+            tutorialDesc: "Descripción...",
+            tutorialImage: "/assets/tutorial/minigame3Tutorial.png",
+            showInfoPanel: false,
+        },
+        minigame4: {
+            tutorialTitle: "Título del minijuego 4",
+            tutorialDesc: "Descripción...",
+            tutorialImage: "/assets/tutorial/minigame4Tutorial.png",
+            showInfoPanel: true,
+        }
     },
 
     // Textos genéricos de interfaz (pueden reutilizarse en varios minijuegos)
