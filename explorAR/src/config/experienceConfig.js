@@ -31,6 +31,9 @@ export const experiencesConfig = [
                     }
                 },
                 assets: [
+                    //mochila
+                    { type: "model", key: "backpack", url: "/assets/games/Minigame2/backpack.glb" },
+
                     // Correctos
                     { type: "image", key: "ticket_lancha", url: "/assets/games/Minigame2/ticket_lancha.png" },
                     { type: "image", key: "casaca", url: "/assets/games/Minigame2/casaca.png" },
@@ -79,6 +82,9 @@ export const experiencesConfig = [
                     }
                 },
                 assets: [
+                    //mochila
+                    { type: "model", key: "backpack", url: "/assets/games/Minigame2/backpack.glb" },
+
                     // Correctos
                     { type: "image", key: "comunicacion", url: "/assets/games/Minigame2/comunicacion.png" },
                     { type: "image", key: "bolsa_dormir", url: "/assets/games/Minigame2/bolsa_de_dormir.png" },
@@ -126,6 +132,9 @@ export const experiencesConfig = [
                     }
                 },
                 assets: [
+                    //mochila
+                    { type: "model", key: "backpack", url: "/assets/games/Minigame2/backpack.glb" },
+
                     // Correctos
                     { type: "image", key: "ticket", url: "/assets/games/Minigame2/ticket.png" },
                     { type: "image", key: "botas_caucho", url: "/assets/games/Minigame2/botas_caucho.png" },
@@ -174,6 +183,9 @@ export const experiencesConfig = [
                     }
                 },
                 assets: [
+                    //mochila
+                    { type: "model", key: "backpack", url: "/assets/games/Minigame2/backpack.glb" },
+                    
                     // Correctos
                     { type: "image", key: "ticket", url: "/assets/games/Minigame2/ticket.png" },
                     { type: "image", key: "calzado_trekking", url: "/assets/games/Minigame2/calzado_trekking.png" },

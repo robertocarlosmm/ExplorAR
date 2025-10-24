@@ -1,134 +1,181 @@
-// src/js/games/minigame2/EquipmentGame.js
-import { MeshBuilder, StandardMaterial, Color3, Vector3 } from "@babylonjs/core";
-import { gameplayConfig } from "../../../config/gameplayConfig.js";
+import {
+    SceneLoader,
+    Vector3,
+    Color3,
+    MeshBuilder,
+    StandardMaterial,
+    Texture,
+    ActionManager,
+    ExecuteCodeAction
+} from "@babylonjs/core";
+
+import { experienceConfig } from "../config/experienceConfig";
+import { InteractionManager } from "../managers/InteractionManager";
 
 export class EquipmentGame {
-    constructor({ scene, hud, params }) {
+    constructor(scene, xr, hud) {
         this.scene = scene;
+        this.xr = xr;
         this.hud = hud;
-        this.params = params;
-
+        this.assets = experienceConfig.minigame2.assets;
+        this.interactionManager = new InteractionManager(scene, xr);
+        this.equipment = [];
+        this.slots = [];
+        this.occupiedSlots = Array(4).fill(null);
         this.score = 0;
-        this.timeLimit = gameplayConfig.timeSequence[1] || 45; // 45 segundos
-
-        this.testCube = null;
-        this.onGameEnd = null;
+        this.timeLimit = 60;
     }
 
     async start() {
-        console.log("[EquipmentGame] 🎮 Iniciando minijuego 2 (PRUEBA)...");
+        await this._loadBackpack();
+        this._createSlots();
+        this._createEquipmentIcons();
+        this.hud.startTimer(this.timeLimit, null, () => this._onTimeUp());
+    }
 
-        // ✅ ESPERAR A QUE LA CÁMARA ESTÉ DISPONIBLE
-        let cam = this.scene.activeCamera;
-        let attempts = 0;
+    async _loadBackpack() {
+        const backpackUrl = this.assets.backpack;
+        await SceneLoader.AppendAsync(backpackUrl, "", this.scene);
+        const backpackMesh = this.scene.meshes[this.scene.meshes.length - 1];
+        backpackMesh.scaling = new Vector3(0.5, 0.5, 0.5);
+        backpackMesh.position = new Vector3(0, 0.8, 1.2);
+        backpackMesh.rotation = new Vector3(0, Math.PI, 0);
+    }
 
-        while (!cam && attempts < 50) {
-            console.log("[EquipmentGame] ⏳ Esperando cámara activa...");
-            await new Promise(r => setTimeout(r, 100)); // esperar 100ms
-            cam = this.scene.activeCamera;
-            attempts++;
+    _createSlots() {
+        const startX = -0.3;
+        const gap = 0.2;
+
+        for (let i = 0; i < 4; i++) {
+            const slot = MeshBuilder.CreatePlane(`slot_${i}`, { size: 0.2 }, this.scene);
+            slot.position = new Vector3(startX + i * gap, 1.0, 1.0);
+            slot.rotation = new Vector3(Math.PI / 2, 0, 0);
+            slot.isVisible = false; // no render, used for placement
+            this.slots.push(slot);
         }
+    }
 
-        if (!cam) {
-            console.error("[EquipmentGame] ❌ No se pudo obtener la cámara activa. Usando posición fija.");
-            // Crear cubo en posición fija si no hay cámara
-            this.testCube = MeshBuilder.CreateBox("test-cube", { size: 0.3 }, this.scene);
-            this.testCube.position.set(0, 0, 1.5);
+    _createEquipmentIcons() {
+        const equipmentList = this.assets.equipment;
+        const correctItems = ["boots", "canteen", "firstAidKit", "jacket"];
+        const startX = -0.6;
+        const gap = 0.3;
+
+        equipmentList.forEach((item, index) => {
+            const plane = MeshBuilder.CreatePlane(`equipment_${index}`, { size: 0.2 }, this.scene);
+            const mat = new StandardMaterial(`mat_${index}`, this.scene);
+            mat.diffuseTexture = new Texture(item.url, this.scene);
+            mat.diffuseTexture.hasAlpha = true;
+            mat.backFaceCulling = false;
+            mat.emissiveColor = Color3.White();
+            plane.material = mat;
+            plane.position = new Vector3(startX + index * gap, 1, 0.5);
+            plane.rotation = new Vector3(Math.PI / 2, 0, 0);
+            plane.originalPosition = plane.position.clone();
+            plane.slotIndex = null;
+            plane.correct = correctItems.includes(item.name);
+            plane.actionManager = new ActionManager(this.scene);
+
+            plane.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickDownTrigger, () => {
+                this.interactionManager.pick(plane);
+            }));
+
+            plane.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickUpTrigger, () => {
+                this._onDrop(plane);
+            }));
+
+            this.equipment.push(plane);
+        });
+    }
+
+    _onDrop(piece) {
+        const slotIndex = this._findNearestSlot(piece.position);
+
+        if (slotIndex !== -1 && !this.occupiedSlots[slotIndex]) {
+            if (piece.slotIndex !== null) {
+                this.occupiedSlots[piece.slotIndex] = null;
+            }
+
+            piece.position = this.slots[slotIndex].position.clone();
+            piece.slotIndex = slotIndex;
+            this.occupiedSlots[slotIndex] = piece;
         } else {
-            console.log("[EquipmentGame] ✅ Cámara activa obtenida:", cam.name);
-
-            // Crear cubo frente a la cámara
-            const forward = cam.getForwardRay(1.0).direction;
-            const cubePos = cam.position.add(forward.scale(1.5));
-            cubePos.y -= 0.2;
-
-            this.testCube = MeshBuilder.CreateBox("test-cube", { size: 0.3 }, this.scene);
-            this.testCube.position.copyFrom(cubePos);
+            if (piece.slotIndex !== null) {
+                this.occupiedSlots[piece.slotIndex] = null;
+                piece.slotIndex = null;
+            }
+            piece.position = piece.originalPosition.clone();
         }
 
-        // Material colorido para que sea visible
-        const mat = new StandardMaterial("cube-mat", this.scene);
-        mat.diffuseColor = new Color3(0.2, 0.8, 0.3); // Verde brillante
-        mat.specularColor = new Color3(0.1, 0.1, 0.1);
-        this.testCube.material = mat;
+        const total = this.occupiedSlots.filter(Boolean).length;
+        if (total === 4) {
+            setTimeout(() => this._evaluate(), 500);
+        }
+    }
 
-        console.log("[EquipmentGame] ✅ Cubo creado en:", this.testCube.position);
-        console.log("[EquipmentGame] 📦 Cubo info:", {
-            position: this.testCube.position,
-            isVisible: this.testCube.isVisible,
-            isEnabled: this.testCube.isEnabled(),
-            hasParent: !!this.testCube.parent,
-            material: !!this.testCube.material
+    _findNearestSlot(pos) {
+        let minDist = Infinity;
+        let bestIndex = -1;
+
+        this.slots.forEach((slot, index) => {
+            const dist = Vector3.Distance(slot.position, pos);
+            if (dist < 0.15 && dist < minDist) {
+                minDist = dist;
+                bestIndex = index;
+            }
         });
 
-        // 2️⃣ Configurar HUD (reutiliza el del index.html)
-        this.hud.setScore(0);
-        this.hud.setTime(this.timeLimit);
-        this.hud.clearPanel(); // Sin panel específico por ahora
-
-        // 3️⃣ Iniciar timer
-        this.hud.startTimer(this.timeLimit, null, () => this._onTimeUp());
-
-        // 4️⃣ Simular victoria automática después de 5 segundos (solo para prueba)
-        setTimeout(() => {
-            console.log("[EquipmentGame] 🎉 Victoria automática (prueba)");
-            this._onWin();
-        }, 5000);
+        return bestIndex;
     }
 
-    dispose() {
-        console.log("[EquipmentGame] 🧹 Limpiando recursos...");
-        this.hud?.stopTimer();
-        this.testCube?.dispose();
-        this.testCube = null;
+    _evaluate() {
+        let correct = 0;
+        this.occupiedSlots.forEach(piece => {
+            if (piece && piece.correct) {
+                correct++;
+            } else if (piece) {
+                piece.material.emissiveColor = new Color3(1, 0, 0);
+            }
+        });
+
+        if (correct === 4) {
+            this._win();
+        }
     }
 
-    _onWin() {
+    _win() {
         this.hud.stopTimer();
-
-        // Sumar puntos de prueba
-        this.score = 150;
-        this.hud.setScore(this.score);
-
-        console.log("[EquipmentGame] ✅ Mostrando popup de victoria");
-
+        this.score = 100;
         this.hud.showEndPopup({
             score: this.score,
-            onRetry: () => {
-                console.log("[EquipmentGame] 🔄 Reintentar");
-                this._restart();
-            },
-            onContinue: () => {
-                console.log("[EquipmentGame] ➡️ Continuar al siguiente minijuego");
-                this.dispose();
-                this.onGameEnd?.();
-            },
+            onRetry: () => this._restart(),
+            onContinue: null,
             timeExpired: false
         });
     }
 
     _onTimeUp() {
         this.hud.stopTimer();
-        console.log("[EquipmentGame] ⏰ Tiempo agotado");
-
         this.hud.showEndPopup({
             score: this.score,
-            onRetry: () => {
-                console.log("[EquipmentGame] 🔄 Reintentar tras perder");
-                this._restart();
-            },
+            onRetry: () => this._restart(),
             onContinue: null,
             timeExpired: true
         });
     }
 
     _restart() {
-        console.log("[EquipmentGame] 🔄 Reiniciando minijuego 2...");
-        this.score = 0;
-        this.hud.setScore(0);
-        this.hud.stopTimer();
-
         this.dispose();
         this.start();
+    }
+
+    dispose() {
+        this.equipment.forEach(mesh => mesh.dispose());
+        this.slots.forEach(slot => slot.dispose());
+        this.hud.stopTimer();
+        this.equipment = [];
+        this.slots = [];
+        this.occupiedSlots = Array(4).fill(null);
+        this.score = 0;
     }
 }

@@ -730,3 +730,161 @@ header h1 {
   background-color: #f7f5e9;
   transform: scale(1.05);
 }
+
+/*
+/////////MINIGAME 2///////////
+*/
+/*
+.item-icon-wrapper {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 8px;
+  border: 3px solid transparent;
+  display: inline-block;
+}
+
+.item-icon-wrapper.selected {
+  border-color: limegreen;
+}
+
+.item-icon-wrapper.incorrect {
+  border-color: red;
+}
+
+.item-icon {
+  width: 100%;
+  height: auto;
+  cursor: pointer;
+}
+
+.deselect-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.feedback-panel {
+  list-style: none;
+  margin-top: 12px;
+  padding: 0;
+  font-size: 14px;
+  color: white;
+}
+
+.equipment-ui {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+
+.equipment-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 12px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.equipment-header h2 {
+  margin: 0;
+}
+
+.equipment-backpack {
+  background: url('/assets/games/Minigame2/mochila.png') no-repeat center;
+  background-size: contain;
+  width: 150px;
+  height: 220px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  gap: 6px;
+}
+
+.slot {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selection-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.item-wrapper {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border: 3px solid transparent;
+  border-radius: 8px;
+  background: white;
+}
+
+.item-wrapper.selected {
+  border-color: limegreen;
+}
+
+.item-wrapper.wrong {
+  border-color: red;
+}
+
+.item-wrapper img {
+  width: 100%;
+  height: auto;
+}
+
+.remove-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  cursor: pointer;
+  display: none;
+}
+
+.feedback-list {
+  margin: 0;
+  padding: 8px;
+  font-size: 14px;
+  list-style: disc inside;
+  max-width: 90%;
+  color: white;
+}
+
+.ready-btn {
+  background: orange;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+}
+  */
