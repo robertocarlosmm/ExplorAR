@@ -1,155 +1,305 @@
+// EquipmentGame.js (versión mejorada con sistema de encaje tipo puzzle y depuración completa)
+import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import "@babylonjs/loaders";
 import {
-    SceneLoader,
+    TransformNode,
     Vector3,
-    Color3,
-    MeshBuilder,
     StandardMaterial,
     Texture,
+    Color3,
+    MeshBuilder,
     ActionManager,
-    ExecuteCodeAction
+    ExecuteCodeAction,
+    Animation,
+    EasingFunction,
+    SineEase
 } from "@babylonjs/core";
-
-import { experienceConfig } from "../config/experienceConfig";
-import { InteractionManager } from "../managers/InteractionManager";
+import { gameplayConfig } from "../../../config/gameplayConfig.js";
+import { experiencesConfig } from "../../../config/experienceConfig.js";
 
 export class EquipmentGame {
-    constructor(scene, xr, hud) {
+    constructor({ scene, hud, correctKeys, incorrectKeys, feedbacks, assetMap, experienceId }) {
         this.scene = scene;
-        this.xr = xr;
         this.hud = hud;
-        this.assets = experienceConfig.minigame2.assets;
-        this.interactionManager = new InteractionManager(scene, xr);
-        this.equipment = [];
+        this.correctKeys = correctKeys;
+        this.incorrectKeys = incorrectKeys;
+        this.feedbacks = feedbacks;
+        this.assetMap = assetMap;
+        this.experienceId = experienceId;
+
+        this.backpack = null;
+        this.pieces = [];
         this.slots = [];
-        this.occupiedSlots = Array(4).fill(null);
+        this.timeLimit = gameplayConfig.timeSequence[1] || 45;
         this.score = 0;
-        this.timeLimit = 60;
+        this.onGameEnd = null;
+        this._draggedPiece = null;
+
+        // Configuración de plano vertical compartido
+        this._planeZ = 0.7;
+        this._slotYOff = 0.2;
+        this._itemsYOff = 0.18;
     }
 
     async start() {
-        await this._loadBackpack();
-        this._createSlots();
-        this._createEquipmentIcons();
+        console.log("[EquipmentGame] Iniciando minijuego de equipamiento...");
+
+        this.hud.setScore(0);
+        this.hud.setTime(this.timeLimit);
         this.hud.startTimer(this.timeLimit, null, () => this._onTimeUp());
+
+        await this._loadBackpack();
+        if (!this.backpack) {
+            console.error("[EquipmentGame] No se pudo cargar la mochila.");
+            return;
+        }
+
+        this._createSlots();
+        this._spawnItems();
+        this._trackDragging();
     }
 
     async _loadBackpack() {
-        const backpackUrl = this.assets.backpack;
-        await SceneLoader.AppendAsync(backpackUrl, "", this.scene);
-        const backpackMesh = this.scene.meshes[this.scene.meshes.length - 1];
-        backpackMesh.scaling = new Vector3(0.5, 0.5, 0.5);
-        backpackMesh.position = new Vector3(0, 0.8, 1.2);
-        backpackMesh.rotation = new Vector3(0, Math.PI, 0);
+        const experience = experiencesConfig.find(e => e.id === this.experienceId);
+        const backpackAsset = experience?.minigames?.find(m => m.id === "equipment")?.assets?.find(a => a.key === "backpack");
+        if (!backpackAsset?.url) {
+            console.warn("[EquipmentGame] No se encontró la URL de 'backpack'.");
+            return;
+        }
+
+        console.log("[EquipmentGame] Cargando modelo de mochila:", backpackAsset.url);
+        await SceneLoader.AppendAsync(backpackAsset.url, "", this.scene);
+
+        this.backpack = new TransformNode("BackpackNode", this.scene);
+        this.scene.meshes.forEach(mesh => {
+            if (!mesh.parent && mesh !== this.backpack) mesh.parent = this.backpack;
+        });
+
+        this.backpack.position = new Vector3(0, 1.0, this._planeZ);
+        this.backpack.scaling = new Vector3(0.6, 0.6, 0.6);
+
+        console.log("[EquipmentGame] Mochila posicionada en:", this.backpack.position);
     }
 
     _createSlots() {
-        const startX = -0.3;
-        const gap = 0.2;
+        const origin = this.backpack.position.clone();
+        const gapX = 0.13;
+        const baseY = origin.y + this._slotYOff;
+        const baseZ = this._planeZ;
+
+        console.log("[EquipmentGame] Creando slots de equipamiento...");
 
         for (let i = 0; i < 4; i++) {
-            const slot = MeshBuilder.CreatePlane(`slot_${i}`, { size: 0.2 }, this.scene);
-            slot.position = new Vector3(startX + i * gap, 1.0, 1.0);
-            slot.rotation = new Vector3(Math.PI / 2, 0, 0);
-            slot.isVisible = false; // no render, used for placement
-            this.slots.push(slot);
+            const x = origin.x - 0.195 + i * gapX;
+            const y = baseY;
+            const position = new Vector3(x, y, baseZ);
+
+            const slotPlane = MeshBuilder.CreatePlane("slot-bg-" + i, { size: 0.11 }, this.scene);
+            const mat = new StandardMaterial("slot-mat-" + i, this.scene);
+            mat.diffuseColor = new Color3(1, 1, 1);
+            mat.alpha = 0.25;
+            slotPlane.material = mat;
+            slotPlane.position = position;
+
+            this.slots.push({ position, occupant: null, mesh: slotPlane });
+            console.log(`  → Slot ${i} @ (${x.toFixed(2)}, ${y.toFixed(2)}, ${baseZ.toFixed(2)})`);
         }
     }
 
-    _createEquipmentIcons() {
-        const equipmentList = this.assets.equipment;
-        const correctItems = ["boots", "canteen", "firstAidKit", "jacket"];
-        const startX = -0.6;
-        const gap = 0.3;
+    _spawnItems() {
+        const allKeys = [...this.correctKeys, ...this.incorrectKeys];
+        const baseY = this.backpack.position.y - this._itemsYOff;
+        const baseZ = this._planeZ;
+        const startX = -0.33;
+        const stepX = 0.22;
+        const size = 0.085;
 
-        equipmentList.forEach((item, index) => {
-            const plane = MeshBuilder.CreatePlane(`equipment_${index}`, { size: 0.2 }, this.scene);
-            const mat = new StandardMaterial(`mat_${index}`, this.scene);
-            mat.diffuseTexture = new Texture(item.url, this.scene);
+        console.log("[EquipmentGame] Spawneando ítems debajo de la mochila...");
+
+        allKeys.forEach((key, i) => {
+            const mat = new StandardMaterial("mat-" + key, this.scene);
+            mat.diffuseTexture = new Texture(this.assetMap[key], this.scene);
             mat.diffuseTexture.hasAlpha = true;
             mat.backFaceCulling = false;
-            mat.emissiveColor = Color3.White();
-            plane.material = mat;
-            plane.position = new Vector3(startX + index * gap, 1, 0.5);
-            plane.rotation = new Vector3(Math.PI / 2, 0, 0);
-            plane.originalPosition = plane.position.clone();
-            plane.slotIndex = null;
-            plane.correct = correctItems.includes(item.name);
-            plane.actionManager = new ActionManager(this.scene);
+            mat.emissiveColor = new Color3(1, 1, 1);
 
-            plane.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickDownTrigger, () => {
-                this.interactionManager.pick(plane);
-            }));
+            const icon = MeshBuilder.CreatePlane("piece-icon-" + key, { size }, this.scene);
+            icon.material = mat;
 
-            plane.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickUpTrigger, () => {
-                this._onDrop(plane);
-            }));
+            const x = startX + i * stepX;
+            icon.position = new Vector3(x, baseY, baseZ);
 
-            this.equipment.push(plane);
+            icon.metadata = {
+                key,
+                correct: this.correctKeys.includes(key),
+                originalPosition: icon.position.clone(),
+                slotIndex: null
+            };
+
+            this._enableInteraction(icon);
+            this.pieces.push(icon);
+            console.log(`  → Item ${key} en (${x.toFixed(2)}, ${baseY.toFixed(2)}, ${baseZ.toFixed(2)})`);
         });
     }
 
-    _onDrop(piece) {
-        const slotIndex = this._findNearestSlot(piece.position);
+    _enableInteraction(mesh) {
+        mesh.actionManager = new ActionManager(this.scene);
+        mesh.actionManager.registerAction(
+            new ExecuteCodeAction(ActionManager.OnPickDownTrigger, () => this._onDragStart(mesh))
+        );
+        mesh.actionManager.registerAction(
+            new ExecuteCodeAction(ActionManager.OnPickUpTrigger, () => this._onDrop(mesh))
+        );
+    }
 
-        if (slotIndex !== -1 && !this.occupiedSlots[slotIndex]) {
-            if (piece.slotIndex !== null) {
-                this.occupiedSlots[piece.slotIndex] = null;
+    _onDragStart(mesh) {
+        mesh.isDragging = true;
+        this._draggedPiece = mesh;
+        mesh.scaling = new Vector3(1.06, 1.06, 1.06);
+        mesh.material.emissiveColor = new Color3(0.8, 0.8, 1);
+        console.log(`[EquipmentGame] Arrastrando ${mesh.name} desde ${mesh.position.toString()}`);
+    }
+
+    _onDrop(mesh) {
+        console.log(`[EquipmentGame] Soltando ${mesh.name} en posición: ${mesh.position.toString()}`);
+        mesh.isDragging = false;
+        this._draggedPiece = null;
+        mesh.scaling = new Vector3(1, 1, 1);
+        mesh.material.emissiveColor = new Color3(1, 1, 1);
+
+        const snapThreshold = 0.12;
+        const slot = this._nearestSlot2D(mesh.position, snapThreshold);
+
+        if (slot) {
+            console.log(`[EquipmentGame] Encaje detectado con slot ${this.slots.indexOf(slot)}`);
+
+            if (mesh.metadata.slotIndex !== null) {
+                const prev = this.slots[mesh.metadata.slotIndex];
+                prev.occupant = null;
+                prev.mesh.material.diffuseColor = new Color3(1, 1, 1);
+                prev.mesh.material.alpha = 0.25;
             }
 
-            piece.position = this.slots[slotIndex].position.clone();
-            piece.slotIndex = slotIndex;
-            this.occupiedSlots[slotIndex] = piece;
+            mesh.position.set(slot.position.x, slot.position.y, this._planeZ);
+            slot.occupant = mesh;
+            mesh.metadata.slotIndex = this.slots.indexOf(slot);
+
+            slot.mesh.material.diffuseColor = new Color3(0.3, 1, 0.3);
+            slot.mesh.material.alpha = 0.4;
+
+            // animación de rebote
+            const anim = new Animation("snapBounce", "position.y", 60, Animation.ANIMATIONTYPE_FLOAT);
+            const baseY = slot.position.y;
+            anim.setKeys([
+                { frame: 0, value: baseY },
+                { frame: 10, value: baseY + 0.015 },
+                { frame: 20, value: baseY }
+            ]);
+            const easing = new SineEase();
+            easing.setEasingMode(EasingFunction.EASINGMODE_EASEINOUT);
+            anim.setEasingFunction(easing);
+            mesh.animations = [anim];
+            this.scene.beginAnimation(mesh, 0, 20, false);
         } else {
-            if (piece.slotIndex !== null) {
-                this.occupiedSlots[piece.slotIndex] = null;
-                piece.slotIndex = null;
-            }
-            piece.position = piece.originalPosition.clone();
+            console.log(`[EquipmentGame] No encajó, devolviendo ${mesh.name} a su origen.`);
+            this._returnToOrigin(mesh);
         }
 
-        const total = this.occupiedSlots.filter(Boolean).length;
-        if (total === 4) {
-            setTimeout(() => this._evaluate(), 500);
-        }
+        const total = this.slots.filter(s => s.occupant).length;
+        console.log(`[EquipmentGame] Slots ocupados: ${total}/${this.slots.length}`);
+        if (total === this.slots.length) setTimeout(() => this._evaluate(), 400);
     }
 
-    _findNearestSlot(pos) {
-        let minDist = Infinity;
-        let bestIndex = -1;
+    _returnToOrigin(mesh) {
+        const origin = mesh.metadata.originalPosition.clone();
+        mesh.metadata.slotIndex = null;
 
-        this.slots.forEach((slot, index) => {
-            const dist = Vector3.Distance(slot.position, pos);
-            if (dist < 0.15 && dist < minDist) {
-                minDist = dist;
-                bestIndex = index;
+        // Animación simple de retorno
+        const animX = new Animation("returnX", "position.x", 60, Animation.ANIMATIONTYPE_FLOAT);
+        animX.setKeys([
+            { frame: 0, value: mesh.position.x },
+            { frame: 20, value: origin.x }
+        ]);
+
+        const animY = new Animation("returnY", "position.y", 60, Animation.ANIMATIONTYPE_FLOAT);
+        animY.setKeys([
+            { frame: 0, value: mesh.position.y },
+            { frame: 20, value: origin.y }
+        ]);
+
+        mesh.animations = [animX, animY];
+        this.scene.beginAnimation(mesh, 0, 20, false);
+
+        // asegurar posición final
+        setTimeout(() => {
+            mesh.position.copyFrom(origin);
+            console.log(`[EquipmentGame] ${mesh.name} restaurado a posición original:`, origin.toString());
+        }, 350);
+    }
+
+    _nearestSlot2D(pos, threshold) {
+        let best = null;
+        let min = threshold;
+        for (const slot of this.slots) {
+            const dx = slot.position.x - pos.x;
+            const dy = slot.position.y - pos.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < min && !slot.occupant) {
+                best = slot;
+                min = dist;
             }
-        });
+        }
+        return best;
+    }
 
-        return bestIndex;
+    _trackDragging() {
+        this.scene.onBeforeRenderObservable.add(() => {
+            if (!this._draggedPiece) return;
+            const pick = this.scene.pick(this.scene.pointerX, this.scene.pointerY);
+            if (!pick?.pickedPoint) return;
+
+            const newPos = pick.pickedPoint.clone();
+            newPos.z = this._planeZ;
+            this._draggedPiece.position.copyFrom(newPos);
+        });
     }
 
     _evaluate() {
+        console.log("[EquipmentGame] Evaluando resultado...");
         let correct = 0;
-        this.occupiedSlots.forEach(piece => {
-            if (piece && piece.correct) {
+        for (const slot of this.slots) {
+            const item = slot.occupant;
+            if (item && item.metadata.correct) {
                 correct++;
-            } else if (piece) {
-                piece.material.emissiveColor = new Color3(1, 0, 0);
+                console.log(`  ✅ ${item.metadata.key} correcto`);
+            } else if (item) {
+                console.log(`  ❌ ${item.metadata.key} incorrecto`);
+                item.material.diffuseColor = new Color3(1, 0.3, 0.3);
             }
-        });
-
-        if (correct === 4) {
-            this._win();
         }
+
+        console.log(`[EquipmentGame] Resultado final: ${correct}/${this.slots.length} correctos.`);
+        if (correct === this.slots.length) this._win();
     }
 
     _win() {
         this.hud.stopTimer();
-        this.score = 100;
+        const elapsed = (Date.now() - this.hud.startTimestamp) / 1000;
+        const remaining = Math.max(0, this.timeLimit - elapsed);
+        const base = gameplayConfig.scoring.equipment.base || 60;
+        const bonus = gameplayConfig.scoring.equipment.timeBonusPerSec || 2;
+        this.score = Math.floor(base + remaining * bonus);
+        this.hud.setScore(this.score);
+
+        console.log("[EquipmentGame] 🎉 ¡Victoria! Puntaje final:", this.score);
+
         this.hud.showEndPopup({
             score: this.score,
             onRetry: () => this._restart(),
-            onContinue: null,
+            onContinue: () => {
+                this.dispose();
+                this.onGameEnd?.();
+            },
             timeExpired: false
         });
     }
@@ -165,17 +315,23 @@ export class EquipmentGame {
     }
 
     _restart() {
+        console.log("[EquipmentGame] Reiniciando minijuego...");
         this.dispose();
         this.start();
     }
 
     dispose() {
-        this.equipment.forEach(mesh => mesh.dispose());
-        this.slots.forEach(slot => slot.dispose());
+        console.log("[EquipmentGame] Liberando recursos...");
         this.hud.stopTimer();
-        this.equipment = [];
+        this.pieces.forEach(p => p?.dispose?.());
+        this.slots.forEach((s, i) => this.scene.getMeshByName("slot-bg-" + i)?.dispose());
+        if (this.backpack) {
+            this.scene.meshes.filter(m => m.parent === this.backpack).forEach(m => m.dispose());
+            this.backpack.dispose();
+        }
         this.slots = [];
-        this.occupiedSlots = Array(4).fill(null);
-        this.score = 0;
+        this.pieces = [];
+        this._draggedPiece = null;
+        this.backpack = null;
     }
 }
