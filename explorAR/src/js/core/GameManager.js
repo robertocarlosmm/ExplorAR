@@ -10,7 +10,12 @@ export class GameManager {
         this._runningGame = null;
         this.game = game;
         this.onExit = (typeof onExit === 'function') ? onExit : () => { };
+        this.carryScore = 0;
     }
+
+    setCarryScore(n) { this.carryScore = Number(n) || 0; }
+    getCarryScore() { return this.carryScore || 0; }
+    resetCarryScore() { this.carryScore = 0; }
 
     setOnExit(fn) { if (typeof fn === 'function') this.onExit = fn; }
 

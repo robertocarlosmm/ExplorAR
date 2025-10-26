@@ -10,7 +10,7 @@ export class ExperienceResult {
     }
 
     finalize() {
-        const thresholds = gameplayConfig.stars
+        const thresholds = 350; // Ejemplo de umbrales, podrían venir de otra parte
         if (this.score >= thresholds.three) {
             this.stars = 3
         } else if (this.score >= thresholds.two) {

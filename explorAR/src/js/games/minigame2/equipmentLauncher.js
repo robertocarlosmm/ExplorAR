@@ -69,7 +69,8 @@ export async function startEquipmentGame(gameManager) {
                         incorrectKeys,
                         feedbacks,
                         assetMap,
-                        experienceId: exp?.id
+                        experienceId: exp?.id,
+                        startingScore: gameManager.getCarryScore?.() || 0 
                     });
 
                     equipment.onGameEnd = async () => {

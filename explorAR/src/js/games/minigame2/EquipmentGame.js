@@ -18,7 +18,7 @@ import { gameplayConfig } from "../../../config/gameplayConfig.js";
 import { experiencesConfig } from "../../../config/experienceConfig.js";
 
 export class EquipmentGame {
-    constructor({ scene, hud, correctKeys, incorrectKeys, feedbacks, assetMap, experienceId }) {
+    constructor({ scene, hud, correctKeys, incorrectKeys, feedbacks, assetMap, experienceId, startingScore = 0 }) {
         this.scene = scene;
         this.hud = hud;
         this.correctKeys = correctKeys;
@@ -31,7 +31,8 @@ export class EquipmentGame {
         this.pieces = [];
         this.slots = [];
         this.timeLimit = gameplayConfig.timeSequence[1] || 45;
-        this.score = 0;
+        this.score = Number(startingScore) || 0;
+        this.scoreInicial = Number(startingScore) || 0;
         this.onGameEnd = null;
         this._draggedPiece = null;
 
@@ -44,7 +45,7 @@ export class EquipmentGame {
     async start() {
         console.log("[EquipmentGame] Iniciando minijuego de equipamiento...");
 
-        this.hud.setScore(0);
+        this.hud.setScore(this.score);
         this.hud.setTime(this.timeLimit);
         this.hud.startTimer(this.timeLimit, null, () => this._onTimeUp());
 
@@ -284,14 +285,35 @@ export class EquipmentGame {
 
     _win() {
         this.hud.stopTimer();
-        const elapsed = (Date.now() - this.hud.startTimestamp) / 1000;
-        const remaining = Math.max(0, this.timeLimit - elapsed);
-        const base = gameplayConfig.scoring.equipment.base || 60;
-        const bonus = gameplayConfig.scoring.equipment.timeBonusPerSec || 2;
-        this.score = Math.floor(base + remaining * bonus);
+
+        // Usa el tiempo que muestra el HUD
+        const remaining = Math.max(0, this.hud._timeLeft);
+
+        const base = Number(gameplayConfig.scoring.equipment.base ?? 60);
+        const bonus = Number(gameplayConfig.scoring.equipment.timeBonusPerSec ?? 2);
+
+        // Validación básica
+        if (!Number.isFinite(base) || !Number.isFinite(bonus) || !Number.isFinite(remaining)) {
+            console.error("[EquipmentGame] Datos de configuración inválidos:", { base, bonus, remaining });
+            return;
+        }
+
+        const newPoints = Math.floor(base + remaining * bonus);
+
+        // Si deseas acumular sobre el puntaje heredado:
+        this.score += newPoints;
+        // Si prefieres reemplazarlo por el puntaje del minijuego:
+        // this.score = newPoints;
+
         this.hud.setScore(this.score);
 
-        console.log("[EquipmentGame] 🎉 ¡Victoria! Puntaje final:", this.score);
+        console.log("[EquipmentGame] Puntaje calculado con _timeLeft:", {
+            base,
+            bonus,
+            remaining,
+            newPoints,
+            total: this.score,
+        });
 
         this.hud.showEndPopup({
             score: this.score,
@@ -300,9 +322,10 @@ export class EquipmentGame {
                 this.dispose();
                 this.onGameEnd?.();
             },
-            timeExpired: false
+            timeExpired: false,
         });
     }
+
 
     _onTimeUp() {
         this.hud.stopTimer();
@@ -316,6 +339,7 @@ export class EquipmentGame {
 
     _restart() {
         console.log("[EquipmentGame] Reiniciando minijuego...");
+        this.score = this.scoreInicial;
         this.dispose();
         this.start();
     }
