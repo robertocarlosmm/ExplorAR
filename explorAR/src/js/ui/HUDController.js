@@ -126,7 +126,7 @@ export class HUDController {
             wrapper = document.createElement("div");
             wrapper.id = "hint-popup";
             wrapper.className = "hidden"; // empieza oculto
-            document.body.appendChild(wrapper);
+            this.root.appendChild(wrapper); //sobre el RA 
         }
 
         // Construye el contenido con la convención 'hint-card'

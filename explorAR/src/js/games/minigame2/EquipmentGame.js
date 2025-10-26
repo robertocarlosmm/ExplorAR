@@ -298,7 +298,7 @@ export class EquipmentGame {
             this._win();
         } else {
             const hints = missingKeys
-                .map(k => `• ${this.feedbacks[k]}` || "Revisa este elemento")
+                .map(k => `${this.feedbacks[k]}` || "Revisa este elemento")
 
 
             this.hud.showHintPopup({
