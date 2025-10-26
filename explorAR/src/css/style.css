@@ -598,3 +598,244 @@ header h1 {
   justify-content: center;
   pointer-events: auto;
 }
+
+/* ============================= */
+/* PANEL DE INFORMACIÓN - MINIJUEGO 2 */
+/* ============================= */
+
+#minigame2-info-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 2rem;
+  z-index: 20;
+  opacity: 0;
+  transform: scale(0.97);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#minigame2-info-panel.fade-in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+#minigame2-info-panel .panel-text {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  max-width: 700px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
+}
+
+#minigame2-info-panel h2 {
+  color: #ffdc7a;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+
+#minigame2-info-panel p {
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+/* ====== Minijuego 2: Panel de Información ====== */
+#minigame2-info-panel.panel-info {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fffbe9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  z-index: 2147483647;
+  transform: translateY(-4%);
+  overflow: hidden;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* Tarjeta interna centrada dentro del flex */
+#minigame2-info-panel .panel-text {
+  background-color: #8b3e0f;
+  color: #fff;
+  border-radius: 16px;
+  /* padding ajustado: menos espacio vertical, más amplitud lateral */
+  padding: 1.5rem 2.5rem;
+  width: 92%;
+  max-width: 460px;
+  margin: 0 auto;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Título */
+#minigame2-info-panel h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 0.6rem 0;
+  /* menor espacio debajo del título */
+  color: #fff;
+}
+
+/* Párrafo justificado */
+#minigame2-info-panel p {
+  text-align: justify;
+  text-justify: inter-word;
+  font-size: 0.95rem;
+  /* tamaño de letra ligeramente menor */
+  line-height: 1.45;
+  /* menor interlineado */
+  margin: 0 0 1.2rem 0;
+  /* menos espacio antes del botón */
+  width: 96%;
+  /* ocupa más ancho del cuadro */
+  max-width: 430px;
+  /* aprovecha mejor el espacio lateral */
+  margin-left: auto;
+  margin-right: auto;
+  color: #fff;
+}
+
+/* Botón */
+#minigame2-info-panel .btn-primary {
+  background-color: #fff;
+  color: #8b3e0f;
+  border: none;
+  border-radius: 10px;
+  padding: .8rem 1.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .25);
+  transition: background-color .2s ease, transform .15s ease;
+}
+
+#minigame2-info-panel .btn-primary:hover {
+  background-color: #f7f5e9;
+  transform: scale(1.05);
+}
+
+/* =========================================================
+   POPUP DE PISTAS (CORREGIDO Y AISLADO)
+========================================================= */
+#hint-popup {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .55);
+  z-index: 2147483647;
+  /* extremo para superar cualquier overlay */
+  isolation: isolate;
+  /* crea su propio stacking context */
+  animation: hint-fade-in .25s ease-out;
+  pointer-events: all;
+  /* garantiza interacción incluso si hay capas solapadas */
+}
+
+#hint-popup.hidden {
+  display: none;
+}
+
+.hint-card {
+  background: #f6efe2;
+  /* beige */
+  color: #5a2a14;
+  /* marrón texto */
+  width: 85%;
+  max-width: 360px;
+  padding: 20px 24px;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .25);
+  line-height: 1.45;
+  text-align: justify;
+  animation: hint-scale-in .25s ease-out;
+  z-index: 1;
+  /* por encima del fondo oscuro */
+  pointer-events: auto;
+}
+
+.hint-card .hint-title {
+  background: #8b3e0f;
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border-radius: 10px;
+  padding: 8px 0;
+  margin: -4px -4px 12px;
+}
+
+.hint-card .hint-heading {
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.hint-card ul {
+  margin: 0;
+  padding-left: 1.2em;
+  list-style: disc;
+}
+
+.hint-card li {
+  margin: 4px 0;
+}
+
+.hint-card .hint-close-btn {
+  display: block;
+  margin: 16px auto 4px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: #fff;
+  color: #8b3e0f;
+  border: 2px solid #8b3e0f;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.hint-card .hint-close-btn:hover {
+  background: #f8f5ef;
+  transform: scale(1.03);
+}
+
+/* Animaciones */
+@keyframes hint-fade-in {
+  from {
+    opacity: 0
+  }
+
+  to {
+    opacity: 1
+  }
+}
+
+@keyframes hint-scale-in {
+  from {
+    transform: scale(.96);
+    opacity: 0
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1
+  }
+}

@@ -116,4 +116,43 @@ export class HUDController {
         if (popup) popup.classList.add('hidden')
     }
 
+    // En tu clase HUD
+    showHintPopup({ title = "¡ATENCIÓN!", heading = "", hints = [], onClose = null }) {
+        console.log("[HUD] Mostrando popup de pistas");
+
+        // Crea o reutiliza el wrapper
+        let wrapper = document.getElementById("hint-popup");
+        if (!wrapper) {
+            wrapper = document.createElement("div");
+            wrapper.id = "hint-popup";
+            wrapper.className = "hidden"; // empieza oculto
+            this.root.appendChild(wrapper); //sobre el RA 
+        }
+
+        // Construye el contenido con la convención 'hint-card'
+        wrapper.innerHTML = `
+            <div class="hint-card">
+            <div class="hint-title">${title}</div>
+            <div class="hint-heading">${heading}</div>
+            <ul class="hint-list">
+                ${hints.map(txt => `<li>${txt}</li>`).join("")}
+            </ul>
+            <button class="hint-close-btn" type="button">Cerrar</button>
+            </div>
+        `;
+
+        // Mostrar
+        wrapper.classList.remove("hidden");
+
+        // Cerrar
+        const closeBtn = wrapper.querySelector(".hint-close-btn");
+        const handleClose = () => {
+            wrapper.classList.add("hidden");
+            closeBtn.removeEventListener("click", handleClose);
+            if (typeof onClose === "function") onClose();
+        };
+        closeBtn.addEventListener("click", handleClose);
+    }
+
+
 }
