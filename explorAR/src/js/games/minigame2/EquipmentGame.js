@@ -40,6 +40,9 @@ export class EquipmentGame {
         this._planeZ = 0.7;
         this._slotYOff = 0.2;
         this._itemsYOff = 0.18;
+
+        this._dropDebounceMs = 220;
+        this._lastDropAt = 0;
     }
 
     async start() {
@@ -102,8 +105,26 @@ export class EquipmentGame {
             slotPlane.material = mat;
             slotPlane.position = position;
 
-            this.slots.push({ position, occupant: null, mesh: slotPlane });
+            // crea el objeto slot antes de usarlo
+            const slot = { position, occupant: null, mesh: slotPlane };
+            this.slots.push(slot);
+
             console.log(`  → Slot ${i} @ (${x.toFixed(2)}, ${y.toFixed(2)}, ${baseZ.toFixed(2)})`);
+
+            // Ahora sí: callback usa el 'slot' correcto
+            slotPlane.actionManager = new ActionManager(this.scene);
+            slotPlane.actionManager.registerAction(
+                new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+                    const now = performance.now ? performance.now() : Date.now();
+                    if (now - this._lastDropAt < this._dropDebounceMs) return; // evita des-encaje inmediato
+                    if (slot.occupant) {
+                        console.log(`[EquipmentGame] Toque sobre slot ${i} ocupado, liberando ítem.`);
+                        const mesh = slot.occupant;
+                        this._clearSlot(slot);
+                        this._returnToOrigin(mesh);
+                    }
+                })
+            );
         }
     }
 
@@ -145,13 +166,31 @@ export class EquipmentGame {
 
     _enableInteraction(mesh) {
         mesh.actionManager = new ActionManager(this.scene);
+
+        // Arrastre
         mesh.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPickDownTrigger, () => this._onDragStart(mesh))
         );
         mesh.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPickUpTrigger, () => this._onDrop(mesh))
         );
+
+        // Tap: si el ítem está en un slot, se libera
+        mesh.actionManager.registerAction(
+            new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+                const now = performance.now ? performance.now() : Date.now();
+                if (now - this._lastDropAt < this._dropDebounceMs) return; // evita des-encaje inmediato
+
+                if (mesh.metadata.slotIndex !== null) {
+                    const slot = this.slots[mesh.metadata.slotIndex];
+                    console.log(`[EquipmentGame] Toque sobre item en slot ${mesh.metadata.slotIndex}, devolviendo al origen.`);
+                    this._clearSlot(slot);
+                    this._returnToOrigin(mesh);
+                }
+            })
+        );
     }
+
 
     _onDragStart(mesh) {
         mesh.isDragging = true;
@@ -175,10 +214,7 @@ export class EquipmentGame {
             console.log(`[EquipmentGame] Encaje detectado con slot ${this.slots.indexOf(slot)}`);
 
             if (mesh.metadata.slotIndex !== null) {
-                const prev = this.slots[mesh.metadata.slotIndex];
-                prev.occupant = null;
-                prev.mesh.material.diffuseColor = new Color3(1, 1, 1);
-                prev.mesh.material.alpha = 0.25;
+                this._clearSlot(this.slots[mesh.metadata.slotIndex]);
             }
 
             mesh.position.set(slot.position.x, slot.position.y, this._planeZ);
@@ -201,6 +237,7 @@ export class EquipmentGame {
             anim.setEasingFunction(easing);
             mesh.animations = [anim];
             this.scene.beginAnimation(mesh, 0, 20, false);
+            this._lastDropAt = performance.now ? performance.now() : Date.now();
         } else {
             console.log(`[EquipmentGame] No encajó, devolviendo ${mesh.name} a su origen.`);
             this._returnToOrigin(mesh);
@@ -316,7 +353,12 @@ export class EquipmentGame {
         }
     }
 
-
+    _clearSlot(slot) {
+        if (!slot) return;
+        slot.occupant = null;
+        slot.mesh.material.diffuseColor = new Color3(1, 1, 1);
+        slot.mesh.material.alpha = 0.25;
+    }
 
     _win() {
         this.hud.stopTimer();
