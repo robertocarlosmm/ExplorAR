@@ -267,21 +267,55 @@ export class EquipmentGame {
 
     _evaluate() {
         console.log("[EquipmentGame] Evaluando resultado...");
+        this.hud.stopTimer(); // pausa el tiempo durante la evaluación
+
+        const experience = experiencesConfig.find(e => e.id === this.experienceId);
+        const mg = experience?.minigames?.find(m => m.id === "equipment");
+        const feedbacks = mg?.params?.feedbacks || {};
+
         let correct = 0;
+        const incorrectKeys = [];
+
         for (const slot of this.slots) {
             const item = slot.occupant;
             if (item && item.metadata.correct) {
                 correct++;
-                console.log(`  ✅ ${item.metadata.key} correcto`);
+                console.log(`  ✓ ${item.metadata.key} correcto`);
             } else if (item) {
-                console.log(`  ❌ ${item.metadata.key} incorrecto`);
+                console.log(`  ✗ ${item.metadata.key} incorrecto`);
                 item.material.diffuseColor = new Color3(1, 0.3, 0.3);
+                incorrectKeys.push(item.metadata.key);
             }
         }
 
         console.log(`[EquipmentGame] Resultado final: ${correct}/${this.slots.length} correctos.`);
-        if (correct === this.slots.length) this._win();
+
+        if (correct === this.slots.length) {
+            // todos correctos → gana
+            this._win();
+        } else {
+            // hay incorrectos → mostrar popup de pistas
+            const pistas = incorrectKeys
+                .map(k => `• ${feedbacks[k] || "Revisa este elemento"}`)
+                .join("<br>");
+
+            const htmlMsg = `
+            Hay ${incorrectKeys.length} incorrecto${incorrectKeys.length > 1 ? "s" : ""}.<br>
+            <br><strong>Pistas:</strong><br>${pistas}
+        `;
+
+            this.hud.showHintPopup({
+                html: htmlMsg,
+                onClose: () => {
+                    setTimeout(() => {
+                        console.log("[EquipmentGame] Reanudando tiempo tras pistas...");
+                        this.hud.startTimer(this.hud._timeLeft, null, () => this._onTimeUp());
+                    }, 1000);
+                }
+            });
+        }
     }
+
 
     _win() {
         this.hud.stopTimer();
