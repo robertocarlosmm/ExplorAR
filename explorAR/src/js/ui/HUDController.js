@@ -116,50 +116,43 @@ export class HUDController {
         if (popup) popup.classList.add('hidden')
     }
 
-    showHintPopup({ html, onClose }) {
+    // En tu clase HUD
+    showHintPopup({ title = "¡ATENCIÓN!", heading = "", hints = [], onClose = null }) {
         console.log("[HUD] Mostrando popup de pistas");
 
-        const popup = document.getElementById('game-end-popup');
-        const scoreLabel = document.getElementById('popup-score');
-        const btnRetry = document.getElementById('btn-retry');
-        const btnContinue = document.getElementById('btn-continue');
-
-        if (!popup || !scoreLabel) return;
-
-        // Guardar el contenido original para restaurarlo después
-        const originalHTML = scoreLabel.innerHTML;
-
-        // Cambiar el texto por las pistas
-        scoreLabel.innerHTML = html;
-
-        // Ocultar botones existentes
-        btnRetry.classList.add("hidden");
-        btnContinue.classList.add("hidden");
-
-        // Crear botón único "Cerrar"
-        let closeBtn = document.getElementById("btn-hint-close");
-        if (!closeBtn) {
-            closeBtn = document.createElement("button");
-            closeBtn.id = "btn-hint-close";
-            closeBtn.textContent = "Cerrar";
-            closeBtn.className = btnRetry.className; // usa el mismo estilo que los botones del HUD
-            btnRetry.parentNode.appendChild(closeBtn);
+        // Crea o reutiliza el wrapper
+        let wrapper = document.getElementById("hint-popup");
+        if (!wrapper) {
+            wrapper = document.createElement("div");
+            wrapper.id = "hint-popup";
+            wrapper.className = "hidden"; // empieza oculto
+            document.body.appendChild(wrapper);
         }
 
-        popup.classList.remove("hidden");
+        // Construye el contenido con la convención 'hint-card'
+        wrapper.innerHTML = `
+            <div class="hint-card">
+            <div class="hint-title">${title}</div>
+            <div class="hint-heading">${heading}</div>
+            <ul class="hint-list">
+                ${hints.map(txt => `<li>${txt}</li>`).join("")}
+            </ul>
+            <button class="hint-close-btn" type="button">Cerrar</button>
+            </div>
+        `;
 
-        // Al hacer clic en "Cerrar"
-        closeBtn.onclick = () => {
-            popup.classList.add("hidden");
-            closeBtn.remove();
+        // Mostrar
+        wrapper.classList.remove("hidden");
 
-            // Restaurar contenido original y visibilidad de botones
-            scoreLabel.innerHTML = originalHTML;
-            btnRetry.classList.remove("hidden");
-            btnContinue.classList.remove("hidden");
-
+        // Cerrar
+        const closeBtn = wrapper.querySelector(".hint-close-btn");
+        const handleClose = () => {
+            wrapper.classList.add("hidden");
+            closeBtn.removeEventListener("click", handleClose);
             if (typeof onClose === "function") onClose();
         };
+        closeBtn.addEventListener("click", handleClose);
     }
+
 
 }

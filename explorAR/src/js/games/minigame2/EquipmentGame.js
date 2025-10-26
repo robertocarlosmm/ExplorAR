@@ -267,54 +267,55 @@ export class EquipmentGame {
 
     _evaluate() {
         console.log("[EquipmentGame] Evaluando resultado...");
-        this.hud.stopTimer(); // pausa el tiempo durante la evaluación
-
-        const experience = experiencesConfig.find(e => e.id === this.experienceId);
-        const mg = experience?.minigames?.find(m => m.id === "equipment");
-        const feedbacks = mg?.params?.feedbacks || {};
+        this.hud.stopTimer();
 
         let correct = 0;
-        const incorrectKeys = [];
+        const selectedCorrectKeys = new Set();
+        const selectedKeys = new Set();
 
         for (const slot of this.slots) {
             const item = slot.occupant;
-            if (item && item.metadata.correct) {
-                correct++;
-                console.log(`  ✓ ${item.metadata.key} correcto`);
-            } else if (item) {
-                console.log(`  ✗ ${item.metadata.key} incorrecto`);
-                item.material.diffuseColor = new Color3(1, 0.3, 0.3);
-                incorrectKeys.push(item.metadata.key);
+            if (item) {
+                selectedKeys.add(item.metadata.key);
+                if (item.metadata.correct) {
+                    correct++;
+                    selectedCorrectKeys.add(item.metadata.key);
+                    console.log(`  ✓ ${item.metadata.key} correcto`);
+                } else {
+                    console.log(`  ✗ ${item.metadata.key} incorrecto`);
+                    item.material.diffuseColor = new Color3(1, 0.3, 0.3);
+                }
             }
         }
 
+        // obtener todas las claves correctas esperadas
+        const allCorrectKeys = Object.keys(this.feedbacks); // asumiendo que solo correctos tienen feedback
+        const missingKeys = allCorrectKeys.filter(k => !selectedCorrectKeys.has(k));
+
         console.log(`[EquipmentGame] Resultado final: ${correct}/${this.slots.length} correctos.`);
 
-        if (correct === this.slots.length) {
-            // todos correctos → gana
+        if (missingKeys.length === 0) {
             this._win();
         } else {
-            // hay incorrectos → mostrar popup de pistas
-            const pistas = incorrectKeys
-                .map(k => `• ${feedbacks[k] || "Revisa este elemento"}`)
-                .join("<br>");
+            const hints = missingKeys
+                .map(k => `• ${this.feedbacks[k]}` || "Revisa este elemento")
 
-            const htmlMsg = `
-            Hay ${incorrectKeys.length} incorrecto${incorrectKeys.length > 1 ? "s" : ""}.<br>
-            <br><strong>Pistas:</strong><br>${pistas}
-        `;
 
             this.hud.showHintPopup({
-                html: htmlMsg,
+                title: "¡ATENCIÓN!",
+                heading: `Hay ${missingKeys.length} incorrecto${missingKeys.length > 1 ? "s" : ""}.`,
+                hints,
                 onClose: () => {
+                    // Pequeño respiro y se reanuda el cronómetro
                     setTimeout(() => {
                         console.log("[EquipmentGame] Reanudando tiempo tras pistas...");
                         this.hud.startTimer(this.hud._timeLeft, null, () => this._onTimeUp());
-                    }, 1000);
+                    }, 400);
                 }
             });
         }
     }
+
 
 
     _win() {

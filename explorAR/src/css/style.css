@@ -731,160 +731,111 @@ header h1 {
   transform: scale(1.05);
 }
 
-/*
-/////////MINIGAME 2///////////
-*/
-/*
-.item-icon-wrapper {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  margin: 8px;
-  border: 3px solid transparent;
-  display: inline-block;
-}
-
-.item-icon-wrapper.selected {
-  border-color: limegreen;
-}
-
-.item-icon-wrapper.incorrect {
-  border-color: red;
-}
-
-.item-icon {
-  width: 100%;
-  height: auto;
-  cursor: pointer;
-}
-
-.deselect-btn {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.feedback-panel {
-  list-style: none;
-  margin-top: 12px;
-  padding: 0;
-  font-size: 14px;
-  color: white;
-}
-
-.equipment-ui {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  color: white;
-}
-
-.equipment-header {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0 12px;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.equipment-header h2 {
-  margin: 0;
-}
-
-.equipment-backpack {
-  background: url('/assets/games/Minigame2/mochila.png') no-repeat center;
-  background-size: contain;
-  width: 150px;
-  height: 220px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  gap: 6px;
-}
-
-.slot {
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 6px;
+/* =========================================================
+   POPUP DE PISTAS (CORREGIDO Y AISLADO)
+========================================================= */
+#hint-popup {
+  position: fixed;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(0, 0, 0, .55);
+  z-index: 2147483647;
+  /* extremo para superar cualquier overlay */
+  isolation: isolate;
+  /* crea su propio stacking context */
+  animation: hint-fade-in .25s ease-out;
+  pointer-events: all;
+  /* garantiza interacción incluso si hay capas solapadas */
 }
 
-.selection-bar {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.item-wrapper {
-  position: relative;
-  width: 60px;
-  height: 60px;
-  border: 3px solid transparent;
-  border-radius: 8px;
-  background: white;
-}
-
-.item-wrapper.selected {
-  border-color: limegreen;
-}
-
-.item-wrapper.wrong {
-  border-color: red;
-}
-
-.item-wrapper img {
-  width: 100%;
-  height: auto;
-}
-
-.remove-btn {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: red;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  font-size: 12px;
-  cursor: pointer;
+#hint-popup.hidden {
   display: none;
 }
 
-.feedback-list {
-  margin: 0;
-  padding: 8px;
-  font-size: 14px;
-  list-style: disc inside;
-  max-width: 90%;
-  color: white;
+.hint-card {
+  background: #f6efe2;
+  /* beige */
+  color: #5a2a14;
+  /* marrón texto */
+  width: 85%;
+  max-width: 360px;
+  padding: 20px 24px;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .25);
+  line-height: 1.45;
+  text-align: justify;
+  animation: hint-scale-in .25s ease-out;
+  z-index: 1;
+  /* por encima del fondo oscuro */
+  pointer-events: auto;
 }
 
-.ready-btn {
-  background: orange;
-  color: white;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 12px;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
+.hint-card .hint-title {
+  background: #8b3e0f;
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border-radius: 10px;
+  padding: 8px 0;
+  margin: -4px -4px 12px;
 }
-  */
+
+.hint-card .hint-heading {
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.hint-card ul {
+  margin: 0;
+  padding-left: 1.2em;
+  list-style: disc;
+}
+
+.hint-card li {
+  margin: 4px 0;
+}
+
+.hint-card .hint-close-btn {
+  display: block;
+  margin: 16px auto 4px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: #fff;
+  color: #8b3e0f;
+  border: 2px solid #8b3e0f;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.hint-card .hint-close-btn:hover {
+  background: #f8f5ef;
+  transform: scale(1.03);
+}
+
+/* Animaciones */
+@keyframes hint-fade-in {
+  from {
+    opacity: 0
+  }
+
+  to {
+    opacity: 1
+  }
+}
+
+@keyframes hint-scale-in {
+  from {
+    transform: scale(.96);
+    opacity: 0
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1
+  }
+}
