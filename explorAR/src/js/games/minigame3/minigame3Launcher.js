@@ -1,4 +1,7 @@
-
+import { Minigame3Vicos } from "./Minigame3Vicos.js";
+import { Minigame3Lucumo } from "./Minigame3Lucumo.js";
+import { Minigame3Taquile } from "./Minigame3Taquile.js";
+import { Minigame3Tambopata } from "./Minigame3Tambopata.js";
 
 /**
  * Lanza el flujo completo del Minijuego 2.
@@ -62,9 +65,82 @@ export async function startMinigame3(gameManager) {
         buttonText: "Continuar", // <- visual, pero sin comportamiento
     });
 
-    // 4) IMPORTANTE: NO LLAMAR a TutorialPanel.mount(...)
-    // De esa forma, el botón "Continuar" queda sin handler y no hace nada.
+    // 4) click en continua
+    TutorialPanel.mount(slot.firstElementChild, {
+        onStart: async () => {
+            console.log("[Minigame3Launcher] Iniciando sesión RA para la experiencia actual...");
 
-    // (Opcional) Si quieres bloquear clicks fuera del panel:
-    // slot.style.pointerEvents = "auto";
+            // Limpiar tutorial
+            slot.innerHTML = "";
+            slot.classList.remove("active");
+            slot.style.pointerEvents = "none";
+
+            // Iniciar sesión XR (RA)
+            await gameManager.startExperience(exp);
+
+            // 5️⃣ Seleccionar el minijuego según experiencia
+            let gameInstance = null;
+            switch (expId) {
+                case "vicos":
+                    gameInstance = new Minigame3Vicos({
+                        scene: gameManager.xrSession?.scene,
+                        hud: gameManager.hud,
+                        experienceId: expId,
+                        startingScore: gameManager.getCarryScore?.() || 0,
+                    });
+                    break;
+
+                case "lucumo":
+                    gameInstance = new Minigame3Lucumo({
+                        scene: gameManager.xrSession?.scene,
+                        hud: gameManager.hud,
+                        experienceId: expId,
+                        startingScore: gameManager.getCarryScore?.() || 0,
+                    });
+                    break;
+
+                case "tambopata":
+                    gameInstance = new Minigame3Tambopata({
+                        scene: gameManager.xrSession?.scene,
+                        hud: gameManager.hud,
+                        experienceId: expId,
+                        startingScore: gameManager.getCarryScore?.() || 0,
+                    });
+                    break;
+
+                case "taquile":
+                    // gameInstance = new Minigame3Taquile({ ... });
+                    gameInstance = new Minigame3Taquile({
+                        scene: gameManager.xrSession?.scene,
+                        hud: gameManager.hud,
+                        experienceId: expId,
+                        startingScore: gameManager.getCarryScore?.() || 0,
+                    });
+                    break;
+                /*console.warn("[Minigame3Launcher] Versión Taquile aún no implementada.");
+                break;*/
+
+                default:
+                    console.warn(`[Minigame3Launcher] Experiencia no reconocida: ${expId}.`);
+                    return;
+            }
+
+            if (!gameInstance) {
+                console.error("[Minigame3Launcher] No se pudo crear la instancia del minijuego.");
+                return;
+            }
+
+            // 6 Definir callback de fin de juego
+            gameInstance.onGameEnd = async () => {
+                console.log(`[Minigame3Launcher] Fin del minijuego 3 (${expId}), cerrando XR...`);
+                await gameManager.closeXRSession();
+                await new Promise((r) => setTimeout(r, 150));
+                console.log("[Minigame3Launcher] Sesión XR cerrada.");
+                gameManager.onExit?.();
+            };
+
+            // 7 Iniciar el minijuego
+            await gameInstance.start();
+        },
+    });
 }

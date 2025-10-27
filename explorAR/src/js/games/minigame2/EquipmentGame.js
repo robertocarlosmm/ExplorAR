@@ -1,4 +1,4 @@
-// EquipmentGame.js (versión mejorada con sistema de encaje tipo puzzle y depuración completa)
+// EquipmentGame.js 
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import "@babylonjs/loaders";
 import {
