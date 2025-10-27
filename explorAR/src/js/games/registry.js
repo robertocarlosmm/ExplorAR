@@ -1,10 +1,12 @@
 // game/registry.js
 import { startPuzzleGame } from "./minigame1/puzzleLauncher.js";
 import { startEquipmentGame } from "./minigame2/equipmentLauncher.js";
+import { startMinigame3 } from "./minigame3/minigame3Launcher.js";
 
 export const MINIGAME_REGISTRY = {
     minigame1: startPuzzleGame,
     minigame2: startEquipmentGame,
+    minigame3: startMinigame3,
 };
 
 export function launchMinigame(id, gameManager) {
