@@ -145,8 +145,10 @@ export class Minigame3Vicos {
             }
 
             // Evita seguir sumando puntos después de exceso
-            if (plot.state === "excess") {
-                // opcional: podrías penalizar aquí, p.ej. this.score -= 5;
+            if (plot.state === "excess" || plot.state === "overwatered") {
+                this.hud?.showTemporaryMessage?.("Este suelo ya no puede recuperarse", 800);
+                this.score -= (this.miniConfig.params?.penaltyPerOverwater ?? 2);
+                return;
             }
 
             this.hud?.updateScore?.(this.score);
@@ -302,40 +304,60 @@ export class Minigame3Vicos {
     _spawnPlotAt(position, state) {
         const plotSize = this.miniConfig.params?.plotSize || 0.3;
         console.log("Plotsize:", plotSize);
-        const mesh = MeshBuilder.CreateGround(
-            `vicos_plot_${state}_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+
+        // 1. Plano base de color (fondo)
+        const baseMesh = MeshBuilder.CreateGround(
+            `vicos_plot_base_${state}_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
             { width: plotSize, height: plotSize },
             this.scene
         );
+        baseMesh.position = new Vector3(position.x, 0.005, position.z); // un poco más abajo
+        baseMesh.rotation = new Vector3(0, 0, 0);
 
-        // Ligero offset aleatorio interno para que no queden demasiado “cuadriculados”
-        const jitterX = (Math.random() - 0.5) * 0.10;
-        const jitterZ = (Math.random() - 0.5) * 0.10;
+        const baseMat = new StandardMaterial(`base_mat_${state}`, this.scene);
+        baseMat.diffuseColor = this._getColorForState(state); // color inicial (rojo o amarillo)
+        baseMat.alpha = 0.5; // semitransparente para combinar con PNG
+        baseMat.specularColor = new Color3(0, 0, 0);
+        baseMesh.material = baseMat;
 
-        mesh.position = new Vector3(position.x + jitterX, 0.01, position.z + jitterZ);
-        mesh.rotation = new Vector3(0, Math.random() * Math.PI * 2, 0);
+        // 2. Plano superior con textura PNG del suelo
+        const textureMesh = MeshBuilder.CreateGround(
+            `vicos_plot_tex_${state}_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+            { width: plotSize, height: plotSize },
+            this.scene
+        );
+        textureMesh.position = new Vector3(position.x, 0.01, position.z);
+        textureMesh.rotation = new Vector3(0, 0, 0);
 
-        const mat = new StandardMaterial(`vicos_mat_${state}_${Date.now()}`, this.scene);
+        const texMat = new StandardMaterial(`tex_mat_${state}`, this.scene);
         const texUrl = state === "dry" ? this.assetMap["dry_soil"] : this.assetMap["soil_base"];
-
         if (texUrl) {
             const tex = new Texture(texUrl, this.scene, false, false, Texture.TRILINEAR_SAMPLINGMODE);
-            tex.hasAlpha = true; // Activa el canal alfa del PNG
-
-            mat.diffuseTexture = tex;
-            mat.opacityTexture = tex; // Usa el mismo canal alfa para la opacidad
-            mat.useAlphaFromDiffuseTexture = true;
-            mat.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND; // ← así se accede correctamente en módulos
+            tex.hasAlpha = true;
+            texMat.diffuseTexture = tex;
+            texMat.opacityTexture = tex;
+            texMat.useAlphaFromDiffuseTexture = true;
+            texMat.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
         }
+        texMat.specularColor = new Color3(0, 0, 0);
+        texMat.backFaceCulling = false;
+        textureMesh.material = texMat;
 
-        mat.specularColor = new Color3(0, 0, 0);
-        mat.emissiveColor = new Color3(0.05, 0.05, 0.05);
-        mat.backFaceCulling = false;
+        // 3. Guarda ambas capas
+        this.plots.push({
+            mesh: textureMesh,
+            baseMesh,
+            state,
+            hasPlant: false,
+            pos: position,
+            waterLevel: 0
+        });
 
-        mesh.material = mat;
-
-        this.plots.push({ mesh, state, hasPlant: false, pos: position });
+        // Aplica color inicial
+        this._applyPlotVisual(this.plots[this.plots.length - 1]);
     }
+
+
 
     // ===========================
     // Utilidades
