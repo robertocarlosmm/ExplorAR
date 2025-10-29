@@ -96,46 +96,118 @@ export class Minigame3Vicos {
     // ===========================
     // Impact
     // ===========================
+    // Añade esto dentro de tu clase Minigame3Vicos, reemplazando tu _handleHit actual
     _handleHit(type, target) {
         if (!this.isRunning) return;
 
         const plot = this.plots.find(p => p.mesh === target);
         if (!plot) return;
 
+        // Inicializa contadores internos si aún no existen
+        if (plot.waterLevel == null) plot.waterLevel = 0;
+
+        // 1) Reglas sobre suelo seco/infértil
         if (plot.state === "dry") {
-            // No ocurre nada si el suelo está seco
             this.hud?.showTemporaryMessage?.("El suelo está seco", 800);
             return;
         }
 
+        // 2) Sembrar
         if (type === "seed" && !plot.hasPlant) {
-            // Planta una semilla
             plot.hasPlant = true;
-            this.score += this.miniConfig.params?.pointsPerPlanting || 10;
+            plot.state = "seeded"; // verde-amarillo suave
+            this.score += (this.miniConfig.params?.pointsPerPlanting ?? 10);
             this.hud?.updateScore?.(this.score);
             console.log("[Vicos] Semilla sembrada:", plot.mesh.name);
-        } else if (type === "water" && plot.hasPlant) {
-            // Riega la planta (puntos extra)
-            plot.state = "wet";
-            this.score += this.miniConfig.params?.pointsPerWatering || 5;
-            this.hud?.updateScore?.(this.score);
-            console.log("[Vicos] Planta regada:", plot.mesh.name);
+
+            this._applyPlotVisual(plot);
+            return;
         }
 
-        // Feedback visual (por ejemplo, cambio de textura)
-        const newTexKey =
-            plot.state === "wet" ? "soil_wet1" :
-                plot.hasPlant ? "soil_base" :
-                    "dry_soil";
+        // 3) Regar
+        if (type === "water" && plot.hasPlant) {
+            // Limita el nivel máximo a 4 (evita overflow)
+            plot.waterLevel = Math.min(plot.waterLevel + 1, 4);
 
-        const texUrl = this.assetMap[newTexKey];
-        if (texUrl && plot.mesh.material) {
+            // Progresión por niveles visuales y de puntaje
+            if (plot.waterLevel === 1) {
+                plot.state = "watered1"; // verde medio
+                this.score += (this.miniConfig.params?.pointsPerWatering ?? 5);
+            } else if (plot.waterLevel === 2) {
+                plot.state = "watered2"; // verde intenso
+                this.score += (this.miniConfig.params?.pointsPerWatering ?? 5);
+            } else if (plot.waterLevel === 3) {
+                plot.state = "overwatered"; // naranja
+                this.hud?.showTemporaryMessage?.("Cuidado: demasiada agua", 800);
+            } else if (plot.waterLevel >= 4) {
+                plot.state = "excess"; // rojo por exceso
+                this.hud?.showTemporaryMessage?.("¡Planta ahogada!", 800);
+            }
+
+            // Evita seguir sumando puntos después de exceso
+            if (plot.state === "excess") {
+                // opcional: podrías penalizar aquí, p.ej. this.score -= 5;
+            }
+
+            this.hud?.updateScore?.(this.score);
+            console.log(`[Vicos] Planta regada: ${plot.mesh.name} nivel: ${plot.waterLevel}`);
+
+            this._applyPlotVisual(plot);
+            return;
+        }
+
+        // 4) Si cae semilla donde ya hay planta o agua donde no hay planta,
+        // solo refresca el color/estado por si acaso
+        this._applyPlotVisual(plot);
+    }
+
+
+    //Color
+    _applyPlotVisual(plot) {
+        if (!plot?.mesh) return;
+
+        const mat = plot.mesh.material ?? new StandardMaterial(`mat_${plot.mesh.name}`, this.scene);
+        plot.mesh.material = mat;
+
+        // Textura (igual a como ya lo haces)
+        let texKey;
+        if (plot.state === "watered1" || plot.state === "watered2") texKey = "soil_wet1";
+        else if (plot.hasPlant) texKey = "soil_base";
+        else if (plot.state === "dry") texKey = "dry_soil";
+        else texKey = "soil_base";
+
+        const texUrl = this.assetMap?.[texKey];
+        if (texUrl) {
             const tex = new Texture(texUrl, this.scene, false, false, Texture.TRILINEAR_SAMPLINGMODE);
             tex.hasAlpha = true;
-            plot.mesh.material.diffuseTexture = tex;
-            plot.mesh.material.opacityTexture = tex;
-            plot.mesh.material.useAlphaFromDiffuseTexture = true;
+            mat.diffuseTexture = tex;
+            mat.opacityTexture = tex;
+            mat.useAlphaFromDiffuseTexture = true;
+            mat.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
         }
+
+        // <<< aquí estaba el bug: pasabas 'plot' a _getColorForState >>>
+        const stateName = plot.state;                 // "dry" | "fertile" | "seeded" | "watered1" | ...
+        mat.diffuseColor = this._getColorForState(stateName);
+        mat.alpha = 0.6;
+
+        mat.specularColor = new Color3(0, 0, 0);
+        mat.emissiveColor = new Color3(0.05, 0.05, 0.05);
+        mat.backFaceCulling = false;
+    }
+
+    // Define una ÚNICA versión de _getColorForState(state)
+    _getColorForState(state) {
+        const map = {
+            dry: new Color3(1.0, 0.0, 0.0),  // rojo
+            fertile: new Color3(1.0, 1.0, 0.0),  // amarillo
+            seeded: new Color3(0.8, 0.9, 0.3),  // verde-amarillo
+            watered1: new Color3(0.3, 0.85, 0.3), // verde medio
+            watered2: new Color3(0.1, 0.75, 0.1), // verde intenso
+            overwatered: new Color3(1.0, 0.5, 0.0),  // naranja
+            excess: new Color3(1.0, 0.0, 0.0),  // rojo exceso
+        };
+        return map[state] ?? new Color3(1, 1, 1);
     }
 
 
@@ -182,9 +254,13 @@ export class Minigame3Vicos {
     _createBasePlane() {
         const size = Math.max(2.5, this.spawnRadius * 2); // base visible lógica
         const base = MeshBuilder.CreateGround("vicos_base", { width: size, height: size }, this.scene);
-        const mat = new StandardMaterial("vicos_base_mat", this.scene);
-        mat.alpha = 0; // invisible
+
+        // Material base semitransparente (rejilla)
+        const mat = new StandardMaterial("vicos_grid_mat", this.scene);
+        mat.diffuseColor = new Color3(1, 1, 1);
+        mat.alpha = 0.15;
         base.material = mat;
+
         this.base = base;
     }
 
@@ -275,6 +351,21 @@ export class Minigame3Vicos {
         }
         return result;
     }
+
+    // Tabla de color
+    _getColorForState(state) {
+        const colors = {
+            infertile: new Color3(1, 0, 0),       // rojo
+            fertile: new Color3(1, 1, 0),         // amarillo
+            seeded1: new Color3(0.6, 0.8, 0.3),   // verde-amarillo
+            watered1: new Color3(0.3, 0.9, 0.3),  // verde medio
+            watered2: new Color3(0.1, 0.8, 0.1),  // verde intenso
+            overwatered: new Color3(1, 0.4, 0),   // naranja
+            drowned: new Color3(1, 0, 0),         // rojo exceso
+        };
+        return colors[state] || new Color3(1, 1, 1);
+    }
+
 
     // ===========================
     // Fin de partida y limpieza
