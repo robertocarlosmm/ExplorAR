@@ -186,10 +186,16 @@ export class ProjectileSystem {
     // IMPACTO / COLISIÓN
     // ================================
     _handleImpact(projectile, target) {
+        const projType = projectile.metadata?.type || "unknown";
+
+        console.log(`[ProjectileSystem] Impacto detectado: tipo=${projType}, target=${target?.name}`);
+
+        // Eliminar de forma segura
         this._disposeProjectile(projectile);
-        if (typeof this.onHit === "function") {
+
+        if (typeof this.onHit === "function" && projType !== "unknown") {
             try {
-                this.onHit(projectile.metadata.type, target);
+                this.onHit(projType, target);
             } catch (err) {
                 console.warn("[ProjectileSystem] Error en callback onHit:", err);
             }
@@ -224,15 +230,13 @@ export class ProjectileSystem {
     // ================================
     _disposeProjectile(proj) {
         if (!proj || proj._isDisposed) return;
-        proj.metadata.active = false;
         try {
+            proj.metadata = null; // limpia metadatos primero
             proj.dispose();
         } catch (e) {
             console.warn("[ProjectileSystem] Error al eliminar proyectil:", e);
         }
-        this.activeProjectiles = this.activeProjectiles.filter(
-            (p) => p !== proj
-        );
+        this.activeProjectiles = this.activeProjectiles.filter(p => p !== proj);
     }
 
     dispose() {
