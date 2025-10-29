@@ -17,24 +17,28 @@ export class Minigame3Vicos {
         this.hud = hud;
         this.experienceId = experienceId;
         this.score = startingScore;
+        this.startingScore = startingScore;
 
         // Estado general
         this.isRunning = false;
-        this.plots = [];                 // { mesh, state, hasPlant, pos }
-        this.gridSize = 4;               // 4x4
-        this.gridPositions = [];         // posiciones pre-calculadas (con bloqueo del centro)
+        this.plots = [];
+        this.gridSize = 4;
+        this.gridPositions = [];
 
-        // Parámetros por defecto (se sobrescriben con params del config)
+        // Parámetros por defecto
         this.numberOfPlots = 6;
         this.spawnRadius = 1.2;
         this.dryChance = 0.4;
 
-        // Config y assets (se llenan en _loadConfigForVicos)
+        // Config y assets
         this.experience = null;
         this.miniConfig = null;
-        this.assetMap = {};              // key -> url (dry_soil, soil_base, soil_wet1, icon_seed, etc.)
+        this.assetMap = {};
+        this.waterPoints = gameplayConfig.scoring?.m3Vicos?.waterBonus ?? 8;
+        this.overwaterPenalty = gameplayConfig.scoring?.m3Vicos?.overwaterPenalty ?? 5;
+        this.seedPoints = gameplayConfig.scoring?.m3Vicos?.seedBonus ?? 10;
 
-        //Porjectil
+        // Projectil
         this.projectiles = null;
     }
 
@@ -42,16 +46,14 @@ export class Minigame3Vicos {
     // Ciclo de vida
     // ===========================
     async start() {
-        console.log("[Minigame3Vicos] Iniciando minijuego Vicos (Fase 1)");
+        console.log("[Minigame3Vicos] Iniciando minijuego Vicos - VERSIÓN MEJORADA");
 
-        // 1) Cargar configuración/parametría y construir assetMap
         const ok = this._loadConfigForVicos();
         if (!ok) {
             this._failGracefully("No se encontró la configuración de Vicos en experiencesConfig.");
             return;
         }
 
-        // 2) HUD + Timer
         this.hud?.show?.();
         const totalTime =
             this.miniConfig?.params?.timeLimit ??
@@ -63,17 +65,14 @@ export class Minigame3Vicos {
         this.hud?.startTimer?.(totalTime, null, () => this._onTimeUp());
         this.hud?.updateScore?.(this.score);
 
-        // 3) Construir plano base lógico (invisible) y grid 4×4
         this._createBasePlane();
         this._generateGridPositions();
-
-        // 4) Spawn inicial de parcelas (solo "fertile" o "dry")
         this._spawnInitialPlots();
 
         this.isRunning = true;
-        console.log("[Minigame3Vicos] Terreno listo. Parcelas iniciales generadas.");
+        console.log("[Minigame3Vicos] ✓ Terreno listo con sistema de capas");
 
-        // 5) Sistema de lanzamiento (ProjectileSystem)
+        // Sistema de lanzamiento mejorado con previsualización
         this.projectiles = new ProjectileSystem({
             scene: this.scene,
             hud: this.hud,
@@ -86,132 +85,191 @@ export class Minigame3Vicos {
             cooldown: 400,
         });
 
-        // Registrar las parcelas activas como objetivos
         this.projectiles.registerTargets(this.plots.map(p => p.mesh));
 
-        // Controles (por ahora click, luego se reemplaza por botón HUD)
-        window.addEventListener("click", () => this.projectiles.launch());
+        // Controles
+        window.addEventListener("click", () => this.projectiles.tap());
     }
 
     // ===========================
-    // Impact
+    // ★★★ LÓGICA DE IMPACTO MEJORADA ★★★
+    // Estados permanentes: "dry" y "excess" NO se pueden cambiar
     // ===========================
-    // Añade esto dentro de tu clase Minigame3Vicos, reemplazando tu _handleHit actual
     _handleHit(type, target) {
         if (!this.isRunning) return;
 
         const plot = this.plots.find(p => p.mesh === target);
         if (!plot) return;
 
-        // Inicializa contadores internos si aún no existen
+        // Inicializa contadores si no existen
         if (plot.waterLevel == null) plot.waterLevel = 0;
 
-        // 1) Reglas sobre suelo seco/infértil
+        console.log(`[Vicos] Impacto: tipo=${type}, estado=${plot.state}, waterLevel=${plot.waterLevel}`);
+
+        // ═══════════════════════════════════════════
+        // REGLA 1: Suelo seco es PERMANENTE - NO se puede recuperar
+        // ═══════════════════════════════════════════
         if (plot.state === "dry") {
-            this.hud?.showTemporaryMessage?.("El suelo está seco", 800);
+            this.hud.message("⚠️ Suelo infértil - No se puede usar", 1200);
             return;
         }
 
-        // 2) Sembrar
-        if (type === "seed" && !plot.hasPlant) {
-            plot.hasPlant = true;
-            plot.state = "seeded"; // verde-amarillo suave
-            this.score += (this.miniConfig.params?.pointsPerPlanting ?? 10);
-            this.hud?.updateScore?.(this.score);
-            console.log("[Vicos] Semilla sembrada:", plot.mesh.name);
-
-            this._applyPlotVisual(plot);
+        // ═══════════════════════════════════════════
+        // REGLA 2: Parcela ahogada (excess) es PERMANENTE
+        // ═══════════════════════════════════════════
+        if (plot.state === "excess") {
+            this.hud.message("💀 Planta muerta - Parcela perdida", 1200);
             return;
         }
 
-        // 3) Regar
-        if (type === "water" && plot.hasPlant) {
-            // Limita el nivel máximo a 4 (evita overflow)
-            plot.waterLevel = Math.min(plot.waterLevel + 1, 4);
-
-            // Progresión por niveles visuales y de puntaje
-            if (plot.waterLevel === 1) {
-                plot.state = "watered1"; // verde medio
-                this.score += (this.miniConfig.params?.pointsPerWatering ?? 5);
-            } else if (plot.waterLevel === 2) {
-                plot.state = "watered2"; // verde intenso
-                this.score += (this.miniConfig.params?.pointsPerWatering ?? 5);
-            } else if (plot.waterLevel === 3) {
-                plot.state = "overwatered"; // naranja
-                this.hud?.showTemporaryMessage?.("Cuidado: demasiada agua", 800);
-            } else if (plot.waterLevel >= 4) {
-                plot.state = "excess"; // rojo por exceso
-                this.hud?.showTemporaryMessage?.("¡Planta ahogada!", 800);
-            }
-
-            // Evita seguir sumando puntos después de exceso
-            if (plot.state === "excess" || plot.state === "overwatered") {
-                this.hud?.showTemporaryMessage?.("Este suelo ya no puede recuperarse", 800);
-                this.score -= (this.miniConfig.params?.penaltyPerOverwater ?? 2);
+        // ═══════════════════════════════════════════
+        // REGLA 3: Sembrar semilla
+        // ═══════════════════════════════════════════
+        if (type === "seed") {
+            if (plot.hasPlant) {
+                this.hud.message("Ya hay una planta aquí", 800);
                 return;
             }
 
-            this.hud?.updateScore?.(this.score);
-            console.log(`[Vicos] Planta regada: ${plot.mesh.name} nivel: ${plot.waterLevel}`);
+            // Sembrar en suelo fértil
+            plot.hasPlant = true;
+            plot.state = "seeded";
+            plot.waterLevel = 0; // Resetear agua
+            this.score += this.seedPoints;
+            this.hud.setScore(this.score);
+            this.hud.message("🌱 Semilla plantada", 800);
 
+            console.log("[Vicos] ✓ Semilla sembrada:", plot.mesh.name);
             this._applyPlotVisual(plot);
             return;
         }
 
-        // 4) Si cae semilla donde ya hay planta o agua donde no hay planta,
-        // solo refresca el color/estado por si acaso
-        this._applyPlotVisual(plot);
+        // ═══════════════════════════════════════════
+        // REGLA 4: Regar con agua
+        // ═══════════════════════════════════════════
+        if (type === "water") {
+            if (!plot.hasPlant) {
+                this.hud.message("Debes plantar una semilla primero", 1000);
+                return;
+            }
+
+            // Incrementar nivel de agua
+            plot.waterLevel++;
+
+            // Estados progresivos CON BLOQUEO PERMANENTE
+            if (plot.waterLevel === 1) {
+                plot.state = "watered1"; // Verde medio
+                this.score += waterPoints
+                this.hud.setScore(this.score);
+                this.hud.message("💧 Riego perfecto", 800);
+                console.log("[Vicos] ✓ Nivel agua: 1 - Estado óptimo");
+            }
+            else if (plot.waterLevel === 2) {
+                plot.state = "watered2"; // Verde intenso
+                this.score += waterPoints;
+                this.hud.setScore(this.score);
+                this.hud.message("💧💧 Planta muy saludable", 800);
+                console.log("[Vicos] ✓ Nivel agua: 2 - Estado excelente");
+            }
+            else if (plot.waterLevel === 3) {
+                plot.state = "overwatered"; // Naranja
+                this.score = Math.max(0, this.score - overwaterPenalty);
+                this.hud.setScore(this.score);
+                this.hud.message("⚠️ ¡Demasiada agua!", 1200);
+                console.log("[Vicos] ⚠ Nivel agua: 3 - Sobreregado");
+            }
+            else if (plot.waterLevel >= 4) {
+                // ★ MUERTE PERMANENTE - YA NO SE PUEDE USAR ★
+                plot.state = "excess";
+                plot.isLocked = true; // Marcar como bloqueada
+                this.score = Math.max(0, this.score - overwaterPenalty);
+                this.hud.message("💀 ¡PLANTA AHOGADA! Parcela perdida", 2000);
+                console.log("[Vicos] ✖ Nivel agua: 4+ - PLANTA MUERTA PERMANENTE");
+            }
+
+            this.hud?.updateScore?.(this.score);
+            this._applyPlotVisual(plot);
+            return;
+        }
     }
 
-
-    //Color
+    // ===========================
+    // ★★★ SISTEMA DE CAPAS VISUAL ★★★
+    // Capa 1 (baseMesh): Color de fondo
+    // Capa 2 (mesh): Textura PNG encima
+    // ===========================
     _applyPlotVisual(plot) {
-        if (!plot?.mesh) return;
+        if (!plot?.mesh || !plot?.baseMesh) {
+            console.warn("[Vicos] Plot sin meshes válidos:", plot);
+            return;
+        }
 
-        const mat = plot.mesh.material ?? new StandardMaterial(`mat_${plot.mesh.name}`, this.scene);
-        plot.mesh.material = mat;
+        // ═══════════════════════════════════════════
+        // CAPA 1: COLOR DE FONDO (debajo del PNG)
+        // ═══════════════════════════════════════════
+        const baseMat = plot.baseMesh.material ?? new StandardMaterial(`baseMat_${plot.mesh.name}`, this.scene);
+        plot.baseMesh.material = baseMat;
 
-        // Textura (igual a como ya lo haces)
+        // Asignar color según el estado
+        baseMat.diffuseColor = this._getColorForState(plot.state);
+        baseMat.alpha = 0.75; // Semitransparente
+        baseMat.specularColor = new Color3(0, 0, 0);
+        baseMat.emissiveColor = new Color3(0, 0, 0);
+        baseMat.backFaceCulling = false;
+
+        console.log(`[Vicos] Aplicando color ${plot.state}:`, baseMat.diffuseColor);
+
+        // ═══════════════════════════════════════════
+        // CAPA 2: TEXTURA PNG (encima, muestra solo la tierra)
+        // ═══════════════════════════════════════════
+        const texMat = plot.mesh.material ?? new StandardMaterial(`texMat_${plot.mesh.name}`, this.scene);
+        plot.mesh.material = texMat;
+
+        // Seleccionar textura según estado
         let texKey;
-        if (plot.state === "watered1" || plot.state === "watered2") texKey = "soil_wet1";
-        else if (plot.hasPlant) texKey = "soil_base";
-        else if (plot.state === "dry") texKey = "dry_soil";
-        else texKey = "soil_base";
+        if (plot.state === "dry") {
+            texKey = "dry_soil";
+        } else if (plot.state === "watered1" || plot.state === "watered2") {
+            texKey = "soil_wet1";
+        } else {
+            texKey = "soil_base";
+        }
 
         const texUrl = this.assetMap?.[texKey];
         if (texUrl) {
             const tex = new Texture(texUrl, this.scene, false, false, Texture.TRILINEAR_SAMPLINGMODE);
             tex.hasAlpha = true;
-            mat.diffuseTexture = tex;
-            mat.opacityTexture = tex;
-            mat.useAlphaFromDiffuseTexture = true;
-            mat.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
+            texMat.diffuseTexture = tex;
+            texMat.opacityTexture = tex;
+            texMat.useAlphaFromDiffuseTexture = true;
+            texMat.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
         }
 
-        // <<< aquí estaba el bug: pasabas 'plot' a _getColorForState >>>
-        const stateName = plot.state;                 // "dry" | "fertile" | "seeded" | "watered1" | ...
-        mat.diffuseColor = this._getColorForState(stateName);
-        mat.alpha = 0.6;
-
-        mat.specularColor = new Color3(0, 0, 0);
-        mat.emissiveColor = new Color3(0.05, 0.05, 0.05);
-        mat.backFaceCulling = false;
+        // ★ IMPORTANTE: NO aplicar diffuseColor aquí, solo en la capa base
+        texMat.specularColor = new Color3(0, 0, 0);
+        texMat.emissiveColor = new Color3(0.02, 0.02, 0.02);
+        texMat.backFaceCulling = false;
     }
 
-    // Define una ÚNICA versión de _getColorForState(state)
+    // ===========================
+    // ★★★ TABLA DE COLORES ★★★
+    // Colores claros para cada estado
+    // ===========================
     _getColorForState(state) {
-        const map = {
-            dry: new Color3(1.0, 0.0, 0.0),  // rojo
-            fertile: new Color3(1.0, 1.0, 0.0),  // amarillo
-            seeded: new Color3(0.8, 0.9, 0.3),  // verde-amarillo
-            watered1: new Color3(0.3, 0.85, 0.3), // verde medio
-            watered2: new Color3(0.1, 0.75, 0.1), // verde intenso
-            overwatered: new Color3(1.0, 0.5, 0.0),  // naranja
-            excess: new Color3(1.0, 0.0, 0.0),  // rojo exceso
+        const colorMap = {
+            dry: new Color3(0.9, 0.1, 0.1),        // 🔴 Rojo intenso - INFÉRTIL PERMANENTE
+            fertile: new Color3(1.0, 0.95, 0.2),   // 🟡 Amarillo brillante - Listo para sembrar
+            seeded: new Color3(0.75, 0.9, 0.3),    // 🟢 Verde-amarillo - Recién sembrado
+            watered1: new Color3(0.2, 0.85, 0.3),  // 🟢 Verde medio - Nivel óptimo 1
+            watered2: new Color3(0.1, 0.75, 0.2),  // 🟢 Verde intenso - Nivel óptimo 2
+            overwatered: new Color3(1.0, 0.5, 0.0),// 🟠 Naranja - Advertencia crítica
+            excess: new Color3(0.95, 0.0, 0.0),    // 🔴 Rojo brillante - MUERTE PERMANENTE
         };
-        return map[state] ?? new Color3(1, 1, 1);
-    }
 
+        const color = colorMap[state] ?? new Color3(1, 1, 1);
+        console.log(`[Vicos] Color para estado '${state}':`, color);
+        return color;
+    }
 
     // ===========================
     // Config & Assets
@@ -221,25 +279,21 @@ export class Minigame3Vicos {
             this.experience = experiencesConfig.find((e) => e.id === this.experienceId);
             if (!this.experience) return false;
 
-            // Busca el minijuego 3 de Vicos (id típico "m3Vicos" | type "throw")
             this.miniConfig =
                 this.experience.minigames?.find((m) => m.id === "m3Vicos") ||
                 this.experience.minigames?.find((m) => m.type === "throw");
 
             if (!this.miniConfig) return false;
 
-            // Parametría
             const p = this.miniConfig.params || {};
             this.numberOfPlots = Number.isFinite(p.numberOfPlots) ? p.numberOfPlots : this.numberOfPlots;
             this.spawnRadius = Number.isFinite(p.spawnRadius) ? p.spawnRadius : this.spawnRadius;
             this.dryChance = Number.isFinite(p.dryChance) ? p.dryChance : this.dryChance;
 
-            // Mapa de assets (key -> url)
             this.assetMap = Object.fromEntries(
                 (this.miniConfig.assets || []).map((a) => [a.key, a.url])
             );
 
-            // Validaciones mínimas
             if (!this.assetMap["dry_soil"] || !this.assetMap["soil_base"]) {
                 console.warn("[Minigame3Vicos] Falta dry_soil o soil_base en assets del config.");
             }
@@ -254,10 +308,9 @@ export class Minigame3Vicos {
     // Construcción de escenario
     // ===========================
     _createBasePlane() {
-        const size = Math.max(2.5, this.spawnRadius * 2); // base visible lógica
+        const size = Math.max(2.5, this.spawnRadius * 2);
         const base = MeshBuilder.CreateGround("vicos_base", { width: size, height: size }, this.scene);
 
-        // Material base semitransparente (rejilla)
         const mat = new StandardMaterial("vicos_grid_mat", this.scene);
         mat.diffuseColor = new Color3(1, 1, 1);
         mat.alpha = 0.15;
@@ -267,11 +320,8 @@ export class Minigame3Vicos {
     }
 
     _generateGridPositions() {
-        // Grid 4×4 centrado en el jugador
-        // Centro bloqueado: celdas (1,1), (1,2), (2,1), (2,2)
-        // Distribución espacial en X/Z proporcional a spawnRadius
         this.gridPositions = [];
-        const cellSize = this.spawnRadius / (this.gridSize / 2); // separaciones uniformes
+        const cellSize = this.spawnRadius / (this.gridSize / 2);
         let idx = 0;
 
         for (let r = 0; r < this.gridSize; r++) {
@@ -283,12 +333,12 @@ export class Minigame3Vicos {
                 this.gridPositions.push({
                     index: idx++,
                     pos: new Vector3(x, 0, z),
-                    available: !isCenter, // sólo bordes disponibles para spawn
+                    available: !isCenter,
                 });
             }
         }
 
-        console.log("[Minigame3Vicos] Grid 4x4 generado.");
+        console.log("[Minigame3Vicos] Grid 4x4 generado (centro bloqueado).");
     }
 
     _spawnInitialPlots() {
@@ -299,38 +349,47 @@ export class Minigame3Vicos {
             const state = Math.random() < this.dryChance ? "dry" : "fertile";
             this._spawnPlotAt(cell.pos, state);
         }
+
+        console.log(`[Minigame3Vicos] ✓ Spawned ${this.plots.length} parcelas iniciales`);
     }
 
+    // ===========================
+    // ★★★ SPAWN CON SISTEMA DE CAPAS ★★★
+    // Crea DOS planos: uno para color, otro para textura
+    // ===========================
     _spawnPlotAt(position, state) {
         const plotSize = this.miniConfig.params?.plotSize || 0.3;
-        console.log("Plotsize:", plotSize);
 
-        // 1. Plano base de color (fondo)
+        // ═══════════════════════════════════════════
+        // CAPA 1: Plano base de COLOR (debajo)
+        // ═══════════════════════════════════════════
         const baseMesh = MeshBuilder.CreateGround(
-            `vicos_plot_base_${state}_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+            `vicos_base_${state}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             { width: plotSize, height: plotSize },
             this.scene
         );
-        baseMesh.position = new Vector3(position.x, 0.005, position.z); // un poco más abajo
-        baseMesh.rotation = new Vector3(0, 0, 0);
+        baseMesh.position = new Vector3(position.x, 0.002, position.z); // Pegado al suelo
 
-        const baseMat = new StandardMaterial(`base_mat_${state}`, this.scene);
-        baseMat.diffuseColor = this._getColorForState(state); // color inicial (rojo o amarillo)
-        baseMat.alpha = 0.5; // semitransparente para combinar con PNG
+        const baseMat = new StandardMaterial(`baseMat_${state}_${Date.now()}`, this.scene);
+        baseMat.diffuseColor = this._getColorForState(state);
+        baseMat.alpha = 0.75; // Semitransparente
         baseMat.specularColor = new Color3(0, 0, 0);
+        baseMat.backFaceCulling = false;
         baseMesh.material = baseMat;
 
-        // 2. Plano superior con textura PNG del suelo
+        // ═══════════════════════════════════════════
+        // CAPA 2: Plano superior con TEXTURA PNG (encima)
+        // ═══════════════════════════════════════════
         const textureMesh = MeshBuilder.CreateGround(
-            `vicos_plot_tex_${state}_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+            `vicos_tex_${state}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             { width: plotSize, height: plotSize },
             this.scene
         );
-        textureMesh.position = new Vector3(position.x, 0.01, position.z);
-        textureMesh.rotation = new Vector3(0, 0, 0);
+        textureMesh.position = new Vector3(position.x, 0.006, position.z); // Ligeramente más alto
 
-        const texMat = new StandardMaterial(`tex_mat_${state}`, this.scene);
+        const texMat = new StandardMaterial(`texMat_${state}_${Date.now()}`, this.scene);
         const texUrl = state === "dry" ? this.assetMap["dry_soil"] : this.assetMap["soil_base"];
+
         if (texUrl) {
             const tex = new Texture(texUrl, this.scene, false, false, Texture.TRILINEAR_SAMPLINGMODE);
             tex.hasAlpha = true;
@@ -339,25 +398,28 @@ export class Minigame3Vicos {
             texMat.useAlphaFromDiffuseTexture = true;
             texMat.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
         }
+
         texMat.specularColor = new Color3(0, 0, 0);
         texMat.backFaceCulling = false;
         textureMesh.material = texMat;
 
-        // 3. Guarda ambas capas
-        this.plots.push({
-            mesh: textureMesh,
-            baseMesh,
+        // ═══════════════════════════════════════════
+        // Guardar AMBAS capas en el objeto plot
+        // ═══════════════════════════════════════════
+        const newPlot = {
+            mesh: textureMesh,      // Capa superior (PNG)
+            baseMesh: baseMesh,     // Capa inferior (COLOR)
             state,
             hasPlant: false,
             pos: position,
-            waterLevel: 0
-        });
+            waterLevel: 0,
+            isLocked: state === "dry" // Suelo seco bloqueado desde el inicio
+        };
 
-        // Aplica color inicial
-        this._applyPlotVisual(this.plots[this.plots.length - 1]);
+        this.plots.push(newPlot);
+
+        console.log(`[Vicos] ✓ Spawned parcela: estado=${state}, pos=${position.x.toFixed(2)},${position.z.toFixed(2)}`);
     }
-
-
 
     // ===========================
     // Utilidades
@@ -374,29 +436,14 @@ export class Minigame3Vicos {
         return result;
     }
 
-    // Tabla de color
-    _getColorForState(state) {
-        const colors = {
-            infertile: new Color3(1, 0, 0),       // rojo
-            fertile: new Color3(1, 1, 0),         // amarillo
-            seeded1: new Color3(0.6, 0.8, 0.3),   // verde-amarillo
-            watered1: new Color3(0.3, 0.9, 0.3),  // verde medio
-            watered2: new Color3(0.1, 0.8, 0.1),  // verde intenso
-            overwatered: new Color3(1, 0.4, 0),   // naranja
-            drowned: new Color3(1, 0, 0),         // rojo exceso
-        };
-        return colors[state] || new Color3(1, 1, 1);
-    }
-
-
     // ===========================
     // Fin de partida y limpieza
     // ===========================
     _onTimeUp() {
-        console.log("[Minigame3Vicos] Tiempo finalizado (Fase 1)");
+        console.log("[Minigame3Vicos] ⏰ Tiempo finalizado");
         this.hud?.showPopup?.({
-            title: "Tiempo agotado",
-            message: `Puntaje: ${this.score}`,
+            title: "¡Tiempo agotado!",
+            message: `Puntaje final: ${this.score}`,
             buttonText: "Continuar",
             onClose: () => this._endGame(),
         });
@@ -410,7 +457,12 @@ export class Minigame3Vicos {
 
     _disposeAllPlots() {
         for (const p of this.plots) {
-            try { p.mesh.dispose(); } catch { }
+            try {
+                p.mesh?.dispose();
+                p.baseMesh?.dispose(); // ★ Eliminar ambas capas
+            } catch (e) {
+                console.warn("[Vicos] Error disposing plot:", e);
+            }
         }
         this.plots = [];
     }
@@ -420,9 +472,11 @@ export class Minigame3Vicos {
             this._disposeAllPlots();
             this.base?.dispose();
             this.projectiles?.dispose();
-        } catch { }
+        } catch (e) {
+            console.warn("[Vicos] Error en dispose:", e);
+        }
         this.hud?.stopTimer?.();
-        console.log("[Minigame3Vicos] Recursos liberados (Fase 1).");
+        console.log("[Minigame3Vicos] ✓ Recursos liberados.");
     }
 
     _failGracefully(msg) {

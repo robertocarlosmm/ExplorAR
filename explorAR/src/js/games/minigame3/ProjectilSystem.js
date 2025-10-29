@@ -8,24 +8,13 @@ import {
 
 /**
  * Sistema genérico y reutilizable de proyectiles con trayectoria parabólica.
- * Controla creación, movimiento, colisión, alternancia de tipo, gravedad y limpieza.
- *
- * Usado en los minijuegos 3 (Vicos, Taquile, Tambopata, Lúcumo)
- *
+ * Correcciones y mejoras:
+ * - Evita dispose accidental del proyectil activo (bug que causaba "desaparición")
+ * - Soporta `tapsToLaunch` (n taps para lanzar)
+ * - Logs de depuración detallados
+ * - Modular para futuras mejoras (pokeball, angrybird, etc.)
  */
 export class ProjectileSystem {
-    /**
-     * @param {Object} opts - Opciones de configuración.
-     * @param {Scene} opts.scene - Escena Babylon.js activa.
-     * @param {Object} opts.hud - HUD del juego (opcional, para mostrar íconos).
-     * @param {Array<string>} opts.projectileTypes - Tipos de proyectil (ej. ["seed", "water"]).
-     * @param {Object} opts.assetMap - Mapa de assets del minijuego.
-     * @param {Function} opts.onHit - Callback al impactar un objetivo.
-     * @param {number} [opts.speed=2.8] - Velocidad inicial del proyectil.
-     * @param {number} [opts.cooldown=400] - Tiempo mínimo entre lanzamientos (ms).
-     * @param {number} [opts.gravity=-2.5] - Aceleración de caída vertical.
-     * @param {number} [opts.range=5.0] - Distancia máxima antes de destruir proyectil (m).
-     */
     constructor({
         scene,
         hud = null,
@@ -36,6 +25,7 @@ export class ProjectileSystem {
         cooldown = 400,
         gravity = -2.5,
         range = 5.0,
+        tapsToLaunch = 1, // nuevo: cuantos taps se requieren para lanzar
     }) {
         this.scene = scene;
         this.hud = hud;
@@ -47,110 +37,79 @@ export class ProjectileSystem {
         this.gravity = gravity;
         this.range = range;
 
+        // Config taps
+        this.tapsToLaunch = Math.max(1, Math.floor(tapsToLaunch));
+        this._tapCounter = 0;
+
         // Estado interno
         this.currentIndex = 0;
         this.lastShotTime = 0;
         this.activeProjectiles = [];
         this.targets = [];
 
-        // Mostrar íconos iniciales en el HUD (si aplica)
+        // Proyectil en espera (previsualización)
+        this.readyProjectile = null;
+
+        // Inicializar primera previsualización
+        this._createReadyProjectile();
         this._updateHUDIcons();
+
+        console.log(`[ProjectileSystem] Inicializado (speed=${this.speed}, gravity=${this.gravity}, range=${this.range}, tapsToLaunch=${this.tapsToLaunch})`);
     }
 
     // ================================
-    // LANZAMIENTO PRINCIPAL
+    // Manejo de taps (soporta n taps to launch)
     // ================================
-    launch() {
-        const now = performance.now();
-        if (now - this.lastShotTime < this.cooldown) return; // cooldown activo
-        this.lastShotTime = now;
+    tap() {
+        this._tapCounter++;
+        console.log(`[ProjectileSystem] tap #${this._tapCounter}/${this.tapsToLaunch}`);
+        if (this._tapCounter >= this.tapsToLaunch) {
+            this._tapCounter = 0;
+            this.launch();
+        }
+    }
 
-        const type = this.projectileTypes[this.currentIndex];
-        const projectile = this._createProjectile(type);
-
-        // Configurar velocidad inicial con dirección curva (tipo “Pokébola”)
-        const cam = this.scene.activeCamera;
-        const direction = cam.getDirection(Vector3.Forward())
-            .add(new Vector3(0, 0.25, 0)) // leve inclinación ascendente
-            .normalize();
-
-        projectile.metadata = {
-            active: true,
-            type,
-            startPos: projectile.position.clone(),
-            velocity: direction.scale(this.speed),
-            gravity: new Vector3(0, this.gravity, 0),
-        };
-
-        this.activeProjectiles.push(projectile);
-
-        // Movimiento parabólico frame a frame
-        projectile.registerBeforeRender(() => {
-            if (!projectile.metadata.active) return;
-
-            const dt = this.scene.getEngine().getDeltaTime() / 1000;
-
-            // Física simplificada: posición = posición + v*dt ; v.y += g*dt
-            projectile.metadata.velocity.addInPlace(
-                projectile.metadata.gravity.scale(dt)
-            );
-            projectile.position.addInPlace(
-                projectile.metadata.velocity.scale(dt)
-            );
-
-            // Destruir si sale del rango
-            const traveled = Vector3.Distance(
-                projectile.metadata.startPos,
-                projectile.position
-            );
-            if (traveled > this.range) {
-                this._disposeProjectile(projectile);
-                return;
-            }
-
-            // Verificar colisión con objetivos
-            for (const target of this.targets) {
-                if (!target || target._isDisposed) continue;
-                const dist = Vector3.Distance(projectile.position, target.position);
-                if (dist < 0.18) {
-                    this._handleImpact(projectile, target);
-                    break;
+    // ================================
+    // Crear proyectil en espera (previsual)
+    // ================================
+    _createReadyProjectile() {
+        // Si existe un readyProjectile y está activo (promovido a activo) NO lo disposeamos.
+        if (this.readyProjectile) {
+            const rp = this.readyProjectile;
+            if (rp.metadata && rp.metadata.active) {
+                // Este readyProjectile ya es un proyectil activo (edge-case) -> lo dejamos
+                console.log("[ProjectileSystem] _createReadyProjectile: existente y activo, no lo disposeo (seguro).");
+            } else {
+                try {
+                    rp.dispose();
+                } catch (e) {
+                    console.warn("[ProjectileSystem] Error limpiando proyectil listo previo:", e);
                 }
             }
-        });
+        }
 
-        // Alternar tipo y actualizar HUD
-        this._switchType();
-    }
-
-    // ================================
-    // REGISTRO DE OBJETIVOS
-    // ================================
-    registerTargets(meshes) {
-        if (!Array.isArray(meshes)) meshes = [meshes];
-        this.targets = meshes.filter(Boolean);
-    }
-
-    // ================================
-    // CREACIÓN VISUAL DEL PROYECTIL
-    // ================================
-    _createProjectile(type) {
+        const type = this.projectileTypes[this.currentIndex] || "default";
         const cam = this.scene.activeCamera;
+        if (!cam) {
+            console.warn("[ProjectileSystem] No hay cámara activa para posicionar el proyectil listo.");
+            return;
+        }
 
-        // Punto de origen: parte baja del campo de visión (tipo Pokébola)
-        const start = cam.position
-            .add(cam.getDirection(Vector3.Forward()).scale(0.15))
-            .add(new Vector3(0, -0.25, 0));
+        // Posición frente a la cámara, ligeramente abajo y adelante
+        const forward = cam.getDirection(Vector3.Forward());
+        const readyPos = cam.position
+            .add(forward.scale(0.4))
+            .add(new Vector3(0.15, -0.2, 0));
 
         const sphere = MeshBuilder.CreateSphere(
-            `proj_${type}_${Date.now()}`,
-            { diameter: 0.06 },
+            `ready_proj_${type}_${Date.now()}`,
+            { diameter: 0.08 },
             this.scene
         );
-        sphere.position.copyFrom(start);
+        sphere.position.copyFrom(readyPos);
 
-        // Material (usa íconos de assetMap si existen)
-        const mat = new StandardMaterial(`projMat_${type}`, this.scene);
+        // Material con textura o color
+        const mat = new StandardMaterial(`readyProjMat_${type}_${Date.now()}`, this.scene);
         const texKey = `icon_${type}`;
         const texUrl = this.assetMap[texKey];
 
@@ -175,22 +134,157 @@ export class ProjectileSystem {
         }
 
         mat.specularColor = new Color3(0, 0, 0);
-        mat.emissiveColor = new Color3(0.05, 0.05, 0.05);
+        mat.emissiveColor = new Color3(0.1, 0.1, 0.1);
         mat.backFaceCulling = false;
         sphere.material = mat;
 
-        return sphere;
+        // Animation: mantiene la posición relativa a la cámara y flota suavemente
+        const beforeRender = () => {
+            if (!sphere || sphere._isDisposed) return;
+            const t = performance.now() / 1000;
+            sphere.position.y = readyPos.y + Math.sin(t * 2) * 0.02;
+
+            const cam2 = this.scene.activeCamera;
+            if (!cam2) return;
+            const newPos = cam2.position
+                .add(cam2.getDirection(Vector3.Forward()).scale(0.4))
+                .add(new Vector3(0.15, -0.2, 0));
+            sphere.position.x = newPos.x;
+            sphere.position.z = newPos.z;
+        };
+        sphere.registerBeforeRender(beforeRender);
+
+        // Guardar metadata
+        sphere.metadata = {
+            type: type,
+            isReady: true,
+            _beforeRenderFn: beforeRender
+        };
+
+        this.readyProjectile = sphere;
+
+        console.log(`[ProjectileSystem] Created ready projectile (type=${type}) at ${sphere.position.toString()}`);
     }
 
     // ================================
-    // IMPACTO / COLISIÓN
+    // Lanzamiento (single shot) — protegido contra dispose accidental
+    // ================================
+    launch() {
+        const now = performance.now();
+        if (now - this.lastShotTime < this.cooldown) {
+            console.log("[ProjectileSystem] En cooldown, ignorando launch.");
+            return;
+        }
+
+        if (!this.readyProjectile || this.readyProjectile._isDisposed) {
+            console.warn("[ProjectileSystem] launch(): No hay proyectil listo para lanzar.");
+            return;
+        }
+
+        this.lastShotTime = now;
+
+        // Promover readyProjectile a proyectil activo
+        const projectile = this.readyProjectile;
+        const type = projectile.metadata?.type || "unknown";
+        const startPos = projectile.position.clone();
+
+        // Detener animación de flotación (si existe)
+        try {
+            if (projectile.metadata?._beforeRenderFn) {
+                projectile.unregisterBeforeRender(projectile.metadata._beforeRenderFn);
+            } else {
+                projectile.unregisterBeforeRender();
+            }
+        } catch (e) {
+            // unregisterBeforeRender puede variar según versión; toleramos ambos.
+        }
+
+        // Preparar metadata de movimiento
+        const cam = this.scene.activeCamera;
+        if (!cam) {
+            console.warn("[ProjectileSystem] No hay cámara activa — lanzamiento fallido.");
+            return;
+        }
+        const direction = cam.getDirection(Vector3.Forward())
+            .add(new Vector3(0, 0.25, 0))
+            .normalize();
+
+        projectile.metadata = {
+            active: true,
+            type,
+            startPos,
+            velocity: direction.scale(this.speed),
+            gravity: new Vector3(0, this.gravity, 0),
+        };
+
+        projectile.name = `proj_${type}_${Date.now()}`;
+        this.activeProjectiles.push(projectile);
+
+        console.log(`[ProjectileSystem] Lanzado proyectil tipo=${type} desde ${startPos.toString()} con vel=${projectile.metadata.velocity.toString()}`);
+
+        // IMPORTANT: separar referencia readyProjectile del proyectil activo antes de crear nueva previsualización
+        this.readyProjectile = null;
+
+        // Alternar tipo para el siguiente proyectil y crear nueva previsualización
+        this._switchType();
+        this._createReadyProjectile();
+
+        // Movimiento parabólico frame a frame
+        projectile.registerBeforeRender(() => {
+            if (!projectile.metadata || !projectile.metadata.active) return;
+
+            const dt = this.scene.getEngine().getDeltaTime() / 1000;
+
+            // Actualizar velocidad y posición
+            // Nota: usamos clones para evitar mutar objetos compartidos por error
+            const gravStep = projectile.metadata.gravity.scale(dt);
+            projectile.metadata.velocity.addInPlace(gravStep);
+            projectile.position.addInPlace(projectile.metadata.velocity.scale(dt));
+
+            // Log ligero (cada pocos frames para no spamear)
+            if (!projectile._lastLogTime || performance.now() - projectile._lastLogTime > 300) {
+                projectile._lastLogTime = performance.now();
+                console.log(`[ProjectileSystem] proyectil[${projectile.name}] pos=${projectile.position.toString()}`);
+            }
+
+            // Destruir si sale del rango
+            const traveled = Vector3.Distance(projectile.metadata.startPos, projectile.position);
+            if (traveled > this.range) {
+                console.log(`[ProjectileSystem] proyectil[${projectile.name}] excedió rango (${traveled.toFixed(2)}m) -> eliminar`);
+                this._disposeProjectile(projectile);
+                return;
+            }
+
+            // Verificar colisión con objetivos (distancia simple)
+            for (const target of this.targets) {
+                if (!target || target._isDisposed) continue;
+                const dist = Vector3.Distance(projectile.position, target.position);
+                if (dist < 0.18) {
+                    console.log(`[ProjectileSystem] proyectil[${projectile.name}] colision con target=${target.name} (dist=${dist.toFixed(3)})`);
+                    this._handleImpact(projectile, target);
+                    break;
+                }
+            }
+        });
+    }
+
+    // ================================
+    // Registro de objetivos
+    // ================================
+    registerTargets(meshes) {
+        if (!Array.isArray(meshes)) meshes = [meshes];
+        this.targets = meshes.filter(Boolean);
+        console.log(`[ProjectileSystem] Registered ${this.targets.length} targets.`);
+    }
+
+    // ================================
+    // Impacto / Colisión
     // ================================
     _handleImpact(projectile, target) {
         const projType = projectile.metadata?.type || "unknown";
-
         console.log(`[ProjectileSystem] Impacto detectado: tipo=${projType}, target=${target?.name}`);
 
-        // Eliminar de forma segura
+        // eliminar proyectil antes de callback para evitar reentradas
         this._disposeProjectile(projectile);
 
         if (typeof this.onHit === "function" && projType !== "unknown") {
@@ -203,7 +297,7 @@ export class ProjectileSystem {
     }
 
     // ================================
-    // ALTERNANCIA DE TIPO
+    // Switch de tipo / HUD
     // ================================
     _switchType() {
         if (this.projectileTypes.length < 2) return;
@@ -226,12 +320,13 @@ export class ProjectileSystem {
     }
 
     // ================================
-    // LIMPIEZA DE PROYECTILES
+    // Dispose proyectil
     // ================================
     _disposeProjectile(proj) {
         if (!proj || proj._isDisposed) return;
         try {
-            proj.metadata = null; // limpia metadatos primero
+            // proteger contra eliminar proyectiles que todavía tengan metadata.active = true en edge-case
+            proj.metadata = null;
             proj.dispose();
         } catch (e) {
             console.warn("[ProjectileSystem] Error al eliminar proyectil:", e);
@@ -239,9 +334,24 @@ export class ProjectileSystem {
         this.activeProjectiles = this.activeProjectiles.filter(p => p !== proj);
     }
 
+    // ================================
+    // Limpieza general
+    // ================================
     dispose() {
-        for (const p of this.activeProjectiles) this._disposeProjectile(p);
+        console.log("[ProjectileSystem] dispose(): limpiando proyectiles y readyProjectile");
+        // Limpiar readyProjectile (si existe y no es activo)
+        if (this.readyProjectile && !this.readyProjectile.metadata?.active) {
+            try {
+                this.readyProjectile.dispose();
+            } catch (e) {
+                console.warn("[ProjectileSystem] Error limpiando readyProjectile:", e);
+            }
+        }
+        // Limpiar proyectiles activos
+        for (const p of [...this.activeProjectiles]) this._disposeProjectile(p);
+
         this.activeProjectiles = [];
         this.targets = [];
+        this.readyProjectile = null;
     }
 }
