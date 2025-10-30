@@ -56,6 +56,8 @@ export const experiencesConfig = [
                     singlespeed: 0.02,
                 },
                 assets: [
+                    { type: "image", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "image", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
                     { type: "image", key: "p1", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p2", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p3", url: "/assets/default/default.jpg" },
@@ -147,6 +149,8 @@ export const experiencesConfig = [
                     singlespeed: 0.02,
                 },
                 assets: [
+                    { type: "image", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "image", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
                     { type: "image", key: "p1", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p2", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p3", url: "/assets/default/default.jpg" },
@@ -218,6 +222,8 @@ export const experiencesConfig = [
                     singlespeed: 0.02,
                 },
                 assets: [
+                    { type: "image", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "image", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
                     { type: "image", key: "p1", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p2", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p3", url: "/assets/default/default.jpg" },
@@ -289,6 +295,8 @@ export const experiencesConfig = [
                     singlespeed: 0.02,
                 },
                 assets: [
+                    { type: "image", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "image", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
                     { type: "image", key: "p1", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p2", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p3", url: "/assets/default/default.jpg" },
