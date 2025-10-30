@@ -136,7 +136,15 @@ export async function startMinigame3(gameManager) {
                 await gameManager.closeXRSession();
                 await new Promise((r) => setTimeout(r, 150));
                 console.log("[Minigame3Launcher] Sesión XR cerrada.");
-                gameManager.onExit?.();
+
+                const nextId = "minigame4";
+                if(nextId) {
+                    gameManager.setCarryScore?.(gameInstance.score);
+                    console.log("Puntaje llevado al GameManager:", gameManager.getCarryScore());
+                    gameManager.launchNextMinigame(nextId);
+                }else{
+                    gameManager.onExit?.();
+                }            
             };
 
             // 7 Iniciar el minijuego

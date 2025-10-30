@@ -76,7 +76,7 @@ export async function startEquipmentGame(gameManager) {
 
                     equipment.onGameEnd = async () => {
                         await gameManager.closeXRSession();
-                        await new Promise((r) => setTimeout(r, 150));
+                        
 
                         //ocultar panel informativo si sigue activo
                         try {
@@ -86,6 +86,8 @@ export async function startEquipmentGame(gameManager) {
                         } catch (err) {
                             console.warn("[EquipmentGame] No se encontró InfoPanel activo para limpiar:", err);
                         }
+
+                        await new Promise((r) => setTimeout(r, 150));
 
                         const nextId = "minigame3";
                         if (nextId) {
