@@ -191,6 +191,18 @@ export class Minigame3Vicos {
 
             this.hud?.updateScore?.(this.score);
             this._applyPlotVisual(plot);
+
+            // ═══════════════════════════════════════════
+            // Verificación de lote completo
+            // ═══════════════════════════════════════════
+            const fertile = this.plots.filter(p => p.state !== "dry");
+            const allComplete = fertile.every(p => p.state === "watered2" || p.state === "excess");
+
+            if (allComplete && fertile.length > 0) {
+                console.log("[Vicos] ✅ Lote completado, desbloqueando nuevo grupo");
+                this._spawnNextBatch();
+            }
+
             return;
         }
     }
@@ -344,15 +356,30 @@ export class Minigame3Vicos {
     }
 
     _spawnInitialPlots() {
-        const spawnable = this.gridPositions.filter((p) => p.available);
+        const spawnable = this.gridPositions.filter(p => p.available);
         const chosen = this._getRandomSubset(spawnable, this.numberOfPlots);
-
+        // 2 infértiles, 4 fértiles
+        const infertileIndices = this._getRandomSubset(chosen, 2);
         for (const cell of chosen) {
-            const state = Math.random() < this.dryChance ? "dry" : "fertile";
+            const isDry = infertileIndices.includes(cell);
+            const state = isDry ? "dry" : "fertile";
             this._spawnPlotAt(cell.pos, state);
         }
+        console.log(`[Minigame3Vicos] ✓ Spawned ${this.plots.length} parcelas (4 fértiles, 2 infértiles)`);
+    }
 
-        console.log(`[Minigame3Vicos] ✓ Spawned ${this.plots.length} parcelas iniciales`);
+    _spawnNextBatch() {
+        console.log("[Vicos] Spawneando siguiente lote de parcelas...");
+        const remainingCells = this.gridPositions.filter(p => p.available && !this.plots.find(x => x.pos.equals(p.pos)));
+        if (remainingCells.length < 6) return;
+
+        const chosen = this._getRandomSubset(remainingCells, 6);
+        const infertileIndices = this._getRandomSubset(chosen, 2);
+        for (const cell of chosen) {
+            const state = infertileIndices.includes(cell) ? "dry" : "fertile";
+            this._spawnPlotAt(cell.pos, state);
+        }
+        this.projectiles.registerTargets(this.plots.map(p => p.mesh));
     }
 
     // ===========================
@@ -452,7 +479,7 @@ export class Minigame3Vicos {
                 console.log("[Minigame3Vicos] Continuar presionado (sin acción por ahora)");
                 this._endGame();
             },
-            timeExpired: true
+            timeExpired: false
         });
     }
 
@@ -460,6 +487,8 @@ export class Minigame3Vicos {
         console.log("[Minigame3Vicos] Reiniciando minijuego...");
         this.dispose();
         this.score = this.startingScore;
+        this.hud?.updateScore?.(this.startingScore);
+        this.hud.setScore(this.startingScore);  
         this.start();
     }
 

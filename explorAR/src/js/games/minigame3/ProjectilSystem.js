@@ -25,7 +25,8 @@ export class ProjectileSystem {
         cooldown = 400,
         gravity = -2.5,
         range = 5.0,
-        tapsToLaunch = 1, // nuevo: cuantos taps se requieren para lanzar
+        tapsToLaunch = 1, // cuantos taps se requieren para lanzar
+        getNextType = null,
     }) {
         this.scene = scene;
         this.hud = hud;
@@ -40,6 +41,9 @@ export class ProjectileSystem {
         // Config taps
         this.tapsToLaunch = Math.max(1, Math.floor(tapsToLaunch));
         this._tapCounter = 0;
+
+        // Sigueinte proyectil
+        this.getNextType = getNextType;
 
         // Estado interno
         this.currentIndex = 0;
