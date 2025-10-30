@@ -117,7 +117,7 @@ export class GameManager {
         }
     }
 
-    // MINI GAME 2
+    // MINI GAME 2 - YA NO SE USA ESTE METODO 
     startMinigame2() {
         const currentExperience = this.experienceManager?.currentExperience ?? {
             name: "Destino desconocido",

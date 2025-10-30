@@ -89,6 +89,8 @@ export async function startEquipmentGame(gameManager) {
 
                         const nextId = "minigame3";
                         if (nextId) {
+                            gameManager.setCarryScore?.(equipment.score);
+                            console.log("Puntaje llevado al GameManager:", gameManager.getCarryScore());
                             gameManager.launchNextMinigame(nextId);
                         } else {
                             gameManager.onExit?.();

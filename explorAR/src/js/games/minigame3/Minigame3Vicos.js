@@ -118,6 +118,8 @@ export class Minigame3Vicos {
         // REGLA 2: Parcela ahogada (excess) es PERMANENTE
         // ═══════════════════════════════════════════
         if (plot.state === "excess") {
+            this.score = Math.max(0, this.score - this.overwaterPenalty);
+            this.hud.setScore(this.score);
             this.hud.message("💀 Planta muerta - Parcela perdida", 1200);
             return;
         }
@@ -159,21 +161,21 @@ export class Minigame3Vicos {
             // Estados progresivos CON BLOQUEO PERMANENTE
             if (plot.waterLevel === 1) {
                 plot.state = "watered1"; // Verde medio
-                this.score += waterPoints
+                this.score += this.waterPoints
                 this.hud.setScore(this.score);
                 this.hud.message("💧 Riego perfecto", 800);
                 console.log("[Vicos] ✓ Nivel agua: 1 - Estado óptimo");
             }
             else if (plot.waterLevel === 2) {
                 plot.state = "watered2"; // Verde intenso
-                this.score += waterPoints;
+                this.score += this.waterPoints;
                 this.hud.setScore(this.score);
                 this.hud.message("💧💧 Planta muy saludable", 800);
                 console.log("[Vicos] ✓ Nivel agua: 2 - Estado excelente");
             }
             else if (plot.waterLevel === 3) {
                 plot.state = "overwatered"; // Naranja
-                this.score = Math.max(0, this.score - overwaterPenalty);
+                this.score = Math.max(0, this.score - this.overwaterPenalty);
                 this.hud.setScore(this.score);
                 this.hud.message("⚠️ ¡Demasiada agua!", 1200);
                 console.log("[Vicos] ⚠ Nivel agua: 3 - Sobreregado");
@@ -182,7 +184,7 @@ export class Minigame3Vicos {
                 // ★ MUERTE PERMANENTE - YA NO SE PUEDE USAR ★
                 plot.state = "excess";
                 plot.isLocked = true; // Marcar como bloqueada
-                this.score = Math.max(0, this.score - overwaterPenalty);
+                this.score = Math.max(0, this.score - this.overwaterPenalty);
                 this.hud.message("💀 ¡PLANTA AHOGADA! Parcela perdida", 2000);
                 console.log("[Vicos] ✖ Nivel agua: 4+ - PLANTA MUERTA PERMANENTE");
             }
@@ -441,12 +443,24 @@ export class Minigame3Vicos {
     // ===========================
     _onTimeUp() {
         console.log("[Minigame3Vicos] ⏰ Tiempo finalizado");
-        this.hud?.showPopup?.({
-            title: "¡Tiempo agotado!",
-            message: `Puntaje final: ${this.score}`,
-            buttonText: "Continuar",
-            onClose: () => this._endGame(),
+        this.hud.stopTimer();
+
+        this.hud.showEndPopup({
+            score: this.score,
+            onRetry: () => this._restart(),
+            onContinue: () => {
+                console.log("[Minigame3Vicos] Continuar presionado (sin acción por ahora)");
+                this._endGame();
+            },
+            timeExpired: true
         });
+    }
+
+    _restart() {
+        console.log("[Minigame3Vicos] Reiniciando minijuego...");
+        this.dispose();
+        this.score = this.startingScore;
+        this.start();
     }
 
     _endGame() {
