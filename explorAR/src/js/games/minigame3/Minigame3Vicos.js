@@ -166,6 +166,7 @@ export class Minigame3Vicos {
                 this.score += this.waterPoints
                 this.hud.setScore(this.score);
                 this.hud.message("💧 Riego perfecto", 800);
+                this._spawnPlant(plot);
                 console.log("[Vicos] ✓ Nivel agua: 1 - Estado óptimo");
             }
             else if (plot.waterLevel === 2) {
@@ -173,6 +174,7 @@ export class Minigame3Vicos {
                 this.score += this.waterPoints;
                 this.hud.setScore(this.score);
                 this.hud.message("💧💧 Planta muy saludable", 800);
+                this._growPlant(plot);
                 console.log("[Vicos] ✓ Nivel agua: 2 - Estado excelente");
             }
             else if (plot.waterLevel === 3) {
@@ -180,6 +182,7 @@ export class Minigame3Vicos {
                 this.score = Math.max(0, this.score - this.overwaterPenalty);
                 this.hud.setScore(this.score);
                 this.hud.message("⚠️ ¡Demasiada agua!", 1200);
+                this._wiltPlant(plot);
                 console.log("[Vicos] ⚠ Nivel agua: 3 - Sobreregado");
             }
             else if (plot.waterLevel >= 4) {
@@ -515,6 +518,53 @@ export class Minigame3Vicos {
         }
         return result;
     }
+
+    async _spawnPlant(plot) {
+        const assetUrl = this.assetMap["plant_sprout"];
+        const result = await SceneLoader.ImportMeshAsync("", "", assetUrl, this.scene);
+        const mesh = result.meshes[0];
+
+        mesh.position = plot.mesh.position.clone();
+        mesh.position.y += 0.1;
+        mesh.scaling = new Vector3(0.1, 0.1, 0.1);
+        mesh.metadata = { type: "plant", plotId: plot.index };
+
+        // Color inicial suave (verde claro)
+        const mat = new StandardMaterial("mat_plant", this.scene);
+        mat.diffuseColor = new Color3(0.4, 0.8, 0.4);
+        mesh.material = mat;
+
+        plot.plantMesh = mesh;
+        console.log(`[Vicos] 🌱 Planta brotó en parcela ${plot.index}`);
+    }
+
+    _growPlant(plot) {
+        if (!plot.plantMesh) return;
+
+        // Crecimiento
+        plot.plantMesh.scaling.scaleInPlace(1.2);
+
+        // Color más intenso (verde oscuro)
+        if (plot.plantMesh.material) {
+            plot.plantMesh.material.diffuseColor = new Color3(0.1, 0.6, 0.1);
+        }
+
+        console.log(`[Vicos] 🌿 Planta creció en parcela ${plot.index}`);
+    }
+
+    _wiltPlant(plot) {
+        if (!plot.plantMesh) return;
+
+        // Simula marchitez: color marrón + reducción + transparencia
+        if (plot.plantMesh.material) {
+            plot.plantMesh.material.diffuseColor = new Color3(0.4, 0.25, 0.05);
+            plot.plantMesh.material.alpha = 0.6;
+        }
+
+        plot.plantMesh.scaling.scaleInPlace(0.8);
+        console.log(`[Vicos] 💧 Exceso de agua: planta marchita en parcela ${plot.index}`);
+    }
+
 
     // ===========================
     // Fin de partida y limpieza
