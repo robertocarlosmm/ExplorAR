@@ -129,7 +129,8 @@ export class EquipmentGame {
     }
 
     _spawnItems() {
-        const allKeys = [...this.correctKeys, ...this.incorrectKeys];
+        const allKeys = [...this.correctKeys, ...this.incorrectKeys]
+            .sort(() => Math.random() - 0.5);
         const baseY = this.backpack.position.y - this._itemsYOff;
         const baseZ = this._planeZ;
         const startX = -0.33;

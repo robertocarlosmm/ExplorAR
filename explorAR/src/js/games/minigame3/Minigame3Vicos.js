@@ -37,6 +37,7 @@ export class Minigame3Vicos {
         this.waterPoints = gameplayConfig.scoring?.m3Vicos?.waterBonus ?? 8;
         this.overwaterPenalty = gameplayConfig.scoring?.m3Vicos?.overwaterPenalty ?? 5;
         this.seedPoints = gameplayConfig.scoring?.m3Vicos?.seedBonus ?? 10;
+        //this.currentBatch = 0;
 
         // Projectil
         this.projectiles = null;
@@ -83,6 +84,7 @@ export class Minigame3Vicos {
             gravity: -2.5,
             range: 5.0,
             cooldown: 400,
+            getNextType: () => this._getNextProjectileTypeWeighted()
         });
 
         this.projectiles.registerTargets(this.plots.map(p => p.mesh));
@@ -196,7 +198,7 @@ export class Minigame3Vicos {
             // Verificación de lote completo
             // ═══════════════════════════════════════════
             const fertile = this.plots.filter(p => p.state !== "dry");
-            const allComplete = fertile.every(p => p.state === "watered2" || p.state === "excess");
+            const allComplete = fertile.every(p => p.state === "watered1" || p.state === "watered2" || p.state === "overwatered" || p.state === "excess");
 
             if (allComplete && fertile.length > 0) {
                 console.log("[Vicos] ✅ Lote completado, desbloqueando nuevo grupo");
@@ -382,6 +384,55 @@ export class Minigame3Vicos {
         this.projectiles.registerTargets(this.plots.map(p => p.mesh));
     }
 
+    _getNextProjectileTypeWeighted() {
+        console.groupCollapsed("[Vicos:getNextProjectileTypeWeighted] 🔄 Evaluando próximo proyectil...");
+
+        // 1️⃣ Filtramos parcelas fértiles activas
+        const fertileAlive = this.plots.filter(p =>
+            p.state !== "dry" && p.state !== "excess"
+        );
+        console.log("Total de parcelas activas (fértiles vivas):", fertileAlive.length);
+
+        // 2️⃣ Contamos necesidades
+        const needSeed = fertileAlive.filter(p => !p.hasPlant).length;
+        const needWater = fertileAlive.filter(p => p.hasPlant && p.state !== "watered2").length;
+        console.log("→ Necesitan semilla:", needSeed);
+        console.log("→ Necesitan agua:", needWater);
+
+        // 3️⃣ Calculamos pesos
+        const weightSeed = needSeed;
+        const weightWater = needWater * 2;
+        console.log("→ Pesos: semilla =", weightSeed, " | agua =", weightWater);
+
+        // 4️⃣ Casos borde
+        if (weightSeed === 0 && weightWater === 0) {
+            console.warn("⚠️ Ninguna parcela necesita nada — devolviendo 'seed' por defecto.");
+            console.groupEnd();
+            return "seed";
+        }
+        if (weightSeed === 0) {
+            console.log("✅ Solo hay necesidad de agua → 'water'");
+            console.groupEnd();
+            return "water";
+        }
+        if (weightWater === 0) {
+            console.log("✅ Solo hay necesidad de semillas → 'seed'");
+            console.groupEnd();
+            return "seed";
+        }
+
+        // 5️⃣ Ruleta por pesos
+        const total = weightSeed + weightWater;
+        const r = Math.random() * total;
+        const chosen = (r < weightWater) ? "water" : "seed";
+
+        // 6️⃣ Reporte final
+        console.log(`🎯 Sorteo aleatorio -> total=${total.toFixed(2)}, random=${r.toFixed(2)}, elegido=${chosen}`);
+        console.groupEnd();
+
+        return chosen;
+    }
+
     // ===========================
     // ★★★ SPAWN CON SISTEMA DE CAPAS ★★★
     // Crea DOS planos: uno para color, otro para textura
@@ -488,7 +539,7 @@ export class Minigame3Vicos {
         this.dispose();
         this.score = this.startingScore;
         this.hud?.updateScore?.(this.startingScore);
-        this.hud.setScore(this.startingScore);  
+        this.hud.setScore(this.startingScore);
         this.start();
     }
 
