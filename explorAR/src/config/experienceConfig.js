@@ -46,8 +46,28 @@ export const experiencesConfig = [
                     { type: "image", key: "guantes_trabajo", url: "/assets/games/Minigame2/guantes_trabajo.png" },
                     { type: "image", key: "paraguas", url: "/assets/games/Minigame2/paraguas.png" }
                 ]
+            },
+            {
+                id: "guidane",
+                type: "guidane",
+                panel: "guidane",
+                params: {
+                    spawnRadius: 1.2,
+                    singlespeed: 0.02,
+                },
+                assets: [
+                    { type: "image", key: "p1", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p2", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p3", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p4", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p5", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p6", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p7", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p8", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p9", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
+                ]
             }
-
         ]
     },
     {
@@ -117,6 +137,27 @@ export const experiencesConfig = [
                     { type: "image", key: "icon_water", url: "/assets/games/Minigame3/Vicos/icon_water.png" },
                     { type: "model", key: "plant_sprout", url: "/assets/games/Minigame3/Vicos/plant_sprout.glb" },
                 ]
+            },
+            {
+                id: "guidane",
+                type: "guidane",
+                panel: "guidane",
+                params: {
+                    spawnRadius: 1.2,
+                    singlespeed: 0.02,
+                },
+                assets: [
+                    { type: "image", key: "p1", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p2", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p3", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p4", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p5", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p6", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p7", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p8", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p9", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
+                ]
             }
         ]
     },
@@ -167,8 +208,28 @@ export const experiencesConfig = [
                     { type: "image", key: "guantes_trabajo", url: "/assets/games/Minigame2/guantes_trabajo.png" },
                     { type: "image", key: "bolsa_dormir", url: "/assets/games/Minigame2/bolsa_de_dormir.png" }
                 ]
+            },
+            {
+                id: "guidane",
+                type: "guidane",
+                panel: "guidane",
+                params: {
+                    spawnRadius: 1.2,
+                    singlespeed: 0.02,
+                },
+                assets: [
+                    { type: "image", key: "p1", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p2", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p3", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p4", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p5", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p6", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p7", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p8", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p9", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
+                ]
             }
-
         ]
     },
     {
@@ -218,7 +279,29 @@ export const experiencesConfig = [
                     { type: "image", key: "bufanda", url: "/assets/games/Minigame2/bufanda.png" },
                     { type: "image", key: "casaca", url: "/assets/games/Minigame2/casaca.png" }
                 ]
-            }
+            },
+            {
+                id: "guidane",
+                type: "guidane",
+                panel: "guidane",
+                params: {
+                    spawnRadius: 1.2,
+                    singlespeed: 0.02,
+                },
+                assets: [
+                    { type: "image", key: "p1", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p2", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p3", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p4", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p5", url: "/assets/default/default.jpg" },
+                    { type: "image", key: "p6", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p7", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p8", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p9", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
+                ]
+            },
+
         ]
     }
 ]
