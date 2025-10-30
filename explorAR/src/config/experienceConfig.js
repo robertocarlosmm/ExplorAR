@@ -19,8 +19,8 @@ export const experiencesConfig = [
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: 
-                    "Isla del Lago Titicaca (3937 m s. n. m.), reconocida por su tradición textil declarada Patrimonio de la UNESCO. El acceso es en bote desde Puno y luego una caminata de más de 500 gradas. El clima frío y la fuerte radiación exigen buena condición física, ropa abrigadora, calzado adecuado e hidratación. La visita se centra en la convivencia con familias locales y la valoración de sus costumbres.",
+                    information:
+                        "Isla del Lago Titicaca (3937 m s. n. m.), reconocida por su tradición textil declarada Patrimonio de la UNESCO. El acceso es en bote desde Puno y luego una caminata de más de 500 gradas. El clima frío y la fuerte radiación exigen buena condición física, ropa abrigadora, calzado adecuado e hidratación. La visita se centra en la convivencia con familias locales y la valoración de sus costumbres.",
                     correctos: ["ticket_lancha", "casaca", "calzado_trekking", "protector_solar"],
                     incorrectos: ["sandalias", "botas_caucho", "guantes_trabajo", "paraguas"],
                     feedbacks: {
@@ -70,8 +70,8 @@ export const experiencesConfig = [
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: 
-                    "Comunidad andina en Áncash con turismo vivencial coordinado con la Asociación Cuyayqui Wayi; estadía en casas familiares de servicios básicos y participación en faenas agrícolas y caminatas en terreno irregular. La iluminación nocturna es no uniforme en la zona y las noches son frías, por lo que la planificación y la coordinación previas son parte de la experiencia.",
+                    information:
+                        "Comunidad andina en Áncash con turismo vivencial coordinado con la Asociación Cuyayqui Wayi; estadía en casas familiares de servicios básicos y participación en faenas agrícolas y caminatas en terreno irregular. La iluminación nocturna es no uniforme en la zona y las noches son frías, por lo que la planificación y la coordinación previas son parte de la experiencia.",
                     correctos: ["comunicacion", "bolsa_dormir", "linterna", "baston_trekking"],
                     incorrectos: ["sandalias", "vinoculares", "protector_solar", "poncho_impermeable"],
                     feedbacks: {
@@ -97,6 +97,26 @@ export const experiencesConfig = [
                     { type: "image", key: "protector_solar", url: "/assets/games/Minigame2/protector_solar.png" },
                     { type: "image", key: "poncho_impermeable", url: "/assets/games/Minigame2/poncho_impermeable.png" }
                 ]
+            },
+            {
+                id: "m3Vicos",
+                type: "throw",
+                panel: "throw",
+                params: {
+                    numberOfPlots: 6,
+                    spawnRadius: 1.2,
+                    dryChance: 0.4,
+                    plotSize: 0.38,
+                    randomSeed: true,
+                },
+                assets: [
+                    { type: "image", key: "dry_soil", url: "/assets/games/Minigame3/Vicos/dry_soil.png" },
+                    { type: "image", key: "soil_base", url: "/assets/games/Minigame3/Vicos/soil_base.png" },
+                    { type: "image", key: "soil_wet1", url: "/assets/games/Minigame3/Vicos/soil_wet1.png" },
+                    { type: "image", key: "icon_seed", url: "/assets/games/Minigame3/Vicos/icon_seed.png" },
+                    { type: "image", key: "icon_water", url: "/assets/games/Minigame3/Vicos/icon_water.png" },
+                    { type: "model", key: "plant_sprout", url: "/assets/games/Minigame3/Vicos/plant_sprout.glb" },
+                ]
             }
         ]
     },
@@ -120,8 +140,8 @@ export const experiencesConfig = [
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: 
-                    "Destino amazónico cercano a Puerto Maldonado, al que se accede en pocos minutos desde la ciudad y con traslados que combinan tramos fluviales y caminatas por senderos húmedos. El clima es lluvioso y caluroso, con abundante presencia de mosquitos. La experiencia incluye guías locales, observación responsable de fauna, convivencia con comunidades amazónicas y actividades de aventura como zipline.",
+                    information:
+                        "Destino amazónico cercano a Puerto Maldonado, al que se accede en pocos minutos desde la ciudad y con traslados que combinan tramos fluviales y caminatas por senderos húmedos. El clima es lluvioso y caluroso, con abundante presencia de mosquitos. La experiencia incluye guías locales, observación responsable de fauna, convivencia con comunidades amazónicas y actividades de aventura como zipline.",
                     correctos: ["ticket", "botas_caucho", "repelente", "poncho_impermeable"],
                     incorrectos: ["casaca", "bufanda", "guantes_trabajo", "bolsa_dormir"],
                     feedbacks: {
@@ -171,8 +191,8 @@ export const experiencesConfig = [
                 type: "choose",
                 panel: "equipment",
                 params: {
-                    information: 
-                    "Área natural cercana a Lima que se cubre de vegetación durante la temporada de lomas, usualmente entre agosto y diciembre, aunque puede variar según el clima de cada año. El ingreso es regulado por la comunidad y el recorrido implica senderos empinados, caminatas largas y fuerte radiación solar, lo que exige buena preparación física. La experiencia se complementa con guías locales y talleres ambientales que promueven la conservación del entorno.",
+                    information:
+                        "Área natural cercana a Lima que se cubre de vegetación durante la temporada de lomas, usualmente entre agosto y diciembre, aunque puede variar según el clima de cada año. El ingreso es regulado por la comunidad y el recorrido implica senderos empinados, caminatas largas y fuerte radiación solar, lo que exige buena preparación física. La experiencia se complementa con guías locales y talleres ambientales que promueven la conservación del entorno.",
                     correctos: ["ticket", "calzado_trekking", "protector_solar", "termo_agua"],
                     incorrectos: ["botas_caucho", "poncho_impermeable", "bufanda", "casaca"],
                     feedbacks: {
@@ -185,7 +205,7 @@ export const experiencesConfig = [
                 assets: [
                     //mochila
                     { type: "model", key: "backpack", url: "/assets/games/Minigame2/backpack.glb" },
-                    
+
                     // Correctos
                     { type: "image", key: "ticket", url: "/assets/games/Minigame2/ticket.png" },
                     { type: "image", key: "calzado_trekking", url: "/assets/games/Minigame2/calzado_trekking.png" },

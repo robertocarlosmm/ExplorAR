@@ -1,5 +1,6 @@
 // equipmentLauncher.js
 import { EquipmentGame } from "./EquipmentGame.js";
+import { Minigame2InfoPanel } from "../../panels/minigame2Panel.js";
 
 /**
  * Lanza el flujo completo del Minijuego 2.
@@ -70,15 +71,26 @@ export async function startEquipmentGame(gameManager) {
                         feedbacks,
                         assetMap,
                         experienceId: exp?.id,
-                        startingScore: gameManager.getCarryScore?.() || 0 
+                        startingScore: gameManager.getCarryScore?.() || 0
                     });
 
                     equipment.onGameEnd = async () => {
                         await gameManager.closeXRSession();
                         await new Promise((r) => setTimeout(r, 150));
 
-                        const nextId = exp?.getNextMinigameId?.("equipment") ?? null;
+                        //ocultar panel informativo si sigue activo
+                        try {
+                            Minigame2InfoPanel.hide();
+                            const leftover = document.getElementById("minigame2-info-panel");
+                            if (leftover) leftover.remove();
+                        } catch (err) {
+                            console.warn("[EquipmentGame] No se encontró InfoPanel activo para limpiar:", err);
+                        }
+
+                        const nextId = "minigame3";
                         if (nextId) {
+                            gameManager.setCarryScore?.(equipment.score);
+                            console.log("Puntaje llevado al GameManager:", gameManager.getCarryScore());
                             gameManager.launchNextMinigame(nextId);
                         } else {
                             gameManager.onExit?.();

@@ -48,7 +48,7 @@ export function show(experienceData, onReady) {
   // 3) Inserta en <body> para salir de stacking contexts del HUD
   //    y asegura que esté siempre por encima.
   document.body.appendChild(panel);
-  panel.style.zIndex = "2147483647"; // 👈 por encima de cualquier HUD
+  panel.style.zIndex = "2147483647"; // por encima de cualquier HUD
 
   const btnReady = panel.querySelector("#btn-ready-m2");
   btnReady.addEventListener("click", () => {

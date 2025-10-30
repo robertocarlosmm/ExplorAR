@@ -10,11 +10,19 @@ export const gameplayConfig = {
             dropPenalty: 0              // penalización al soltar fuera de lugar
         },
         // Aquí en el futuro puedes añadir más minijuegos:
-        equipment: { 
+        equipment: {
             base: 60,                   // puntaje fijo al completar
             timeBonusPerSec: 2,         // bonus por cada segundo sobrante
-            dropPenalty: 0 
+            dropPenalty: 0
         },
+        m3Vicos: {
+            base: 0,                    // No puntaje fijo inicial
+            seedBonus: 10,              // Por germinación correcta
+            waterBonus: 8,              // Por riego correcto
+            overwaterPenalty: 5,        // Penalización leve
+            wastedShotPenalty: 0,       // Sin penalizar lanzamientos fallidos
+            timeBonusPerSec: 1,         // Bonus por tiempo sobrante
+        }
         // matching: { ... }
     },
 
