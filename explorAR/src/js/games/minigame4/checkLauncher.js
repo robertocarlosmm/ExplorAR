@@ -1,4 +1,4 @@
-import { GuidanceGame } from "./GuidanceGame.js";
+import { GuidanceGame } from "./CheckGame.js";
 
 /**
  * Lanza el flujo completo del Minijuego 4.

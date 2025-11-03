@@ -287,9 +287,9 @@ export const experiencesConfig = [
                 ]
             },
             {
-                id: "guidane",
-                type: "guidane",
-                panel: "guidane",
+                id: "check",
+                type: "check",
+                panel: "check",
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,

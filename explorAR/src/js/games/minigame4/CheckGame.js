@@ -16,7 +16,7 @@ import {
 import { gameplayConfig } from "../../../config/gameplayConfig.js";
 import { experiencesConfig } from "../../../config/experienceConfig.js";
 
-export class GuidanceGame {
+export class CheckGame {
     constructor({ scene, hud, experienceId, startingScore = 0 }) {
         this.scene = scene;
         this.hud = hud;
@@ -27,7 +27,7 @@ export class GuidanceGame {
     }
 
     async start() {
-        console.log("[GuidanceGame] Iniciando RA...");
+        console.log("[CheckGame] Iniciando RA...");
 
         // 1️⃣ Mostrar HUD y arrancar el temporizador del gameplayConfig
         this.hud?.show?.();
@@ -45,11 +45,11 @@ export class GuidanceGame {
         this.box = box;
         this.isRunning = true;
 
-        console.log("[GuidanceGame] Cubo generado, RA activo.");
+        console.log("[CheckGame] Cubo generado, RA activo.");
     }
 
     _onTimeUp() {
-        console.log("[GuidanceGame] Tiempo finalizado");
+        console.log("[CheckGame] Tiempo finalizado");
         this.hud?.showPopup?.({
             title: "Tiempo agotado",
             message: "Fin del minijuego 3 (demo)",
@@ -68,6 +68,6 @@ export class GuidanceGame {
             this.box?.dispose();
         } catch { }
         this.hud?.stopTimer?.();
-        console.log("[GuidanceGame] Recursos liberados");
+        console.log("[CheckGame] Recursos liberados");
     }
 }
