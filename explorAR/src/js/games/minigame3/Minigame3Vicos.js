@@ -191,6 +191,7 @@ export class Minigame3Vicos {
                 plot.isLocked = true; // Marcar como bloqueada
                 this.score = Math.max(0, this.score - this.overwaterPenalty);
                 this.hud.message("💀 ¡PLANTA AHOGADA! Parcela perdida", 2000);
+                this._wiltPlantSevere(plot);
                 console.log("[Vicos] ✖ Nivel agua: 4+ - PLANTA MUERTA PERMANENTE");
             }
 
@@ -490,6 +491,8 @@ export class Minigame3Vicos {
         // Guardar AMBAS capas en el objeto plot
         // ═══════════════════════════════════════════
         const newPlot = {
+            id: `plot_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+            index: this.plots.length,
             mesh: textureMesh,      // Capa superior (PNG)
             baseMesh: baseMesh,     // Capa inferior (COLOR)
             state,
@@ -498,6 +501,9 @@ export class Minigame3Vicos {
             waterLevel: 0,
             isLocked: state === "dry" // Suelo seco bloqueado desde el inicio
         };
+
+        baseMesh.renderingGroupId = 0;
+        textureMesh.renderingGroupId = 1;
 
         this.plots.push(newPlot);
 
@@ -521,50 +527,104 @@ export class Minigame3Vicos {
 
     async _spawnPlant(plot) {
         const assetUrl = this.assetMap["plant_sprout"];
+        if (!assetUrl) {
+            console.warn("[Vicos] No hay asset 'plant_sprout' en el config.");
+            return;
+        }
+
         const result = await SceneLoader.ImportMeshAsync("", "", assetUrl, this.scene);
-        const mesh = result.meshes[0];
+        const mesh = result.meshes.find(m => m.getTotalVertices && m.getTotalVertices() > 0) || result.meshes[0];
 
-        mesh.position = plot.mesh.position.clone();
-        mesh.position.y += 0.1;
-        mesh.scaling = new Vector3(0.1, 0.1, 0.1);
-        mesh.metadata = { type: "plant", plotId: plot.index };
+        // Se asocia la planta a la parcela correspondiente
+        mesh.parent = plot.mesh;
+        mesh.position = new Vector3(0, 0.06, 0);
+        mesh.renderingGroupId = 2;
 
-        // Color inicial suave (verde claro)
-        const mat = new StandardMaterial("mat_plant", this.scene);
-        mat.diffuseColor = new Color3(0.4, 0.8, 0.4);
-        mesh.material = mat;
+        // Corrección de orientación: rota el modelo para que quede vertical
+        mesh.rotation = new Vector3(Math.PI / 2, 0, 0);
+        // Si el modelo aparece invertido, cambiar a -Math.PI / 2
+
+        // Escalado automático basado en el tamaño de la parcela
+        try {
+            mesh.computeWorldMatrix(true);
+            const bb = mesh.getBoundingInfo().boundingBox;
+            const size = bb.maximumWorld.subtract(bb.minimumWorld);
+            const plotSize = this.miniConfig?.params?.plotSize || 0.3;
+            const target = plotSize * 0.7;
+            const maxSide = Math.max(size.x, size.z, 1e-6);
+            const s = target / maxSide;
+            mesh.scaling = new Vector3(s, s, s);
+        } catch (e) {
+            // Escalado por defecto si el cálculo del bounding box falla
+            mesh.scaling = new Vector3(0.12, 0.12, 0.12);
+        }
+
+        // Mantiene materiales PBR originales; solo ajusta leve color de emisión
+        const pbr = mesh.material;
+        if (pbr && "emissiveColor" in pbr) {
+            pbr.emissiveColor = pbr.emissiveColor?.add(new Color3(0.03, 0.08, 0.03));
+        }
 
         plot.plantMesh = mesh;
-        console.log(`[Vicos] 🌱 Planta brotó en parcela ${plot.index}`);
+        console.log(`[Vicos] Planta brotó en parcela ${plot.index}`);
     }
+
 
     _growPlant(plot) {
         if (!plot.plantMesh) return;
+        plot.plantMesh.scaling.scaleInPlace(1.18);
 
-        // Crecimiento
-        plot.plantMesh.scaling.scaleInPlace(1.2);
-
-        // Color más intenso (verde oscuro)
-        if (plot.plantMesh.material) {
-            plot.plantMesh.material.diffuseColor = new Color3(0.1, 0.6, 0.1);
+        const mat = plot.plantMesh.material;
+        if (mat && "emissiveColor" in mat) {
+            mat.emissiveColor = mat.emissiveColor?.add(new Color3(0.02, 0.12, 0.02));
         }
-
         console.log(`[Vicos] 🌿 Planta creció en parcela ${plot.index}`);
     }
 
     _wiltPlant(plot) {
         if (!plot.plantMesh) return;
+        plot.plantMesh.scaling.scaleInPlace(0.85);
 
-        // Simula marchitez: color marrón + reducción + transparencia
-        if (plot.plantMesh.material) {
-            plot.plantMesh.material.diffuseColor = new Color3(0.4, 0.25, 0.05);
-            plot.plantMesh.material.alpha = 0.6;
+        const mat = plot.plantMesh.material;
+        if (mat) {
+            if ("emissiveColor" in mat) mat.emissiveColor = new Color3(0.10, 0.06, 0.02);
+            if ("alpha" in mat) mat.alpha = 0.75;
         }
-
-        plot.plantMesh.scaling.scaleInPlace(0.8);
         console.log(`[Vicos] 💧 Exceso de agua: planta marchita en parcela ${plot.index}`);
     }
 
+    _wiltPlantSevere(plot) {
+        if (!plot.plantMesh) return;
+
+        // Se reduce el tamaño aún más (encogimiento adicional)
+        plot.plantMesh.scaling.scaleInPlace(0.7);
+
+        const mat = plot.plantMesh.material;
+        if (mat) {
+            // Cambios de color más extremos hacia marrón apagado
+            if ("emissiveColor" in mat)
+                mat.emissiveColor = new Color3(0.25, 0.15, 0.05); // marrón terroso
+            if ("diffuseColor" in mat)
+                mat.diffuseColor = new Color3(0.35, 0.25, 0.15); // más oscuro
+            if ("alpha" in mat)
+                mat.alpha = 0.6; // más transparente (como marchito)
+        }
+
+        // Si la planta tiene hijos (por ejemplo, varias partes del GLB)
+        if (plot.plantMesh.getChildMeshes) {
+            for (const child of plot.plantMesh.getChildMeshes()) {
+                const m = child.material;
+                if (m && "emissiveColor" in m)
+                    m.emissiveColor = new Color3(0.25, 0.15, 0.05);
+                if (m && "diffuseColor" in m)
+                    m.diffuseColor = new Color3(0.35, 0.25, 0.15);
+                if (m && "alpha" in m)
+                    m.alpha = 0.6;
+            }
+        }
+
+        console.log(`[Vicos] 🥀 Planta marchita severamente en parcela ${plot.index}`);
+    }
 
     // ===========================
     // Fin de partida y limpieza

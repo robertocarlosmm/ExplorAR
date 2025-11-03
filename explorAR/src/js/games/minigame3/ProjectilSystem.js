@@ -74,6 +74,7 @@ export class ProjectileSystem {
             this.scene
         );
         sphere.position.copyFrom(readyPos);
+        sphere.renderingGroupId = 3;
 
         const mat = new StandardMaterial(`mat_${type}`, this.scene);
         const tex = this.assetMap[`icon_${type}`];
