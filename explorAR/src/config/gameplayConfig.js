@@ -22,56 +22,62 @@ export const gameplayConfig = {
             overwaterPenalty: 5,        // Penalización leve
             wastedShotPenalty: 0,       // Sin penalizar lanzamientos fallidos
             timeBonusPerSec: 1,         // Bonus por tiempo sobrante
+        },
+        check: {
+            base: 50,
+            correctBonus: 10,
+            wrongPenalty: 5,
+            timeBonusPerSec: 1
         }
         // matching: { ... }
     },
 
-    // Configuración de tiempo por tipo de minijuego
-    timeSequence: [60, 60, 50, 40],
+// Configuración de tiempo por tipo de minijuego
+timeSequence: [60, 60, 50, 40],
 
     // Thresholds globales para estrellas finales
     stars: {
-        three: 3000,  // 3 estrellas si score total >= 3000
+    three: 3000,  // 3 estrellas si score total >= 3000
         two: 2000,    // 2 estrellas si score total >= 2000
-        one: 1        // 1 estrella si score total >= 1
-    },
+            one: 1        // 1 estrella si score total >= 1
+},
 
-    minigames: {
-        minigame1: {
-            tutorialTitle: "Descubre el lugar oculto",
+minigames: {
+    minigame1: {
+        tutorialTitle: "Descubre el lugar oculto",
             tutorialDesc: "Mueve las piezas para ver la imagen oculta",
-            tutorialImage: "/assets/tutorial/minigame1Tutorial.png",
-            showInfoPanel: false, // Este NO usa panel de información
+                tutorialImage: "/assets/tutorial/minigame1Tutorial.png",
+                    showInfoPanel: false, // Este NO usa panel de información
         },
-        minigame2: {
-            tutorialTitle: "Prepárate antes de viajar",
+    minigame2: {
+        tutorialTitle: "Prepárate antes de viajar",
             tutorialDesc: "Elige bien tu equipamiento. Conoce el contexto para no olvidar nada.",
-            tutorialImage: "/assets/tutorial/minigame2Tutorial.png",
-            showInfoPanel: true, // Este SÍ usa panel de información
+                tutorialImage: "/assets/tutorial/minigame2Tutorial.png",
+                    showInfoPanel: true, // Este SÍ usa panel de información
         },
-        minigame3: {
-            tutorialTitle: "Título del minijuego 3",
+    minigame3: {
+        tutorialTitle: "Título del minijuego 3",
             tutorialDesc: "Descripción...",
-            tutorialImage: "/assets/tutorial/minigame3Tutorial.png",
-            showInfoPanel: false,
+                tutorialImage: "/assets/tutorial/minigame3Tutorial.png",
+                    showInfoPanel: false,
         },
-        minigame4: {
-            tutorialTitle: "Título del minijuego 4",
+    minigame4: {
+        tutorialTitle: "Título del minijuego 4",
             tutorialDesc: "Descripción...",
-            tutorialImage: "/assets/tutorial/minigame4Tutorial.png",
-            showInfoPanel: true,
+                tutorialImage: "/assets/tutorial/minigame4Tutorial.png",
+                    showInfoPanel: true,
         }
-    },
+},
 
-    // Textos genéricos de interfaz (pueden reutilizarse en varios minijuegos)
-    uiText: {
-        puzzle3D: {
-            title: "Descubre el lugar oculto",
+// Textos genéricos de interfaz (pueden reutilizarse en varios minijuegos)
+uiText: {
+    puzzle3D: {
+        title: "Descubre el lugar oculto",
             startHint: "Mueve el dispositivo y toca para colocar el tablero.",
-            success: "¡Puzzle completado!",
-            fail: "Se acabó el tiempo. Inténtalo de nuevo.",
-            retry: "Reintentar",
-            exit: "Salir"
-        }
+                success: "¡Puzzle completado!",
+                    fail: "Se acabó el tiempo. Inténtalo de nuevo.",
+                        retry: "Reintentar",
+                            exit: "Salir"
     }
+}
 }
