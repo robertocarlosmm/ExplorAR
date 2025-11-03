@@ -1,4 +1,4 @@
-import { GuidanceGame } from "./CheckGame.js";
+import { CheckGame } from "./CheckGame.js";
 
 /**
  * Lanza el flujo completo del Minijuego 4.
@@ -47,7 +47,7 @@ export async function startMinigame4(gameManager) {
             await gameManager.startExperience(exp);
 
             // 6 Crear instancia del juego
-            const gameInstance = new GuidanceGame({
+            const gameInstance = new CheckGame({
                 scene: gameManager.xrSession?.scene,
                 hud: gameManager.hud,
                 experienceId: expId,
