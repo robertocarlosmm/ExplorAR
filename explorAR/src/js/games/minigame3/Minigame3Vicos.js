@@ -61,7 +61,7 @@ export class Minigame3Vicos {
             gameplayConfig?.timeByMinigame?.m3Vicos ??
             gameplayConfig?.minigame3Vicos?.timeLimit ??
             gameplayConfig?.timer?.default ??
-            60;
+            5;
 
         this.hud?.startTimer?.(totalTime, null, () => this._onTimeUp());
         this.hud?.updateScore?.(this.score);

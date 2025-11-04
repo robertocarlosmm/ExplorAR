@@ -33,7 +33,7 @@ export const gameplayConfig = {
     },
 
 // Configuración de tiempo por tipo de minijuego
-timeSequence: [60, 60, 50, 40],
+timeSequence: [60, 60, 5, 40],
 
     // Thresholds globales para estrellas finales
     stars: {
