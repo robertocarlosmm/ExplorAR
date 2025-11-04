@@ -154,5 +154,86 @@ export class HUDController {
         closeBtn.addEventListener("click", handleClose);
     }
 
+    showFinalPopup({ score = 0, onRetry, onContinue }) {
+        console.log("[HUD] Mostrando popup FINAL", { score });
+
+        const popup = document.getElementById('game-end-popup');
+        const popupContent = popup?.querySelector('.popup-content') || popup;
+        const scoreLabel = document.getElementById('popup-score');
+        const btnRetry = document.getElementById('btn-retry');
+        const btnContinue = document.getElementById('btn-continue');
+        const buttonsContainer = popupContent.querySelector('.popup-buttons');
+
+        if (!popup || !popupContent || !scoreLabel || !buttonsContainer) {
+            console.warn("[HUD] ⚠️ Popup base no encontrado para showFinalPopup()");
+            return;
+        }
+
+        // Mostrar popup y actualizar texto
+        popup.classList.remove('hidden');
+        scoreLabel.textContent = `¡Puntaje Final: ${score}!`;
+
+        // ==============================
+        // ⭐ CÁLCULO DE ESTRELLAS
+        // ==============================
+        let starsCount = 3;
+        if (score < 250) starsCount = 1;
+        else if (score < 350) starsCount = 2;
+
+        // Remover estrellas previas si existen
+        const oldStars = popupContent.querySelector('.stars-container');
+        if (oldStars) oldStars.remove();
+
+        const starsContainer = document.createElement('div');
+        starsContainer.className = 'stars-container';
+
+        for (let i = 1; i <= 3; i++) {
+            const star = document.createElement('img');
+            star.src = '/assets/images/star.png';
+            star.className = `star ${i <= starsCount ? 'active' : 'inactive'}`;
+            starsContainer.appendChild(star);
+        }
+
+        // Insertar las estrellas al inicio del contenido (encima del puntaje)
+        popupContent.insertBefore(starsContainer, popupContent.firstChild);
+
+        // ==============================
+        // 📜 MENSAJE ADICIONAL
+        // ==============================
+        let extraMsg = popupContent.querySelector('.popup-extra-msg');
+        if (extraMsg) extraMsg.remove(); // limpiar duplicados
+
+        extraMsg = document.createElement('div');
+        extraMsg.className = 'popup-extra-msg';
+        extraMsg.textContent = `¡Desbloqueaste ${starsCount} recuerdo${starsCount === 1 ? '' : 's'}!`;
+
+        // Insertar el mensaje encima de los botones (pero debajo del puntaje)
+        popupContent.insertBefore(extraMsg, buttonsContainer);
+
+        // ==============================
+        // 🧹 HANDLERS (idénticos a showEndPopup)
+        // ==============================
+        const newRetry = btnRetry.cloneNode(true);
+        const newContinue = btnContinue.cloneNode(true);
+        btnRetry.replaceWith(newRetry);
+        btnContinue.replaceWith(newContinue);
+
+        newRetry.addEventListener("click", () => {
+            popup.classList.add("hidden");
+            onRetry?.();
+        });
+
+        newContinue.addEventListener("click", () => {
+            popup.classList.add("hidden");
+            onContinue?.();
+        });
+
+        // Asegurar visibilidad del botón Continuar
+        newContinue.classList.remove('hidden');
+        newContinue.style.opacity = "1";
+        newContinue.style.pointerEvents = "auto";
+
+        console.log(`[HUD] Popup final mostrado con ${starsCount} estrellas`);
+    }
 
 }

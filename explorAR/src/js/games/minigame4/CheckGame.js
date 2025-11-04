@@ -329,14 +329,13 @@ export class CheckGame {
         this.hud?.stopTimer?.();
 
         // Popup de fin
-        this.hud?.showEndPopup?.({
+        this.hud?.showFinalPopup?.({
             score: this.score,
             onRetry: () => this._restart(),
             onContinue: () => {
                 console.log("[CheckGame] Continuar presionado (sin acción por ahora)");
                 this._endGame();
             },
-            timeExpired: false
         });
     }
 
