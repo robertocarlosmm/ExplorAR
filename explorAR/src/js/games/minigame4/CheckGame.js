@@ -12,6 +12,8 @@ import {
     ExecuteCodeAction,
 } from "@babylonjs/core";
 import { experiencesConfig } from "../../../config/experienceConfig.js";
+import { gameplayConfig } from "../../../config/gameplayConfig.js";
+
 
 export class CheckGame {
     constructor({ scene, hud, experienceId, startingScore = 0 }) {
@@ -19,6 +21,7 @@ export class CheckGame {
         this.hud = hud;
         this.experienceId = experienceId;
         this.score = startingScore ?? 0;
+        this.timeGame = gameplayConfig.timeSequence[3] || 60; // tiempo por defecto
 
         this.isRunning = false;
         this.root = new TransformNode("check_root", this.scene);
@@ -31,6 +34,12 @@ export class CheckGame {
         this.spawnY = 1.6;
         this.fallSpeed = 0.25; // m/s visible y natural
         this.assetMap = {};
+        this.imageKeys = [];
+        this.correctKeys = [];
+        this.incorrectKeys = [];
+
+        this.correctBonus = gameplayConfig.scoring.check.correctBonus || 10;
+        this.wrongPenalty = gameplayConfig.scoring.check.wrongPenalty || 5;
     }
 
     async start() {
@@ -40,10 +49,12 @@ export class CheckGame {
             return;
         }
 
-        // 🔹 Inicializar HUD
+        // 🔹 HUD y timer
         this.hud?.show?.();
         this.hud?.setScore?.(this.score);
-        this.hud?.updateScore?.(this.score);
+        this.hud?.setTime?.(this.timeLimit);
+        this.hud?.startTimer?.(this.timeLimit, null, () => this._onTimeUp());
+        this.hud?.updateScore?.(this.score)
 
         // 🔹 Calcular posición base frente a la cámara
         const cam = this.scene.activeCamera;
@@ -131,8 +142,14 @@ export class CheckGame {
                 .filter(a => a?.type === "image" && a?.key && a?.url)
                 .map(a => a.key);
 
-            console.log("[CheckGame] ✔️ Assets cargados:", this.assetMap);
-            console.log("[CheckGame] ✔️ Image keys:", this.imageKeys);
+            const params = mini.params || {};
+            this.correctKeys = params.correctos || [];
+            this.incorrectKeys = params.incorrectos || [];
+
+            console.log("[CheckGame] ✔️ Assets cargados:", this.imageKeys.length);
+            console.log("[CheckGame] ✔️ Correctos:", this.correctKeys);
+            console.log("[CheckGame] ✔️ Incorrectos:", this.incorrectKeys);
+
             return true;
         } catch (e) {
             console.error("[CheckGame] Error cargando config:", e);
@@ -170,94 +187,53 @@ export class CheckGame {
     }
 
     _spawnFallingItem(center, key) {
-        // Carriles
         const lanes = [-0.5, 0, 0.5];
         const laneOffset = lanes[Math.floor(Math.random() * lanes.length)];
-
-        // Posición inicial
         const topY = this.topPlane?.position.y ?? this.spawnY;
         const zBase = this.topPlane?.position.z ?? center.z;
-        const spawnY = topY - 0.05;
-        const spawnZ = zBase + 0.02;
 
-        console.log(`[CheckGame] 🎯 Spawneando ítem (${key}) en X=${(center.x + laneOffset).toFixed(2)}`);
-
-        // Grupo raíz (se mueve en Y)
         const itemRoot = new TransformNode(`itemRoot_${key}`, this.scene);
         itemRoot.parent = this.root;
-        itemRoot.position = new Vector3(center.x + laneOffset, spawnY, spawnZ);
+        itemRoot.position = new Vector3(center.x + laneOffset, topY, zBase);
 
-        // Plano principal (imagen)
         const item = MeshBuilder.CreatePlane(`item_${key}`, { width: 0.3, height: 0.3 }, this.scene);
         item.parent = itemRoot;
         item.lookAt(this.scene.activeCamera.globalPosition);
+        item.rotation.x = Math.PI;
 
-        // Orientación correcta (al derecho y mirando al jugador)
-        item.rotation.x = Math.PI; // ← corrige “de cabeza”
-        item.rotation.y = 0;
-        item.rotation.z = 0;
-
-        // Marco negro (AHORA HIJO DEL ITEM, alineado)
-        const frame = MeshBuilder.CreatePlane(`frame_${key}`, { width: 0.33, height: 0.33 }, this.scene);
-        frame.parent = item;
-        frame.position = new Vector3(0, 0, -0.008); // detrás, en espacio local del item
-        const frameMat = new StandardMaterial(`frameMat_${key}`, this.scene);
-        frameMat.diffuseColor = new Color3(0, 0, 0);
-        frameMat.backFaceCulling = false;
-        frame.material = frameMat;
-
-        // Textura de la imagen (JPG, sin alpha)
         const url = this.assetMap[key];
         const mat = new StandardMaterial(`mat_${key}`, this.scene);
-        if (url) {
-            const tex = new Texture(url, this.scene, false, false, Texture.TRILINEAR_SAMPLINGMODE,
-                () => console.log(`[CheckGame] ✅ Textura cargada OK (${key}):`, url),
-                (msg, e) => console.error("[CheckGame] ❌ Error cargando textura:", url, e)
-            );
-            // JPG → opaco
-            mat.diffuseTexture = tex;
-            mat.backFaceCulling = false;
-            mat.transparencyMode = StandardMaterial.MATERIAL_OPAQUE;
-        } else {
-            mat.diffuseColor = new Color3(1, 0.7, 0.2);
-            mat.backFaceCulling = false;
-            console.warn(`[CheckGame] ⚠️ No se encontró URL para key: ${key}`);
-        }
+        if (url) mat.diffuseTexture = new Texture(url, this.scene);
         item.material = mat;
 
-        // Utilidad para materiales PNG con alpha (check / wrong)
         const makePngMat = (url, name) => {
             const m = new StandardMaterial(name, this.scene);
-            const t = new Texture(url, this.scene, false, false, Texture.TRILINEAR_SAMPLINGMODE);
+            const t = new Texture(url, this.scene);
             t.hasAlpha = true;
             m.diffuseTexture = t;
-            m.opacityTexture = t; // usar mismo mapa como opacidad
-            m.useAlphaFromDiffuseTexture = true;
+            m.opacityTexture = t;
             m.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
-            m.backFaceCulling = false;
             return m;
         };
 
-        // Íconos PNG (AHORA HIJOS DEL ITEM, así heredan orientación)
         const checkUrl = this.assetMap["check_icon"];
         const wrongUrl = this.assetMap["wrong_icon"];
         const iconSize = 0.12;
-        const offsetX = 0.21;  // a la derecha del cuadro
 
         const checkBtn = MeshBuilder.CreatePlane(`check_${key}`, { width: iconSize, height: iconSize }, this.scene);
         checkBtn.parent = item;
-        checkBtn.position = new Vector3(offsetX, 0.1, 0.001); // en coordenadas locales del item
+        checkBtn.position = new Vector3(0.21, 0.1, 0.001);
         checkBtn.isVisible = false;
 
         const wrongBtn = MeshBuilder.CreatePlane(`wrong_${key}`, { width: iconSize, height: iconSize }, this.scene);
         wrongBtn.parent = item;
-        wrongBtn.position = new Vector3(offsetX, -0.1, 0.001);
+        wrongBtn.position = new Vector3(0.21, -0.1, 0.001);
         wrongBtn.isVisible = false;
 
         if (checkUrl) checkBtn.material = makePngMat(checkUrl, `checkMat_${key}`);
         if (wrongUrl) wrongBtn.material = makePngMat(wrongUrl, `wrongMat_${key}`);
 
-        // Interacción: tap sobre la imagen → mostrar / ocultar botones
+        // Mostrar/ocultar botones
         item.actionManager = new ActionManager(this.scene);
         item.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
@@ -267,40 +243,38 @@ export class CheckGame {
             })
         );
 
-        // Tap en ✔️ / ❌ → actualizar puntaje y eliminar todo el grupo
         const removeGroup = () => { try { itemRoot.dispose(); } catch { } };
 
+        // ✔️
         checkBtn.actionManager = new ActionManager(this.scene);
         checkBtn.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-                console.log(`[CheckGame] ✅ Imagen ${key} marcada como CORRECTA`);
-                this.score += 10;
+                const correct = this.correctKeys.includes(key);
+                this.score += correct ? this.correctBonus : -this.wrongPenalty;
+                console.log(`[CheckGame] ${correct ? "✅ Correcto" : "❌ Incorrecto"} → ${this.score}`);
                 this.hud?.updateScore?.(this.score);
                 removeGroup();
             })
         );
 
+        // ❌
         wrongBtn.actionManager = new ActionManager(this.scene);
         wrongBtn.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-                console.log(`[CheckGame] ❌ Imagen ${key} marcada como INCORRECTA`);
-                this.score -= 5;
+                const incorrect = this.incorrectKeys.includes(key);
+                this.score += incorrect ? this.correctBonus : -this.wrongPenalty;
+                console.log(`[CheckGame] ${incorrect ? "✅ Correctamente marcado como incorrecto" : "⚠️ Mal marcado"} → ${this.score}`);
                 this.hud?.updateScore?.(this.score);
                 removeGroup();
             })
         );
 
-        // Caída (mover SOLO itemRoot)
+        // Caída
         this.scene.onBeforeRenderObservable.add(() => {
             if (!itemRoot || itemRoot.isDisposed()) return;
             const dt = this.scene.getEngine().getDeltaTime() / 1000;
             itemRoot.position.y -= this.fallSpeed * dt;
-
-            // Al tocar el suelo, eliminar todo
-            if (itemRoot.position.y <= this.groundY + 0.01) {
-                console.log(`[CheckGame] 💥 Ítem (${key}) tocó el piso`);
-                removeGroup();
-            }
+            if (itemRoot.position.y <= this.groundY + 0.01) removeGroup();
         });
     }
 
