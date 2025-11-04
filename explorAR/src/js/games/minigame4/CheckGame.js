@@ -21,6 +21,7 @@ export class CheckGame {
         this.hud = hud;
         this.experienceId = experienceId;
         this.score = startingScore ?? 0;
+        this.startingScore = startingScore ?? 0;
         this.timeGame = gameplayConfig.timeSequence[3] || 60; // tiempo por defecto
 
         this.isRunning = false;
@@ -35,6 +36,7 @@ export class CheckGame {
         this.fallSpeed = 0.25; // m/s visible y natural
         this.assetMap = {};
         this.imageKeys = [];
+        this.remainingKeys = [];
         this.correctKeys = [];
         this.incorrectKeys = [];
 
@@ -75,42 +77,40 @@ export class CheckGame {
         const assets = mini?.assets || [];
 
         // 🔹 Filtrar solo los assets tipo "image"
-        let remainingKeys = assets
+        this.remainingKeys = assets
             .filter(a => a?.type === "image" && a?.key && a?.url)
             .map(a => a.key);
 
-        if (remainingKeys.length === 0) {
+        if (this.remainingKeys.length === 0) {
             console.warn("[CheckGame] ⚠️ No hay assets tipo 'image', no se generarán ítems");
             return;
         }
 
         // 🔹 Spawnear uno inmediatamente
-        const firstIndex = Math.floor(Math.random() * remainingKeys.length);
-        const firstKey = remainingKeys[firstIndex];
+        const firstIndex = Math.floor(Math.random() * this.remainingKeys.length);
+        const firstKey = this.remainingKeys[firstIndex];
         console.log(`[CheckGame] 🪂 Primera caída iniciada con key: ${firstKey}`);
         this._spawnFallingItem(center, firstKey);
-        remainingKeys.splice(firstIndex, 1); // eliminar el usado
+        this.remainingKeys.splice(firstIndex, 1); // eliminar el usado
 
         // 🔁 Generar nuevos ítems cada 5 segundos hasta agotar imágenes
         const spawnInterval = setInterval(() => {
-            if (!this.isRunning || remainingKeys.length === 0) {
+            if (!this.isRunning || this.remainingKeys.length === 0) {
                 clearInterval(spawnInterval);
                 console.log("[CheckGame] 🛑 Fin de generación de ítems (ya no quedan imágenes)");
                 return;
             }
 
-            const randomIndex = Math.floor(Math.random() * remainingKeys.length);
-            const randomKey = remainingKeys[randomIndex];
+            const randomIndex = Math.floor(Math.random() * this.remainingKeys.length);
+            const randomKey = this.remainingKeys[randomIndex];
             console.log(`[CheckGame] 🪂 Nueva caída iniciada con key: ${randomKey}`);
 
             this._spawnFallingItem(center, randomKey);
-            remainingKeys.splice(randomIndex, 1);
+            this.remainingKeys.splice(randomIndex, 1);
         }, 6000);
 
         console.log("[CheckGame] ✅ Setup completo (solo imágenes, sin repeticiones)");
     }
-
-
 
     dispose() {
         this.isRunning = false;
@@ -250,9 +250,17 @@ export class CheckGame {
         checkBtn.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
                 const correct = this.correctKeys.includes(key);
-                this.score += correct ? this.correctBonus : -this.wrongPenalty;
-                console.log(`[CheckGame] ${correct ? "✅ Correcto" : "❌ Incorrecto"} → ${this.score}`);
-                this.hud.message(`${correct ? "Correcto" : "Incorrecto"}`, 1000);
+                if (correct) {
+                    this.score += this.correctBonus;
+                    console.log(`[CheckGame] ✅ Correcto → ${this.score}`);
+                    this.hud.message("✅ Correcto", 1000);
+                } else {
+                    this.score -= this.wrongPenalty;
+                    console.log(`[CheckGame] ❌ Incorrecto → ${this.score}`);
+                    this.hud.message("⚠️ Incorrecto", 1000);
+                    if (!this.remainingKeys.includes(key)) this.remainingKeys.push(key); // 🔁 reintento
+                    console.log(`[CheckGame] 🔁 ${key} regresó al pool`);
+                }
                 this.hud?.setScore?.(this.score);
                 removeGroup();
             })
@@ -263,11 +271,20 @@ export class CheckGame {
         wrongBtn.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
                 const incorrect = this.incorrectKeys.includes(key);
-                this.score += incorrect ? this.correctBonus : -this.wrongPenalty;
-                console.log(`[CheckGame] ${incorrect ? "✅ Correctamente marcado como incorrecto" : "⚠️ Mal marcado"} → ${this.score}`);
-                this.hud.message(`${incorrect ? "Correcto" : "Incorrecto"}`, 1000);
+                if (incorrect) {
+                    this.score += this.correctBonus;
+                    console.log(`[CheckGame] ✅ Correctamente marcado como incorrecto → ${this.score}`);
+                    this.hud.message("✅ Correcto", 1000);
+                } else {
+                    this.score -= this.wrongPenalty;
+                    console.log(`[CheckGame] ⚠️ Mal marcado → ${this.score}`);
+                    this.hud.message("⚠️ Incorrecto", 1000);
+                    if (!this.remainingKeys.includes(key)) this.remainingKeys.push(key); // 🔁 reintento
+                    console.log(`[CheckGame] 🔁 ${key} regresó al pool`);
+                }
                 this.hud?.setScore?.(this.score);
                 removeGroup();
+
             })
         );
 
@@ -326,8 +343,9 @@ export class CheckGame {
     _restart() {
         console.log("[CheckGame] 🔁 Reiniciando minijuego...");
         this.dispose();
-        this.score = 0;
-        this.hud?.updateScore?.(0);
+        this.score = this.startingScore;
+        this.hud?.updateScore?.(this.startingScore);
+        this.hud.setScore(this.startingScore);
         this.start();
     }
 
