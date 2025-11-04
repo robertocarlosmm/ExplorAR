@@ -24,7 +24,7 @@ export const gameplayConfig = {
             timeBonusPerSec: 1,         // Bonus por tiempo sobrante
         },
         check: {
-            base: 50,
+            base: 0,
             correctBonus: 10,
             wrongPenalty: 5,
             timeBonusPerSec: 1

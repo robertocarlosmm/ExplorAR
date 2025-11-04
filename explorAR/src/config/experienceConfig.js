@@ -54,6 +54,8 @@ export const experiencesConfig = [
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
+                    correctos:["p1","p3","p5","p7","p9"],
+                    incorrectos:["p2","p4","p6","p8","p10"]
                 },
                 assets: [
                     { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
@@ -147,6 +149,8 @@ export const experiencesConfig = [
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
+                    correctos:["p1","p3","p5","p7","p9"],
+                    incorrectos:["p2","p4","p6","p8","p10"]
                 },
                 assets: [
                     { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
@@ -220,6 +224,8 @@ export const experiencesConfig = [
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
+                    correctos:["p1","p3","p5","p7","p9"],
+                    incorrectos:["p2","p4","p6","p8","p10"]
                 },
                 assets: [
                     { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
@@ -293,6 +299,8 @@ export const experiencesConfig = [
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
+                    correctos:["p1","p3","p5","p7","p9"],
+                    incorrectos:["p2","p4","p6","p8","p10"]
                 },
                 assets: [
                     { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
