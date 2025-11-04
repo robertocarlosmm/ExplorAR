@@ -10,9 +10,6 @@ import {
     TransformNode,
     ActionManager,
     ExecuteCodeAction,
-    Animation,
-    EasingFunction,
-    SineEase
 } from "@babylonjs/core";
 import { experiencesConfig } from "../../../config/experienceConfig.js";
 
@@ -43,25 +40,67 @@ export class CheckGame {
             return;
         }
 
+        // 🔹 Inicializar HUD
         this.hud?.show?.();
         this.hud?.setScore?.(this.score);
         this.hud?.updateScore?.(this.score);
 
+        // 🔹 Calcular posición base frente a la cámara
         const cam = this.scene.activeCamera;
         const forward = cam.getForwardRay(1).direction;
         const center = cam.globalPosition.add(forward.scale(0.7));
 
+        // 🔹 Crear entorno base
         this._createFloor(center);
         this._createTopPlane(center);
-        this._spawnFallingItem(center);
 
-        // Loop
+        // 🔹 Activar loop general
         this._boundUpdate = this._updateLoop.bind(this);
         this.scene.onBeforeRenderObservable.add(this._boundUpdate);
         this.isRunning = true;
 
-        console.log("[CheckGame] ✅ Setup completo (orientación vertical + caída activa)");
+        // 🔁 Obtener lista de imágenes directamente desde la configuración original
+        const exp = experiencesConfig.find(e => e.id === this.experienceId);
+        const mini = exp?.minigames?.find(m => m.id === "check");
+        const assets = mini?.assets || [];
+
+        // 🔹 Filtrar solo los assets tipo "image"
+        let remainingKeys = assets
+            .filter(a => a?.type === "image" && a?.key && a?.url)
+            .map(a => a.key);
+
+        if (remainingKeys.length === 0) {
+            console.warn("[CheckGame] ⚠️ No hay assets tipo 'image', no se generarán ítems");
+            return;
+        }
+
+        // 🔹 Spawnear uno inmediatamente
+        const firstIndex = Math.floor(Math.random() * remainingKeys.length);
+        const firstKey = remainingKeys[firstIndex];
+        console.log(`[CheckGame] 🪂 Primera caída iniciada con key: ${firstKey}`);
+        this._spawnFallingItem(center, firstKey);
+        remainingKeys.splice(firstIndex, 1); // eliminar el usado
+
+        // 🔁 Generar nuevos ítems cada 5 segundos hasta agotar imágenes
+        const spawnInterval = setInterval(() => {
+            if (!this.isRunning || remainingKeys.length === 0) {
+                clearInterval(spawnInterval);
+                console.log("[CheckGame] 🛑 Fin de generación de ítems (ya no quedan imágenes)");
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * remainingKeys.length);
+            const randomKey = remainingKeys[randomIndex];
+            console.log(`[CheckGame] 🪂 Nueva caída iniciada con key: ${randomKey}`);
+
+            this._spawnFallingItem(center, randomKey);
+            remainingKeys.splice(randomIndex, 1);
+        }, 5000);
+
+        console.log("[CheckGame] ✅ Setup completo (solo imágenes, sin repeticiones)");
     }
+
+
 
     dispose() {
         this.isRunning = false;
@@ -81,14 +120,26 @@ export class CheckGame {
             if (!exp) return false;
             const mini = exp.minigames?.find(m => m.id === "check");
             if (!mini) return false;
-            this.assetMap = Object.fromEntries((mini.assets || []).map(a => [a.key, a.url]));
+
+            const assets = mini.assets || [];
+
+            // assetMap sigue siendo key -> url (como ya lo usas)
+            this.assetMap = Object.fromEntries(assets.map(a => [a.key, a.url]));
+
+            // NUEVO: guarda únicamente las keys cuyo type === "image"
+            this.imageKeys = assets
+                .filter(a => a?.type === "image" && a?.key && a?.url)
+                .map(a => a.key);
+
             console.log("[CheckGame] ✔️ Assets cargados:", this.assetMap);
+            console.log("[CheckGame] ✔️ Image keys:", this.imageKeys);
             return true;
         } catch (e) {
             console.error("[CheckGame] Error cargando config:", e);
             return false;
         }
     }
+
 
     _createFloor(center) {
         console.log("[CheckGame] 🟫 Creando piso (horizontal)...");
@@ -118,7 +169,7 @@ export class CheckGame {
         console.log("[CheckGame] ✅ Techo en Y =", this.topPlane.position.y.toFixed(2));
     }
 
-    _spawnFallingItem(center) {
+    _spawnFallingItem(center, key) {
         // 🔹 Definir carriles (izquierda, centro, derecha)
         const lanes = [-0.5, 0, 0.5];
         const laneOffset = lanes[Math.floor(Math.random() * lanes.length)];
@@ -129,22 +180,19 @@ export class CheckGame {
         const spawnY = topY - 0.05;
         const spawnZ = zBase + 0.02;
 
-        console.log(`[CheckGame] 🎯 Spawneando ítem en carril X=${(center.x + laneOffset).toFixed(2)}, Y=${spawnY.toFixed(2)}, Z=${spawnZ.toFixed(2)}`);
+        console.log(`[CheckGame] 🎯 Spawneando ítem (${key}) en carril X=${(center.x + laneOffset).toFixed(2)}`);
 
-        // 🔹 Crear ítem principal (más pequeño)
         const item = MeshBuilder.CreatePlane("fall_item", { width: 0.3, height: 0.3 }, this.scene);
         item.parent = this.root;
         item.position = new Vector3(center.x + laneOffset, spawnY, spawnZ);
-
-        // 🔹 Siempre vertical y mirando hacia el jugador
         item.lookAt(this.scene.activeCamera.globalPosition);
 
-        // 🔁 Corregir orientación (evitar que esté de cabeza)
+        // 🔁 Corregir orientación
         item.rotation.x = Math.PI;
-        item.rotation.z = 0;
         item.rotation.y += Math.PI;
+        item.rotation.z = 0;
 
-        // 🔹 Marco negro detrás
+        // Marco negro
         const frame = MeshBuilder.CreatePlane("frame_plane", { width: 0.33, height: 0.33 }, this.scene);
         frame.parent = item;
         frame.position = new Vector3(0, 0, -0.008);
@@ -153,31 +201,37 @@ export class CheckGame {
         frameMat.backFaceCulling = false;
         frame.material = frameMat;
 
-        // 🔹 Textura JPG (compatible)
-        const texKey = Object.keys(this.assetMap).find(k => k.startsWith("p")) ?? null;
-        if (texKey) {
-            const url = this.assetMap[texKey];
-            console.log("[CheckGame] 🖼️ Cargando textura para ítem:", texKey, url);
-            const mat = new StandardMaterial("item_mat", this.scene);
+        // 🔹 Textura JPG según la key aleatoria
+        const url = this.assetMap[key];
+        const mat = new StandardMaterial("item_mat", this.scene);
+        if (url) {
             const tex = new Texture(
                 url, this.scene, false, false, Texture.TRILINEAR_SAMPLINGMODE,
-                () => console.log("[CheckGame] ✅ Textura cargada OK:", url),
+                () => console.log(`[CheckGame] ✅ Textura cargada OK (${key}):`, url),
                 (msg, e) => console.error("[CheckGame] ❌ Error cargando textura:", url, e)
             );
             mat.diffuseTexture = tex;
+            mat.backFaceCulling = false;
             mat.transparencyMode = StandardMaterial.MATERIAL_OPAQUE;
-            mat.backFaceCulling = false;
-            item.material = mat;
         } else {
-            const mat = new StandardMaterial("item_mat", this.scene);
             mat.diffuseColor = new Color3(1, 0.7, 0.2);
-            mat.backFaceCulling = false;
-            item.material = mat;
-            console.warn("[CheckGame] ⚠️ Asset por defecto aplicado.");
+            console.warn(`[CheckGame] ⚠️ No se encontró URL para key: ${key}`);
         }
+        item.material = mat;
 
-        this.item = item;
+        // 🔹 Control de caída individual (sin detener todo el juego)
+        this.scene.onBeforeRenderObservable.add(() => {
+            if (!item || item.isDisposed()) return;
+            const dt = this.scene.getEngine().getDeltaTime() / 1000;
+            item.position.y -= this.fallSpeed * dt;
+
+            if (item.position.y <= this.groundY + 0.01) {
+                console.log(`[CheckGame] 💥 Ítem (${key}) tocó el piso`);
+                item.dispose();
+            }
+        });
     }
+
 
     // -------------------------------
     // Caída del ítem (loop)
