@@ -52,8 +52,7 @@ export class CheckGame {
         // 🔹 HUD y timer
         this.hud?.show?.();
         this.hud?.setScore?.(this.score);
-        this.hud?.setTime?.(this.timeLimit);
-        this.hud?.startTimer?.(this.timeLimit, null, () => this._onTimeUp());
+        this.hud?.startTimer?.(this.timeGame, null, () => this._onTimeUp());
         this.hud?.updateScore?.(this.score)
 
         // 🔹 Calcular posición base frente a la cámara
@@ -106,7 +105,7 @@ export class CheckGame {
 
             this._spawnFallingItem(center, randomKey);
             remainingKeys.splice(randomIndex, 1);
-        }, 5000);
+        }, 6000);
 
         console.log("[CheckGame] ✅ Setup completo (solo imágenes, sin repeticiones)");
     }
@@ -199,7 +198,8 @@ export class CheckGame {
         const item = MeshBuilder.CreatePlane(`item_${key}`, { width: 0.3, height: 0.3 }, this.scene);
         item.parent = itemRoot;
         item.lookAt(this.scene.activeCamera.globalPosition);
-        item.rotation.x = Math.PI;
+        item.rotation.x = 0;
+        item.rotation.y = 0;
 
         const url = this.assetMap[key];
         const mat = new StandardMaterial(`mat_${key}`, this.scene);
@@ -252,7 +252,8 @@ export class CheckGame {
                 const correct = this.correctKeys.includes(key);
                 this.score += correct ? this.correctBonus : -this.wrongPenalty;
                 console.log(`[CheckGame] ${correct ? "✅ Correcto" : "❌ Incorrecto"} → ${this.score}`);
-                this.hud?.updateScore?.(this.score);
+                this.hud.message(`${correct ? "Correcto" : "Incorrecto"}`, 1000);
+                this.hud?.setScore?.(this.score);
                 removeGroup();
             })
         );
@@ -264,7 +265,8 @@ export class CheckGame {
                 const incorrect = this.incorrectKeys.includes(key);
                 this.score += incorrect ? this.correctBonus : -this.wrongPenalty;
                 console.log(`[CheckGame] ${incorrect ? "✅ Correctamente marcado como incorrecto" : "⚠️ Mal marcado"} → ${this.score}`);
-                this.hud?.updateScore?.(this.score);
+                this.hud.message(`${incorrect ? "Correcto" : "Incorrecto"}`, 1000);
+                this.hud?.setScore?.(this.score);
                 removeGroup();
             })
         );
@@ -298,5 +300,40 @@ export class CheckGame {
             this.item.position.y = this.groundY + 0.01;
             this.isRunning = false; // detener caída
         }
+    }
+
+
+    // ===============================
+    // Fin
+    // ===============================
+    _onTimeUp() {
+        console.log("[CheckGame] ⏰ Tiempo finalizado");
+        this.isRunning = false;
+        this.hud?.stopTimer?.();
+
+        // Popup de fin
+        this.hud?.showEndPopup?.({
+            score: this.score,
+            onRetry: () => this._restart(),
+            onContinue: () => {
+                console.log("[CheckGame] Continuar presionado (sin acción por ahora)");
+                this._endGame();
+            },
+            timeExpired: false
+        });
+    }
+
+    _restart() {
+        console.log("[CheckGame] 🔁 Reiniciando minijuego...");
+        this.dispose();
+        this.score = 0;
+        this.hud?.updateScore?.(0);
+        this.start();
+    }
+
+    _endGame() {
+        console.log("[CheckGame] 🧩 Fin del juego Check");
+        this.dispose();
+        this.onGameEnd?.();
     }
 }
