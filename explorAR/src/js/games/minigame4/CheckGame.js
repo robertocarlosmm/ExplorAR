@@ -182,28 +182,31 @@ export class CheckGame {
 
         console.log(`[CheckGame] 🎯 Spawneando ítem (${key}) en carril X=${(center.x + laneOffset).toFixed(2)}`);
 
-        const item = MeshBuilder.CreatePlane("fall_item", { width: 0.3, height: 0.3 }, this.scene);
-        item.parent = this.root;
-        item.position = new Vector3(center.x + laneOffset, spawnY, spawnZ);
+        // 🔹 Nodo raíz del ítem
+        const itemRoot = new TransformNode(`itemRoot_${key}`, this.scene);
+        itemRoot.position = new Vector3(center.x + laneOffset, spawnY, spawnZ);
+
+        // 🔹 Plano principal (imagen)
+        const item = MeshBuilder.CreatePlane(`item_${key}`, { width: 0.3, height: 0.3 }, this.scene);
+        item.parent = itemRoot;
         item.lookAt(this.scene.activeCamera.globalPosition);
 
-        // 🔁 Corregir orientación
         item.rotation.x = Math.PI;
         item.rotation.y += Math.PI;
         item.rotation.z = 0;
 
-        // Marco negro
-        const frame = MeshBuilder.CreatePlane("frame_plane", { width: 0.33, height: 0.33 }, this.scene);
-        frame.parent = item;
+        // 🔹 Marco negro detrás
+        const frame = MeshBuilder.CreatePlane(`frame_${key}`, { width: 0.33, height: 0.33 }, this.scene);
+        frame.parent = itemRoot;
         frame.position = new Vector3(0, 0, -0.008);
-        const frameMat = new StandardMaterial("frame_mat", this.scene);
+        const frameMat = new StandardMaterial(`frameMat_${key}`, this.scene);
         frameMat.diffuseColor = new Color3(0, 0, 0);
         frameMat.backFaceCulling = false;
         frame.material = frameMat;
 
-        // 🔹 Textura JPG según la key aleatoria
+        // 🔹 Textura JPG
         const url = this.assetMap[key];
-        const mat = new StandardMaterial("item_mat", this.scene);
+        const mat = new StandardMaterial(`mat_${key}`, this.scene);
         if (url) {
             const tex = new Texture(
                 url, this.scene, false, false, Texture.TRILINEAR_SAMPLINGMODE,
@@ -219,19 +222,75 @@ export class CheckGame {
         }
         item.material = mat;
 
-        // 🔹 Control de caída individual (sin detener todo el juego)
-        this.scene.onBeforeRenderObservable.add(() => {
-            if (!item || item.isDisposed()) return;
-            const dt = this.scene.getEngine().getDeltaTime() / 1000;
-            item.position.y -= this.fallSpeed * dt;
+        // 🔹 Crear íconos de check y wrong (ocultos al inicio)
+        const checkUrl = this.assetMap["check_icon"];
+        const wrongUrl = this.assetMap["wrong_icon"];
 
-            if (item.position.y <= this.groundY + 0.01) {
+        const iconSize = 0.1;
+        const offsetX = 0.2; // hacia la derecha del ítem
+
+        const checkBtn = MeshBuilder.CreatePlane(`check_${key}`, { width: iconSize, height: iconSize }, this.scene);
+        checkBtn.parent = itemRoot;
+        checkBtn.position = new Vector3(offsetX, 0.1, 0.001);
+        checkBtn.isVisible = false;
+
+        const wrongBtn = MeshBuilder.CreatePlane(`wrong_${key}`, { width: iconSize, height: iconSize }, this.scene);
+        wrongBtn.parent = itemRoot;
+        wrongBtn.position = new Vector3(offsetX, -0.1, 0.001);
+        wrongBtn.isVisible = false;
+
+        // Asignar materiales
+        const makeIconMat = (url, name) => {
+            const mat = new StandardMaterial(name, this.scene);
+            mat.diffuseTexture = new Texture(url, this.scene);
+            mat.backFaceCulling = false;
+            return mat;
+        };
+
+        if (checkUrl) checkBtn.material = makeIconMat(checkUrl, `checkMat_${key}`);
+        if (wrongUrl) wrongBtn.material = makeIconMat(wrongUrl, `wrongMat_${key}`);
+
+        // 🔹 Sistema de interacción
+        item.actionManager = new ActionManager(this.scene);
+        item.actionManager.registerAction(
+            new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+                checkBtn.isVisible = !checkBtn.isVisible;
+                wrongBtn.isVisible = !wrongBtn.isVisible;
+            })
+        );
+
+        checkBtn.actionManager = new ActionManager(this.scene);
+        checkBtn.actionManager.registerAction(
+            new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+                console.log(`[CheckGame] ✅ Imagen ${key} marcada como CORRECTA`);
+                this.score += 10;
+                this.hud?.updateScore?.(this.score);
+                itemRoot.dispose();
+            })
+        );
+
+        wrongBtn.actionManager = new ActionManager(this.scene);
+        wrongBtn.actionManager.registerAction(
+            new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
+                console.log(`[CheckGame] ❌ Imagen ${key} marcada como INCORRECTA`);
+                this.score -= 5;
+                this.hud?.updateScore?.(this.score);
+                itemRoot.dispose();
+            })
+        );
+
+        // 🔹 Movimiento (caída)
+        this.scene.onBeforeRenderObservable.add(() => {
+            if (!itemRoot || itemRoot.isDisposed()) return;
+            const dt = this.scene.getEngine().getDeltaTime() / 1000;
+            itemRoot.position.y -= this.fallSpeed * dt;
+
+            if (itemRoot.position.y <= this.groundY + 0.01) {
                 console.log(`[CheckGame] 💥 Ítem (${key}) tocó el piso`);
-                item.dispose();
+                itemRoot.dispose();
             }
         });
     }
-
 
     // -------------------------------
     // Caída del ítem (loop)
