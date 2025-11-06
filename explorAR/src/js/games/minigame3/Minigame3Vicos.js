@@ -56,12 +56,7 @@ export class Minigame3Vicos {
         }
 
         this.hud?.show?.();
-        const totalTime =
-            this.miniConfig?.params?.timeLimit ??
-            gameplayConfig?.timeByMinigame?.m3Vicos ??
-            gameplayConfig?.minigame3Vicos?.timeLimit ??
-            gameplayConfig?.timer?.default ??
-            5;
+        const totalTime = gameplayConfig.timeSequence[2] || 60;
 
         this.hud?.startTimer?.(totalTime, null, () => this._onTimeUp());
         this.hud?.updateScore?.(this.score);

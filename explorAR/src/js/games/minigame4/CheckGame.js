@@ -107,7 +107,7 @@ export class CheckGame {
 
             this._spawnFallingItem(center, randomKey);
             this.remainingKeys.splice(randomIndex, 1);
-        }, 6000);
+        }, 5000);
 
         console.log("[CheckGame] ✅ Setup completo (solo imágenes, sin repeticiones)");
     }
