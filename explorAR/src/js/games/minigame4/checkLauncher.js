@@ -65,7 +65,15 @@ export async function startMinigame4(gameManager) {
 
                 // Aquí puedes decidir si continúa o termina la experiencia
                 console.log("Puntaje final:", gameInstance.score);
-                gameManager.onExit?.();
+                
+                const nextId = "photostudio";
+                if(nextId) {
+                    gameManager.setCarryScore?.(gameInstance.score);
+                    console.log("Puntaje llevado al GameManager:", gameManager.getCarryScore());
+                    gameManager.launchNextMinigame(nextId);
+                }else{
+                    gameManager.onExit?.();
+                } 
             };
 
             // 8 Iniciar el minijuego
