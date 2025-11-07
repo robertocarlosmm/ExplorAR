@@ -61,11 +61,28 @@ export class PhotoStudio {
         try { this._removeOverlay(); } catch { }
         try { this._removeStyles(); } catch { }
         document.body.classList.remove("photo-mode");
-        console.log("[PhotoStudio] cleanup ok");
 
+        // Limpiar referencias y arrays para evitar residuos visuales
+        this.activeStickerEl = null;
+        this.stickers = [];
+        this.stream = null;
+        this.currentStickerIdx = 0;
+
+        // Borrar cualquier canvas temporal (prevención por capturas)
+        document.querySelectorAll("canvas").forEach(c => {
+            if (c.width > window.innerWidth * 0.8 && c.height > window.innerHeight * 0.8)
+                c.remove();
+        });
+
+        console.log("[PhotoStudio] cleanup ok");
+        // Salida final al lobby (vía callback)
         this.onExit && this.onExit();
     }
 
+
+    // =========================
+    // UI: Overlay & Styles
+    // =========================
     // =========================
     // UI: Overlay & Styles
     // =========================
@@ -75,110 +92,133 @@ export class PhotoStudio {
         if (existing) existing.remove();
 
         const css = `
-      /* Bloquear scroll y fondo mientras está activo */
-      body.photo-mode {
-        overflow: hidden;
-        margin: 0;
-        padding: 0;
-        background: #000; /* evita fondo crema */
-      }
+            /* Bloquear scroll y fondo mientras está activo */
+            body.photo-mode {
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            background: #000; /* evita fondo crema */
+            }
 
-      /* Overlay full-screen por encima de HUD/canvas */
-      #photo-studio {
-        position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100dvh; /* altura dinámica: cubre toda la pantalla */
-        z-index: 9999;
-        background: #000;
-        display: grid;
-        grid-template-areas:
-          "video"
-          "controls";
-        grid-template-rows: 1fr auto;
-        overflow: hidden;
-      }
+            /* Overlay full-screen por encima de HUD/canvas */
+            #photo-studio {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100dvh; /* altura dinámica: cubre toda la pantalla */
+            z-index: 9999;
+            background: #000;
+            display: grid;
+            grid-template-areas:
+                "video"
+                "controls";
+            grid-template-rows: 1fr auto;
+            overflow: hidden;
+            }
 
-      /* Video a pantalla completa (ocupa su celda) */
-      #photo-studio #photo-video {
-        grid-area: video;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transform: scaleX(-1); /* espejo en preview */
-        pointer-events: none;
-      }
+            /* Video a pantalla completa (ocupa su celda) */
+            #photo-studio #photo-video {
+            grid-area: video;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* espejo en preview */
+            pointer-events: none;
+            }
 
-      /* Capa donde se colocan y mueven los stickers */
-      #photo-studio #sticker-layer {
-        position: fixed;
-        inset: 0;
-        z-index: 10001;
-        touch-action: none; /* mejor control de pointer */
-      }
+            /* Capa donde se colocan y mueven los stickers */
+            #photo-studio #sticker-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 10001;
+            touch-action: none; /* mejor control de pointer */
+            }
 
-      .movable-sticker {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        max-width: 28vw;
-        max-height: 28vh;
-        user-select: none;
-        -webkit-user-drag: none;
-      }
+            .movable-sticker {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 28vw;
+            max-height: 28vh;
+            user-select: none;
+            -webkit-user-drag: none;
+            }
 
-      /* Controles flotantes sobre el video */
-      #photo-studio #photo-controls {
-        grid-area: controls;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 14px;
-        padding: 14px 16px;
-        z-index: 10002;
-        background: rgba(0, 0, 0, 0.25); /* visibilidad sobre el video */
-        backdrop-filter: blur(2px);
-      }
+            /* Controles flotantes sobre el video */
+            #photo-studio #photo-controls {
+            grid-area: controls;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            z-index: 10002;
+            background: rgba(0, 0, 0, 0.25); /* visibilidad sobre el video */
+            backdrop-filter: blur(2px);
+            }
 
-      #photo-studio .ctrl-btn {
-        background: rgba(255,255,255,0.92);
-        color: #222;
-        border: none;
-        border-radius: 9999px;
-        width: 60px;
-        height: 60px;
-        font-size: 22px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0,0,0,.35);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform .08s ease;
-      }
-      #photo-studio .ctrl-btn:active { transform: scale(0.96); }
+            #photo-studio .ctrl-btn {
+            background: rgba(255,255,255,0.92);
+            color: #222;
+            border: none;
+            border-radius: 9999px;
+            width: 60px;
+            height: 60px;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,.35);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform .08s ease;
+            }
+            #photo-studio .ctrl-btn:active { transform: scale(0.96); }
 
-      /* Botón de captura más grande y con anillo */
-      #photo-studio #btn-capture {
-        width: 72px;
-        height: 72px;
-        font-size: 26px;
-        background: #fff;
-        border: 3px solid #ddd;
-      }
+            /* Botón de captura más grande y con anillo */
+            #photo-studio #btn-capture {
+            width: 72px;
+            height: 72px;
+            font-size: 26px;
+            background: #fff;
+            border: 3px solid #ddd;
+            }
 
-      /* Posición segura en pantallas con notch */
-      @supports (padding: constant(safe-area-inset-bottom)) {
-        #photo-studio #photo-controls {
-          padding-bottom: calc(14px + constant(safe-area-inset-bottom));
-        }
-      }
-      @supports (padding: env(safe-area-inset-bottom)) {
-        #photo-studio #photo-controls {
-          padding-bottom: calc(14px + env(safe-area-inset-bottom));
-        }
-      }
-    `.trim();
+            /* === Botón Salir (estilo consistente con HUD) === */
+            #photo-studio #photo-exit {
+            position: absolute;
+            top: calc(10px + env(safe-area-inset-top));
+            right: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            font-size: 14px;            /* “Salir” legible dentro del círculo */
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,.35);
+            z-index: 10003;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform .08s ease, background .15s ease;
+            }
+            #photo-studio #photo-exit:active { transform: scale(0.96); }
+
+            /* Posición segura en pantallas con notch */
+            @supports (padding: constant(safe-area-inset-bottom)) {
+            #photo-studio #photo-controls {
+                padding-bottom: calc(14px + constant(safe-area-inset-bottom));
+            }
+            }
+            @supports (padding: env(safe-area-inset-bottom)) {
+            #photo-studio #photo-controls {
+                padding-bottom: calc(14px + env(safe-area-inset-bottom));
+            }
+            }
+        `.trim();
 
         this.styleEl = document.createElement("style");
         this.styleEl.id = "photo-studio-styles";
@@ -204,14 +244,17 @@ export class PhotoStudio {
         this.root = document.createElement("div");
         this.root.id = "photo-studio";
         this.root.innerHTML = `
-        <video id="photo-video" autoplay playsinline muted></video>
-        <div id="sticker-layer"></div>
-        <div id="photo-controls">
+            <!-- Botón salir flotante -->
+            <button id="photo-exit" aria-label="Salir">Salir</button>
+
+            <video id="photo-video" autoplay playsinline muted></video>
+            <div id="sticker-layer"></div>
+            <div id="photo-controls">
             <button id="btn-prev" class="ctrl-btn" aria-label="Anterior">◀</button>
             <button id="btn-capture" class="ctrl-btn" aria-label="Capturar">📸</button>
             <button id="btn-next" class="ctrl-btn" aria-label="Siguiente">▶</button>
-        </div>
-    `;
+            </div>
+        `;
         document.body.appendChild(this.root);
 
         this.videoEl = this.root.querySelector("#photo-video");
@@ -222,12 +265,28 @@ export class PhotoStudio {
         this.root.querySelector("#btn-prev").addEventListener("click", () => this._prevSticker());
         this.root.querySelector("#btn-next").addEventListener("click", () => this._nextSticker());
         this.root.querySelector("#btn-capture").addEventListener("click", () => this._capture());
+
+        // Salir (limpieza completa y retorno al flujo)
+        this.root.querySelector("#photo-exit").addEventListener("click", () => this.cleanup());
     }
 
     _removeOverlay() {
         if (this.root) {
+            // Remover event listeners antes de eliminar el DOM
+            const btnPrev = this.root.querySelector("#btn-prev");
+            const btnNext = this.root.querySelector("#btn-next");
+            const btnCapture = this.root.querySelector("#btn-capture");
+            const btnExit = this.root.querySelector("#photo-exit");
+
+            // Los listeners se limpiarán automáticamente al remover el elemento,
+            // pero es buena práctica hacerlo explícito si guardaste referencias
+
+            // Remover el overlay del DOM
             this.root.remove();
             this.root = null;
+            this.videoEl = null;
+            this.layerEl = null;
+            this.controlsEl = null;
         }
     }
 
@@ -404,7 +463,7 @@ export class PhotoStudio {
         // 3) Descargar automáticamente
         const url = canvas.toDataURL("image/png");
         const a = document.createElement("a");
-        a.download = "explorar_peru_foto.png";
+        a.download = `foto_${Date.now()}.png`;
         a.href = url;
         a.click();
 

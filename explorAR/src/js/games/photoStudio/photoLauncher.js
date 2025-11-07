@@ -44,10 +44,17 @@ export async function startPhotoStudio(gameManager) {
         experienceId,
         onExit: () => {
             // Restaurar HUD al salir
-            const hudEl = document.getElementById("hud");
-            if (hudEl) hudEl.style.display = "";
-            gameManager?.hud?.show?.();
-            console.log("[PhotoLauncher] PhotoStudio ha terminado.");
+            try {
+                const hudEl = document.getElementById("hud");
+                if (hudEl) hudEl.style.display = ""; // aseguramos que no quede oculto permanentemente
+                gameManager?.hud?.hide?.(); // no lo mostramos, solo limpiamos estado
+                document.body.classList.remove("photo-mode");
+            } catch (err) {
+                console.warn("[PhotoLauncher] Error limpiando HUD o clases:", err);
+            }
+
+            console.log("[PhotoLauncher] Saliendo al lobby desde PhotoStudio...");
+            // Cierre ordenado del flujo (idéntico a otros minijuegos)
             gameManager?.onExit?.();
         }
     });
