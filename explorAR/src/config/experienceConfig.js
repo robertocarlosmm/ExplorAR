@@ -48,16 +48,18 @@ export const experiencesConfig = [
                 ]
             },
             {
-                id: "guidane",
-                type: "guidane",
-                panel: "guidane",
+                id: "check",
+                type: "check",
+                panel: "check",
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
+                    correctos: ["p1", "p3", "p5", "p7", "p9"],
+                    incorrectos: ["p2", "p4", "p6", "p8", "p10"]
                 },
                 assets: [
-                    { type: "image", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "image", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
+                    { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
                     { type: "image", key: "p1", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p2", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p3", url: "/assets/default/default.jpg" },
@@ -68,6 +70,21 @@ export const experiencesConfig = [
                     { type: "image", key: "p8", url: "/assets/default/default2.jpg" },
                     { type: "image", key: "p9", url: "/assets/default/default2.jpg" },
                     { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
+                ]
+            },
+            {
+                id: "photo",
+                type: "photo",
+                panel: "photo",
+                params: {
+                    star1: "star1",
+                    star2: "star2",
+                    star3: "star3"
+                },
+                assets: [
+                    { type: "sticker", key: "star1", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "sticker", key: "star2", url: "/assets/default/default.jpg" },
+                    { type: "sticker", key: "star3", url: "/assets/default/default2.jpg" },
                 ]
             }
         ]
@@ -141,16 +158,18 @@ export const experiencesConfig = [
                 ]
             },
             {
-                id: "guidane",
-                type: "guidane",
-                panel: "guidane",
+                id: "check",
+                type: "check",
+                panel: "check",
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
+                    correctos: ["p1", "p3", "p5", "p7", "p9"],
+                    incorrectos: ["p2", "p4", "p6", "p8", "p10"]
                 },
                 assets: [
-                    { type: "image", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "image", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
+                    { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
                     { type: "image", key: "p1", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p2", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p3", url: "/assets/default/default.jpg" },
@@ -161,6 +180,21 @@ export const experiencesConfig = [
                     { type: "image", key: "p8", url: "/assets/default/default2.jpg" },
                     { type: "image", key: "p9", url: "/assets/default/default2.jpg" },
                     { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
+                ]
+            },
+            {
+                id: "photo",
+                type: "photo",
+                panel: "photo",
+                params: {
+                    star1: "star1",
+                    star2: "star2",
+                    star3: "star3"
+                },
+                assets: [
+                    { type: "sticker", key: "star1", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "sticker", key: "star2", url: "/assets/default/default.jpg" },
+                    { type: "sticker", key: "star3", url: "/assets/default/default2.jpg" },
                 ]
             }
         ]
@@ -214,16 +248,18 @@ export const experiencesConfig = [
                 ]
             },
             {
-                id: "guidane",
-                type: "guidane",
-                panel: "guidane",
+                id: "check",
+                type: "check",
+                panel: "check",
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
+                    correctos: ["p1", "p3", "p5", "p7", "p9"],
+                    incorrectos: ["p2", "p4", "p6", "p8", "p10"]
                 },
                 assets: [
-                    { type: "image", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "image", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
+                    { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
                     { type: "image", key: "p1", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p2", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p3", url: "/assets/default/default.jpg" },
@@ -234,6 +270,21 @@ export const experiencesConfig = [
                     { type: "image", key: "p8", url: "/assets/default/default2.jpg" },
                     { type: "image", key: "p9", url: "/assets/default/default2.jpg" },
                     { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
+                ]
+            },
+            {
+                id: "photo",
+                type: "photo",
+                panel: "photo",
+                params: {
+                    star1: "star1",
+                    star2: "star2",
+                    star3: "star3"
+                },
+                assets: [
+                    { type: "sticker", key: "star1", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "sticker", key: "star2", url: "/assets/default/default.jpg" },
+                    { type: "sticker", key: "star3", url: "/assets/default/default2.jpg" },
                 ]
             }
         ]
@@ -287,16 +338,18 @@ export const experiencesConfig = [
                 ]
             },
             {
-                id: "guidane",
-                type: "guidane",
-                panel: "guidane",
+                id: "check",
+                type: "check",
+                panel: "check",
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
+                    correctos: ["p1", "p3", "p5", "p7", "p9"],
+                    incorrectos: ["p2", "p4", "p6", "p8", "p10"]
                 },
                 assets: [
-                    { type: "image", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "image", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
+                    { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
                     { type: "image", key: "p1", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p2", url: "/assets/default/default.jpg" },
                     { type: "image", key: "p3", url: "/assets/default/default.jpg" },
@@ -309,7 +362,21 @@ export const experiencesConfig = [
                     { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
                 ]
             },
-
+            {
+                id: "photo",
+                type: "photo",
+                panel: "photo",
+                params: {
+                    star1: "star1",
+                    star2: "star2",
+                    star3: "star3"
+                },
+                assets: [
+                    { type: "sticker", key: "star1", url: "/assets/games/Minigame4/check_icon.png" },
+                    { type: "sticker", key: "star2", url: "/assets/default/default.jpg" },
+                    { type: "sticker", key: "star3", url: "/assets/default/default2.jpg" },
+                ]
+            }
         ]
     }
 ]

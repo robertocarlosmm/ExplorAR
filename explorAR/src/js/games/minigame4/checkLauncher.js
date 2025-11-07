@@ -1,4 +1,4 @@
-import { GuidanceGame } from "./GuidanceGame.js";
+import { CheckGame } from "./CheckGame.js";
 
 /**
  * Lanza el flujo completo del Minijuego 4.
@@ -47,7 +47,7 @@ export async function startMinigame4(gameManager) {
             await gameManager.startExperience(exp);
 
             // 6 Crear instancia del juego
-            const gameInstance = new GuidanceGame({
+            const gameInstance = new CheckGame({
                 scene: gameManager.xrSession?.scene,
                 hud: gameManager.hud,
                 experienceId: expId,
@@ -65,7 +65,15 @@ export async function startMinigame4(gameManager) {
 
                 // Aquí puedes decidir si continúa o termina la experiencia
                 console.log("Puntaje final:", gameInstance.score);
-                gameManager.onExit?.();
+                
+                const nextId = "photostudio";
+                if(nextId) {
+                    gameManager.setCarryScore?.(gameInstance.score);
+                    console.log("Puntaje llevado al GameManager:", gameManager.getCarryScore());
+                    gameManager.launchNextMinigame(nextId);
+                }else{
+                    gameManager.onExit?.();
+                } 
             };
 
             // 8 Iniciar el minijuego

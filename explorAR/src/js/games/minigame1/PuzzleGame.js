@@ -1,6 +1,5 @@
 // src/js/games/minigame1/PuzzleGame.js
 import { MeshBuilder, StandardMaterial, Color3, Vector3, TransformNode, Texture } from "@babylonjs/core";
-import { PuzzlePanel } from "../../panels/minigame1Panel.js";
 import { InteractionManager } from "../../input/InteractionManager.js";
 import { gameplayConfig } from "../../../config/gameplayConfig.js";
 
@@ -119,11 +118,6 @@ export class PuzzleGame {
         });
 
         // HUD
-        this.hud.showPanel(PuzzlePanel, {
-            onRotateLeft: () => { },
-            onRotateRight: () => { },
-            onHint: () => this._useHint()
-        });
         this.hud.setScore(0);          // NUEVO: marcador visible en 0 al iniciar
         this.hud.setTime(this.timeLimit);
         this.hud.startTimer(this.timeLimit, null, () => this._fail());
