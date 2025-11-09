@@ -21,13 +21,13 @@ export const gameplayConfig = {
             waterBonus: 8,              // Por riego correcto
             overwaterPenalty: 5,        // Penalización leve
             wastedShotPenalty: 0,       // Sin penalizar lanzamientos fallidos
-            timeBonusPerSec: 1,         // Bonus por tiempo sobrante
+            timeBonusPerSec: 2,         // Bonus por tiempo sobrante
         },
         m3Tambopata: {
             base: 0,                    // No puntaje fijo inicial
             lightBonus: 10,              // Por germinación correcta
             lightPenalty: 5,        // Penalización leve
-            timeBonusPerSec: 1,         // Bonus por tiempo sobrante
+            timeBonusPerSec: 2,         // Bonus por tiempo sobrante
         },
         check: {
             base: 0,
