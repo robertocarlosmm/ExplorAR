@@ -354,6 +354,20 @@ export const experiencesConfig = [
                 ]
             },
             {
+                id: "m3Lucumo",
+                type: "throw",
+                panel: "throw",
+                params: {
+                    numberOfPlots: 6,
+                    spawnRadius: 1.2,
+                    plotSize: 0.38,
+                },
+                assets: [
+                    { type: "image", key: "grass", url: "/assets/games/Minigame3/Lucumo/grass.jpg" },
+                    { type: "image", key: "dirt_trail", url: "/assets/games/Minigame3/Lucumo/dirt_trail_2.jpg" },
+                ]
+            },
+            {
                 id: "check",
                 type: "check",
                 panel: "check",
