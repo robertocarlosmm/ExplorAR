@@ -23,6 +23,12 @@ export const gameplayConfig = {
             wastedShotPenalty: 0,       // Sin penalizar lanzamientos fallidos
             timeBonusPerSec: 1,         // Bonus por tiempo sobrante
         },
+        m3Tambopata: {
+            base: 0,                    // No puntaje fijo inicial
+            lightBonus: 10,              // Por germinación correcta
+            lightPenalty: 5,        // Penalización leve
+            timeBonusPerSec: 1,         // Bonus por tiempo sobrante
+        },
         check: {
             base: 0,
             correctBonus: 10,

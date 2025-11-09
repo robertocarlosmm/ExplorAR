@@ -248,6 +248,22 @@ export const experiencesConfig = [
                 ]
             },
             {
+                id: "m3Tambopata",
+                type: "throw",
+                panel: "throw",
+                params: {
+                    numberOfPlots: 6,
+                    spawnRadius: 1.2,
+                    plotSize: 0.38,
+                },
+                assets: [
+                    { type: "image", key: "flashlight", url: "/assets/games/Minigame3/Tambopata/flashlight.png" },
+                    { type: "icon", key: "light_ball", url: "/assets/games/Minigame3/Tambopata/light_ball.png" },
+                    { type: "model", key: "black_caiman", url: "/assets/games/Minigame3/Tambopata/black_caiman.glb" },
+                    { type: "model", key: "guacamaya", url: "/assets/games/Minigame3/Tambopata/guacamaya.glb" },
+                ]
+            },
+            {
                 id: "check",
                 type: "check",
                 panel: "check",
