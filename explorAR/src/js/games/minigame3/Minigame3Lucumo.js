@@ -20,12 +20,15 @@ export class Minigame3Lucumo {
         this.hud = hud;
         this.experienceId = experienceId;
         this.score = startingScore;
+        this.startingScore = startingScore;
 
         this.gridSize = 10; // cuadrícula 10x10
         this.grid = [];
         this.spawnRadius = 1.2;
         this.plotSize = null; // se calculará dinámicamente
         this.tileLiftY = 0.003; // altura visual del tile (evitar z-fighting)
+        this.completeBonus = gameplayConfig.scoring.m3Lucumo.completeBonus || 15;
+        this.timeBonusPerSec = gameplayConfig.scoring.m3Lucumo.timeBonusPerSec || 2;
 
         this.isRunning = false;
 
@@ -35,6 +38,11 @@ export class Minigame3Lucumo {
         this.defaultBotScaleXZRatio = 0.60; // % del tile que puede ocupar el bot
         this.defaultBotFaceX = true;       // “mirar al eje X” tras terminar de moverse
         this.defaultBotRotationY = Math.PI;      // ajusta si tu GLB no mira a +X por defecto
+        this.totalBotsSpawned = 0;
+        this.botsPerWave = 5;
+        this.wave = 1;
+        this.finished = false;
+
 
         // interacción
         this.pointerObserver = null;
@@ -164,6 +172,7 @@ export class Minigame3Lucumo {
             Array(this.gridSize).fill(0)
         );
 
+        // Dos filas largas (posiciones absolutas como tu versión)
         const filaLarga1 = Math.random() < 0.5 ? 3 : 4;
         const filaLarga2 = Math.random() < 0.5 ? 6 : 7;
 
@@ -171,42 +180,120 @@ export class Minigame3Lucumo {
         let inicio = Math.floor(Math.random() * this.gridSize);
         let direccionActual = Math.random() < 0.5 ? -1 : 1;
 
+        // Para asegurar continuidad, guardamos el tramo anterior [prevDesde, prevHasta]
+        let prevDesde = null;
+        let prevHasta = null;
+
         for (let fila = 0; fila < this.gridSize; fila++) {
-            // ancho dinámico con variación leve
-            let ancho;
-            if (fila === filaLarga1 || fila === filaLarga2)
-                ancho = 4 + Math.floor(Math.random() * 2);
-            else
-                ancho = 2 + Math.floor(Math.random() * 2);
+            // --- Ancho base (2–3; 4–5 si fila larga), con variación ±1 y clamp ---
+            let ancho = (fila === filaLarga1 || fila === filaLarga2)
+                ? 4 + Math.floor(Math.random() * 2) // 4–5
+                : 2 + Math.floor(Math.random() * 2); // 2–3
+            ancho = Math.max(2, Math.min(this.gridSize, ancho + (Math.floor(Math.random() * 3) - 1)));
 
-            // ancho puede variar ±1 por fila
-            ancho = Math.max(2, ancho + (Math.floor(Math.random() * 3) - 1));
-
-            // limitar inicio dentro de grilla
+            // --- Tramo tentativo según inicio y dirección ---
             inicio = Math.max(0, Math.min(this.gridSize - 1, inicio));
 
-            let fin = inicio + ancho * direccionActual;
+            let desde, hasta;
             if (direccionActual > 0) {
-                // hacia la derecha
-                fin = Math.min(this.gridSize - 1, inicio + ancho - 1);
+                // hacia la derecha: tramo [inicio .. inicio+ancho-1]
+                desde = inicio;
+                hasta = Math.min(this.gridSize - 1, desde + ancho - 1);
             } else {
-                // hacia la izquierda
-                fin = Math.max(0, inicio - ancho + 1);
+                // hacia la izquierda: tramo [inicio-ancho+1 .. inicio]
+                hasta = inicio;
+                desde = Math.max(0, hasta - (ancho - 1));
             }
 
-            const desde = Math.min(inicio, fin);
-            const hasta = Math.max(inicio, fin);
+            // --- Ajuste de continuidad: forzar intersección con la fila anterior ---
+            if (prevDesde !== null) {
+                // Si el tramo actual queda completamente a la izquierda del anterior -> empujamos a la derecha
+                if (hasta < prevDesde) {
+                    const shift = prevDesde - hasta;
+                    desde += shift;
+                    hasta += shift;
+                }
+                // Si el tramo actual queda completamente a la derecha del anterior -> empujamos a la izquierda
+                else if (desde > prevHasta) {
+                    const shift = desde - prevHasta;
+                    desde -= shift;
+                    hasta -= shift;
+                }
 
+                // Re-clamp dentro de la grilla
+                if (desde < 0) {
+                    const overflow = -desde;
+                    desde = 0;
+                    hasta = Math.min(this.gridSize - 1, hasta + overflow);
+                }
+                if (hasta > this.gridSize - 1) {
+                    const overflow = hasta - (this.gridSize - 1);
+                    hasta = this.gridSize - 1;
+                    desde = Math.max(0, desde - overflow);
+                }
+
+                // Si por límites el ancho se achicó, intentamos expandir respetando la intersección
+                const anchoActual = hasta - desde + 1;
+                if (anchoActual < ancho) {
+                    let falta = ancho - anchoActual;
+                    // Preferimos expandir hacia la dirección actual
+                    while (falta > 0) {
+                        let expandido = false;
+                        if (direccionActual > 0 && hasta < this.gridSize - 1) {
+                            hasta++;
+                            falta--;
+                            expandido = true;
+                        } else if (direccionActual < 0 && desde > 0) {
+                            desde--;
+                            falta--;
+                            expandido = true;
+                        }
+                        // Si ya no se puede por la dirección preferida, expandimos al otro lado
+                        if (!expandido) {
+                            if (desde > 0) {
+                                desde--;
+                                falta--;
+                            } else if (hasta < this.gridSize - 1) {
+                                hasta++;
+                                falta--;
+                            } else {
+                                break; // sin espacio
+                            }
+                        }
+                    }
+                }
+
+                // Garantía final de intersección: si aún no intersecta (muy raro), colapsa al centro de la anterior
+                if (hasta < prevDesde || desde > prevHasta) {
+                    const objetivo = Math.floor((prevDesde + prevHasta) / 2);
+                    const mitad = Math.floor(ancho / 2);
+                    desde = Math.max(0, objetivo - mitad);
+                    hasta = Math.min(this.gridSize - 1, desde + ancho - 1);
+                    // Reajuste por límites
+                    desde = Math.max(0, Math.min(desde, this.gridSize - ancho));
+                    hasta = desde + ancho - 1;
+                }
+            }
+
+            // --- Pintar la fila ---
             for (let c = desde; c <= hasta; c++) path[fila][c] = 1;
 
-            // cada pocas filas, chance de invertir dirección
+            // Actualizar tramo previo
+            prevDesde = desde;
+            prevHasta = hasta;
+
+            // --- Dinámica para la siguiente fila (serpenteo) ---
+            // 1) Probabilidad de invertir dirección cada ciertas filas
             if (Math.random() < 0.25) direccionActual *= -1;
 
-            // desplazamiento suave con inercia
-            const desplazamiento = (Math.random() < 0.5 ? 1 : 2) * direccionActual;
-            inicio += desplazamiento;
+            // 2) Desplazamiento con inercia (1 o 2 celdas en la dirección actual)
+            const drift = (Math.random() < 0.5 ? 1 : 2) * direccionActual;
 
-            // rebote al tocar bordes
+            // Tomamos como "inicio" para la siguiente fila el borde del tramo en la dirección de avance
+            const borde = (direccionActual > 0) ? hasta : desde;
+            inicio = borde + drift;
+
+            // 3) Rebotes en bordes
             if (inicio <= 0) {
                 inicio = 0;
                 direccionActual = 1;
@@ -216,9 +303,11 @@ export class Minigame3Lucumo {
             }
         }
 
-        console.log("[Lucumo] Camino generado (caótico):\n" + path.map(r => r.join("")).join("\n"));
+        console.log("[Lucumo] Camino generado (conectado y serpenteante):\n" +
+            path.map(r => r.join("")).join("\n"));
         return path;
     }
+
 
 
     async _buildPathOnly(path) {
@@ -261,25 +350,72 @@ export class Minigame3Lucumo {
 
     // ----───────────── PROYECTILES ──────────────────────────────
     _decideNextProjectileType() {
-        // Escoge un bot al azar que aún pueda moverse y no esté en el camino
+        if (!this.currentPath || !this.bots?.length) return "derecha";
+
+        // Bots que no están moviéndose y NO están sobre el camino
         const candidates = this.bots.filter(b =>
-            !b.isMoving && this.currentPath[b.row][b.col] !== 1
+            !b.isMoving && this.currentPath[b.row]?.[b.col] !== 1
         );
         if (candidates.length === 0) return "derecha";
 
-        const bot = candidates[Math.floor(Math.random() * candidates.length)];
+        // Tomamos uno al azar
+        const bot = candidates[(Math.random() * candidates.length) | 0];
+        const row = bot.row;
+        const rowArr = this.currentPath[row];
+        if (!rowArr) return Math.random() < 0.5 ? "izquierda" : "derecha";
 
-        // Determinar dirección más cercana al camino
-        const leftOk = bot.col > 0 && this.currentPath[bot.row][bot.col - 1] === 1;
-        const rightOk = bot.col < this.gridSize - 1 && this.currentPath[bot.row][bot.col + 1] === 1;
+        // Hallar el tramo continuo del camino en esta fila: [minCol, maxCol]
+        let minCol = Infinity, maxCol = -Infinity;
+        for (let c = 0; c < rowArr.length; c++) {
+            if (rowArr[c] === 1) {
+                if (c < minCol) minCol = c;
+                if (c > maxCol) maxCol = c;
+            }
+        }
 
-        if (leftOk && !rightOk) return "izquierda";
-        if (rightOk && !leftOk) return "derecha";
-        if (leftOk && rightOk) return Math.random() < 0.5 ? "izquierda" : "derecha";
+        // Si por alguna razón no hay camino en esta fila, elige aleatorio
+        if (minCol === Infinity) {
+            return Math.random() < 0.5 ? "izquierda" : "derecha";
+        }
 
-        // Si no hay camino adyacente, lanzar cualquiera
-        return Math.random() < 0.5 ? "izquierda" : "derecha";
+        // Si el bot está totalmente a la izquierda del tramo -> mover a la derecha
+        if (bot.col < minCol) {
+            // Evitar tirar a celda ocupada si es posible
+            const targetCol = bot.col + 1;
+            if (targetCol < this.gridSize && !this._botAt(row, targetCol)) return "derecha";
+            // si está ocupada, inténtalo igual (ProjectileSystem podría resolver en hit-time)
+            return "derecha";
+        }
+
+        // Si el bot está totalmente a la derecha del tramo -> mover a la izquierda
+        if (bot.col > maxCol) {
+            const targetCol = bot.col - 1;
+            if (targetCol >= 0 && !this._botAt(row, targetCol)) return "izquierda";
+            return "izquierda";
+        }
+
+        // Está dentro del rango del tramo pero en una celda que NO es camino (agujero raro)
+        // Decide hacia el borde más cercano del tramo
+        const distLeft = Math.abs(bot.col - minCol);
+        const distRight = Math.abs(maxCol - bot.col);
+        if (distLeft < distRight) {
+            const targetCol = bot.col - 1;
+            if (targetCol >= 0 && !this._botAt(row, targetCol)) return "izquierda";
+            return "izquierda";
+        } else if (distRight < distLeft) {
+            const targetCol = bot.col + 1;
+            if (targetCol < this.gridSize && !this._botAt(row, targetCol)) return "derecha";
+            return "derecha";
+        } else {
+            // equidistante: elige cualquiera, pero prioriza celda libre si se puede
+            const rightFree = (bot.col + 1 < this.gridSize) && !this._botAt(row, bot.col + 1);
+            const leftFree = (bot.col - 1 >= 0) && !this._botAt(row, bot.col - 1);
+            if (rightFree && !leftFree) return "derecha";
+            if (leftFree && !rightFree) return "izquierda";
+            return Math.random() < 0.5 ? "izquierda" : "derecha";
+        }
     }
+
 
 
     _scheduleProjectileSpawn() {
@@ -295,6 +431,7 @@ export class Minigame3Lucumo {
 
     _handleProjectileHit(type, target) {
         if (!this.isRunning) return;
+
         const bot = this._findBotByPickedMesh(target);
         if (!bot || bot.isMoving) return;
 
@@ -305,7 +442,7 @@ export class Minigame3Lucumo {
         const targetCell = this.grid[bot.row * this.gridSize + newCol];
         if (!targetCell) return;
 
-        // Si ya está en el camino y lo golpea, no se mueve más
+        // Evitar mover bots ya en el camino
         if (this.currentPath[bot.row][bot.col] === 1) {
             console.log(`[Lucumo] Bot en (${bot.row},${bot.col}) ya está en el camino; no se mueve.`);
             return;
@@ -317,8 +454,21 @@ export class Minigame3Lucumo {
 
             const nowOnPath = this.currentPath[bot.row][bot.col] === 1;
             if (nowOnPath) {
-                console.log(`[Lucumo] ✅ Bot regresó al camino en (${bot.row},${bot.col}).`);
-                // aquí podrías sumar puntaje o mostrar mensaje
+                // Evitar doble conteo si ya se marcó antes
+                if (!bot.hasReturned) {
+                    bot.hasReturned = true;
+                    this.score += this.completeBonus;
+                    this.hud?.setScore?.(this.score);
+                    this.hud?.message?.("¡Muy bien!", 1000);
+                    console.log(`[Lucumo] +${this.completeBonus} puntos → total: ${this.score}`);
+                }
+
+                // Verificar si todos los bots regresaron
+                const allOnPath = this.bots.every(b => this.currentPath[b.row]?.[b.col] === 1);
+                if (allOnPath) {
+                    console.log("[Lucumo] 🎯 Todos los bots regresaron al camino. Fin anticipado del juego.");
+                    this._finishGameEarly();
+                }
             }
         });
     }
@@ -326,34 +476,41 @@ export class Minigame3Lucumo {
 
     // ────────────────────────────── BOTS ──────────────────────────────
 
-    async _spawnBots(path) {
+    async _spawnBots(path, wave = 1) {
         if (!this.botUrl) {
             console.warn("[Lucumo] _spawnBots: botUrl no definido; se omite spawn.");
             return;
         }
 
-        // 1) Celdas libres (no camino)
+        this.wave = wave;
+        console.log(`[Lucumo] 🔄 Spawneando oleada #${wave}...`);
+
+        // 1️⃣ Obtener celdas libres (no camino y sin bot)
         const libres = [];
         for (let i = 0; i < this.grid.length; i++) {
             const cell = this.grid[i];
-            if (path[cell.row][cell.col] === 0) libres.push(cell);
+            if (path[cell.row][cell.col] === 0 && !this._botAt(cell.row, cell.col)) {
+                libres.push(cell);
+            }
         }
+
         if (!libres.length) {
             console.warn("[Lucumo] _spawnBots: no hay celdas libres.");
             return;
         }
 
-        // 2) Elegir 3 sin repetir fila
-        const seleccion = this._pickCellsNoRepeatRow(libres, 3);
-        console.log("[Lucumo] Bots celdas seleccionadas:", seleccion.map(c => `(${c.row},${c.col})`).join(", "));
+        // 2️⃣ Elegir hasta 5 sin repetir fila
+        const seleccion = this._pickCellsNoRepeatRow(libres, this.botsPerWave);
+        console.log(`[Lucumo] Bots seleccionados (oleada #${wave}):`, seleccion.map(c => `(${c.row},${c.col})`).join(", "));
 
+        // 3️⃣ Spawnear cada bot en esas posiciones
         for (let idx = 0; idx < seleccion.length; idx++) {
             const cell = seleccion[idx];
-            console.log(`[Lucumo] Cargando Y_Bot #${idx + 1} para celda (${cell.row},${cell.col}) ...`);
+            console.log(`[Lucumo] Cargando Y_Bot #${idx + 1} (oleada #${wave}) en celda (${cell.row},${cell.col}) ...`);
 
             const result = await SceneLoader.ImportMeshAsync(null, "", this.botUrl, this.scene);
 
-            const root = new TransformNode(`ybot_root_${idx}`, this.scene);
+            const root = new TransformNode(`ybot_root_${this.totalBotsSpawned + idx}`, this.scene);
             result.meshes.forEach(m => {
                 if (m.parent === null) m.parent = root;
             });
@@ -370,19 +527,14 @@ export class Minigame3Lucumo {
             // Recalcular bounding para apoyar en piso
             const bbox2 = root.getHierarchyBoundingVectors();
             const minY2 = bbox2.min.y;
-            const yGround = 0; // en celdas libres el base plane está en y=0
+            const yGround = 0;
             const yOffset = (yGround - minY2);
             root.position = new Vector3(cell.pos.x, yGround + yOffset, cell.pos.z);
 
-            // Orientación base al eje X
+            // Orientación base
             root.rotation.set(0, this.defaultBotRotationY, 0);
-            //root.rotation.y += Math.PI;
 
             const ags = result.animationGroups || [];
-            const names = ags.map(a => a.name);
-            console.log(`[Lucumo] Y_Bot #${idx + 1}: AnimGroups=`, names);
-
-            // Arrancar en idle si existe; sino detener todas
             this._playOnly(ags, g => /idle/i.test(g.name), true);
 
             this.bots.push({
@@ -392,16 +544,18 @@ export class Minigame3Lucumo {
                 col: cell.col,
                 defaultRotationY: this.defaultBotRotationY,
                 isMoving: false,
+                wave, // ← para saber a qué oleada pertenece
             });
+
             console.log(`[Lucumo] ✓ Y_Bot #${idx + 1} spawn OK en (${cell.row},${cell.col}), scale=${scale.toFixed(3)}.`);
         }
 
-        if (this.bots.length === 0) {
-            console.warn("[Lucumo] _spawnBots: no se pudo spawnear ningún bot.");
-        } else {
-            console.log(`[Lucumo] ✓ ${this.bots.length} bot(s) spawneado(s). Listos para moverse.`);
-        }
+        this.totalBotsSpawned += seleccion.length;
+        this.projectiles?.registerTargets?.(this.bots.map(b => b.root));
+
+        console.log(`[Lucumo] ✅ Oleada #${wave} completada (${this.totalBotsSpawned} bots en total).`);
     }
+
 
     _pickCellsNoRepeatRow(cells, k) {
         const byRow = new Map();
@@ -568,21 +722,89 @@ export class Minigame3Lucumo {
     }
 
     dispose() {
+        try { this.base?.dispose(); } catch { }
+
+        // 1. Eliminar el camino antiguo
         try {
-            this.base?.dispose();
+            const pathMeshes = this.scene.meshes.filter(m => m.name.startsWith("path_"));
+            for (const m of pathMeshes) { try { m.dispose(); } catch { } }
         } catch { }
+
+        // 2. Eliminar bots correctamente
         try {
             for (const b of this.bots) {
                 try { b.root?.dispose(); } catch { }
                 if (b.ags) for (const ag of b.ags) { try { ag.stop(); } catch { } }
             }
         } catch { }
+
+        // 3. Limpiar estructuras
+        this.bots = [];
+        this.grid = [];
+        this.currentPath = null;
+        this.totalBotsSpawned = 0;
+        this.wave = 1;
+        this.finished = false;
+
+        // 4. Limpiar observadores y proyectiles
         if (this.pointerObserver) {
             this.scene.onPointerObservable.remove(this.pointerObserver);
             this.pointerObserver = null;
         }
         try { this.projectiles?.dispose(); } catch { }
+
+        // 5. Detener HUD y timer
         this.hud?.stopTimer?.();
-        console.log("[Lucumo] Recursos liberados");
+        console.log("[Lucumo] Recursos liberados y reiniciados correctamente");
     }
+
+
+    _finishGameEarly() {
+        if (this.finished) return;
+        this.finished = true;
+        this.isRunning = false;
+
+        // Calcular tiempo restante
+        const timeLeft = this.hud?.getRemainingTime?.() ?? 0;
+        const timeBonus = Math.floor(timeLeft * this.timeBonusPerSec);
+        this.score += timeBonus;
+
+        this.hud?.stopTimer?.();
+        this.hud?.setScore?.(this.score);
+
+        this.hud?.showEndPopup?.({
+            score: this.score,
+            title: "¡Excelente trabajo!",
+            message: `Todos los bots regresaron al camino.\nBonificación de tiempo: +${timeBonus} puntos`,
+            onRetry: () => this._restart(),
+            onContinue: () => this._endGame(),
+            timeExpired: false
+        });
+    }
+
+    _onTimeUp() {
+        if (this.finished) return;
+        this.finished = true;
+        this.isRunning = false;
+
+        this.hud?.stopTimer?.();
+        this.hud?.showEndPopup?.({
+            score: this.score,
+            //title: "Tiempo agotado",
+            //message: "Fin del minijuego Lucumo",
+            onRetry: () => this._restart(),
+            onContinue: () => this._endGame(),
+            timeExpired: false
+        });
+    }
+
+    _restart() {
+        console.log("[Lucumo] Reiniciando minijuego...");
+        this.dispose();
+        this.score = this.startingScore;
+        this.hud?.updateScore?.(this.startingScore);
+        this.hud?.setScore?.(this.startingScore);
+        this.start();
+    }
+
 }

@@ -29,6 +29,11 @@ export const gameplayConfig = {
             lightPenalty: 5,        // Penalización leve
             timeBonusPerSec: 2,         // Bonus por tiempo sobrante
         },
+        m3Lucumo: {
+            base: 0,                    // No puntaje fijo inicial
+            completeBonus: 15,              // Por germinación correcta
+            timeBonusPerSec: 2,         // Bonus por tiempo sobrante
+        },
         check: {
             base: 0,
             correctBonus: 10,

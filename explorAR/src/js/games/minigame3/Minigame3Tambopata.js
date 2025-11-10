@@ -67,7 +67,7 @@ export class Minigame3Tambopata {
         this.hud?.show?.();
         const totalTime = gameplayConfig?.timeSequence?.[2] ?? 60;
         this.hud?.startTimer?.(totalTime, null, () => this._onTimeUp());
-        this.hud?.updateScore?.(this.score);
+        //this.hud?.updateScore?.(this.score);
 
         this._createBasePlane();
         this._generateGridPositions();
@@ -524,7 +524,7 @@ export class Minigame3Tambopata {
 
         if (animal) {
             this.score -= this.lightPenalty;
-            this.hud?.updateScore?.(this.score);
+            //this.hud?.updateScore?.(this.score);
             this.hud.setScore(this.score);
             this.hud?.message?.("🐊 ¡No apuntes a los animales!", 1000);
             return;
@@ -580,7 +580,7 @@ export class Minigame3Tambopata {
 
         if (deltaScore !== 0) {
             this.score += deltaScore;
-            this.hud?.updateScore?.(this.score);
+            //this.hud?.updateScore?.(this.score);
             this.hud.setScore(this.score);
         }
 
@@ -595,7 +595,7 @@ export class Minigame3Tambopata {
             const remaining = Math.floor(this.hud?.getRemainingTime?.() ?? 0);
             const bonus = remaining * this.timeBonusPerSec;
             this.score += bonus;
-            this.hud?.updateScore?.(this.score);
+            //this.hud?.updateScore?.(this.score);
             this.hud.setScore(this.score);
             this.hud?.message?.("✨ ¡Todas las luces completadas!", 2000);
             this._onTimeUp();
@@ -666,7 +666,7 @@ export class Minigame3Tambopata {
     _restart() {
         this.dispose();
         this.score = this.startingScore;
-        this.hud?.updateScore?.(this.startingScore);
+        //this.hud?.updateScore?.(this.startingScore);
         this.hud.setScore(this.score);
         this.start();
     }
