@@ -365,6 +365,9 @@ export const experiencesConfig = [
                 assets: [
                     { type: "image", key: "grass", url: "/assets/games/Minigame3/Lucumo/grass.jpg" },
                     { type: "image", key: "dirt_trail", url: "/assets/games/Minigame3/Lucumo/dirt_trail_2.jpg" },
+                    { type: "model", key: "y_bot", url: "/assets/games/Minigame3/Lucumo/y_bot.glb" },
+                    { type: "icon", key: "izquierda", url: "/assets/games/Minigame3/Lucumo/izquierda.png" },
+                    { type: "icon", key: "derecha", url: "/assets/games/Minigame3/Lucumo/derecha.png" },
                 ]
             },
             {
