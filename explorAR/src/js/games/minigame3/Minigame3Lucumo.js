@@ -34,7 +34,7 @@ export class Minigame3Lucumo {
         this.bots = []; // { root, ags, row, col, defaultRotationY, isMoving }
         this.defaultBotScaleXZRatio = 0.60; // % del tile que puede ocupar el bot
         this.defaultBotFaceX = true;       // “mirar al eje X” tras terminar de moverse
-        this.defaultBotRotationY = 0;      // ajusta si tu GLB no mira a +X por defecto
+        this.defaultBotRotationY = Math.PI;      // ajusta si tu GLB no mira a +X por defecto
 
         // interacción
         this.pointerObserver = null;
@@ -376,7 +376,7 @@ export class Minigame3Lucumo {
 
             // Orientación base al eje X
             root.rotation.set(0, this.defaultBotRotationY, 0);
-            root.rotation.y += Math.PI;
+            //root.rotation.y += Math.PI;
 
             const ags = result.animationGroups || [];
             const names = ags.map(a => a.name);
