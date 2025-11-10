@@ -12,6 +12,7 @@ import "@babylonjs/loaders";
 
 import { gameplayConfig } from "../../../config/gameplayConfig.js";
 import { experiencesConfig } from "../../../config/experienceConfig.js";
+import { ProjectileSystem } from "./ProjectilSystem.js";
 
 export class Minigame3Lucumo {
     constructor({ scene, hud, experienceId, startingScore = 0 }) {
@@ -71,8 +72,29 @@ export class Minigame3Lucumo {
             console.error("[Lucumo] Error al spawnear bots:", e);
         }
 
-        // Habilitar tap para mover a la derecha
-        this._wireTapMoveRight();
+        // ─────────────── SISTEMA DE PROYECTILES ───────────────
+        this.projectiles = new ProjectileSystem({
+            scene: this.scene,
+            hud: this.hud,
+            projectileTypes: ["izquierda", "derecha"],
+            assetMap: this.assetMap,
+            onHit: (type, target) => this._handleProjectileHit(type, target),
+            speed: 2.8,
+            gravity: -2.5,
+            range: 5.0,
+            cooldown: 600,
+            getNextType: () => this._decideNextProjectileType(),
+        });
+
+        // Los bots son los targets
+        this.projectiles.registerTargets(this.bots.map(b => b.root));
+
+        // Lanza proyectil con clic/tap
+        window.addEventListener("click", () => this.projectiles.tap());
+
+        // Lógica automática de aparición de proyectiles
+        this._scheduleProjectileSpawn();
+
 
         this.isRunning = true;
         console.log("[Minigame3Lucumo] ✓ Camino + bots listos.");
@@ -237,6 +259,71 @@ export class Minigame3Lucumo {
         console.log("[Lucumo] ✓ Path construido.");
     }
 
+    // ----───────────── PROYECTILES ──────────────────────────────
+    _decideNextProjectileType() {
+        // Escoge un bot al azar que aún pueda moverse y no esté en el camino
+        const candidates = this.bots.filter(b =>
+            !b.isMoving && this.currentPath[b.row][b.col] !== 1
+        );
+        if (candidates.length === 0) return "derecha";
+
+        const bot = candidates[Math.floor(Math.random() * candidates.length)];
+
+        // Determinar dirección más cercana al camino
+        const leftOk = bot.col > 0 && this.currentPath[bot.row][bot.col - 1] === 1;
+        const rightOk = bot.col < this.gridSize - 1 && this.currentPath[bot.row][bot.col + 1] === 1;
+
+        if (leftOk && !rightOk) return "izquierda";
+        if (rightOk && !leftOk) return "derecha";
+        if (leftOk && rightOk) return Math.random() < 0.5 ? "izquierda" : "derecha";
+
+        // Si no hay camino adyacente, lanzar cualquiera
+        return Math.random() < 0.5 ? "izquierda" : "derecha";
+    }
+
+
+    _scheduleProjectileSpawn() {
+        // Cada cierto tiempo “decide” un nuevo proyectil
+        const spawnInterval = 2500 + Math.random() * 1000;
+        if (!this.isRunning) return;
+
+        // Forzar creación de nuevo proyectil del tipo decidido
+        this._decideNextProjectileType();
+
+        setTimeout(() => this._scheduleProjectileSpawn(), spawnInterval);
+    }
+
+    _handleProjectileHit(type, target) {
+        if (!this.isRunning) return;
+        const bot = this._findBotByPickedMesh(target);
+        if (!bot || bot.isMoving) return;
+
+        const offset = type === "izquierda" ? -1 : 1;
+        const newCol = bot.col + offset;
+        if (newCol < 0 || newCol >= this.gridSize) return;
+
+        const targetCell = this.grid[bot.row * this.gridSize + newCol];
+        if (!targetCell) return;
+
+        // Si ya está en el camino y lo golpea, no se mueve más
+        if (this.currentPath[bot.row][bot.col] === 1) {
+            console.log(`[Lucumo] Bot en (${bot.row},${bot.col}) ya está en el camino; no se mueve.`);
+            return;
+        }
+
+        bot.isMoving = true;
+        this._moveBotToCell(bot, targetCell).then(() => {
+            bot.isMoving = false;
+
+            const nowOnPath = this.currentPath[bot.row][bot.col] === 1;
+            if (nowOnPath) {
+                console.log(`[Lucumo] ✅ Bot regresó al camino en (${bot.row},${bot.col}).`);
+                // aquí podrías sumar puntaje o mostrar mensaje
+            }
+        });
+    }
+
+
     // ────────────────────────────── BOTS ──────────────────────────────
 
     async _spawnBots(path) {
@@ -289,6 +376,7 @@ export class Minigame3Lucumo {
 
             // Orientación base al eje X
             root.rotation.set(0, this.defaultBotRotationY, 0);
+            root.rotation.y += Math.PI;
 
             const ags = result.animationGroups || [];
             const names = ags.map(a => a.name);
@@ -493,6 +581,7 @@ export class Minigame3Lucumo {
             this.scene.onPointerObservable.remove(this.pointerObserver);
             this.pointerObserver = null;
         }
+        try { this.projectiles?.dispose(); } catch { }
         this.hud?.stopTimer?.();
         console.log("[Lucumo] Recursos liberados");
     }

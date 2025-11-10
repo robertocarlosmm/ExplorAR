@@ -258,7 +258,7 @@ export const experiencesConfig = [
                 },
                 assets: [
                     { type: "image", key: "flashlight", url: "/assets/games/Minigame3/Tambopata/flashlight.png" },
-                    { type: "icon", key: "light_ball", url: "/assets/games/Minigame3/Tambopata/light_ball.png" },
+                    { type: "icon", key: "icon_light_ball", url: "/assets/games/Minigame3/Tambopata/light_ball.png" },
                     { type: "model", key: "black_caiman", url: "/assets/games/Minigame3/Tambopata/black_caiman.glb" },
                     { type: "model", key: "guacamaya", url: "/assets/games/Minigame3/Tambopata/guacamaya.glb" },
                 ]
@@ -366,8 +366,8 @@ export const experiencesConfig = [
                     { type: "image", key: "grass", url: "/assets/games/Minigame3/Lucumo/grass.jpg" },
                     { type: "image", key: "dirt_trail", url: "/assets/games/Minigame3/Lucumo/dirt_trail_2.jpg" },
                     { type: "model", key: "y_bot", url: "/assets/games/Minigame3/Lucumo/y_bot.glb" },
-                    { type: "image", key: "icon_izquierda", url: "/assets/games/Minigame3/Lucumo/izquierda.png" },
-                    { type: "image", key: "icon_derecha", url: "/assets/games/Minigame3/Lucumo/derecha.png" },
+                    { type: "image", key: "icon_izquierda", url: "/assets/games/Minigame3/Lucumo/icon_izquierda.png" },
+                    { type: "image", key: "icon_derecha", url: "/assets/games/Minigame3/Lucumo/icon_derecha.png" },
                 ]
             },
             {

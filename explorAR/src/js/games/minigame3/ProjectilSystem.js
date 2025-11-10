@@ -68,16 +68,32 @@ export class ProjectileSystem {
             .add(forward.scale(0.4))
             .add(new Vector3(0.15, -0.2, 0));
 
-        const sphere = MeshBuilder.CreateSphere(
-            `ready_proj_${type}_${Date.now()}`,
-            { diameter: 0.08 },
-            this.scene
-        );
+        // ─────────────── NUEVA LÓGICA: elegir forma del proyectil ───────────────
+        const tex = this.assetMap[`icon_${type}`];
+        let sphere;
+        if (tex && (tex.includes("icon_derecha") || tex.includes("icon_izquierda"))) {
+            // crear plano para PNG (evita deformaciones)
+            sphere = MeshBuilder.CreatePlane(
+                `ready_proj_${type}_${Date.now()}`,
+                { size: 0.15 },
+                this.scene
+            );
+            // siempre mirando a cámara
+            sphere.billboardMode = 7; // equivalente a Mesh.BILLBOARDMODE_ALL
+        } else {
+            // proyectil estándar (esfera)
+            sphere = MeshBuilder.CreateSphere(
+                `ready_proj_${type}_${Date.now()}`,
+                { diameter: 0.08 },
+                this.scene
+            );
+        }
+        // ────────────────────────────────────────────────────────────────────────
+
         sphere.position.copyFrom(readyPos);
         sphere.renderingGroupId = 3;
 
         const mat = new StandardMaterial(`mat_${type}`, this.scene);
-        const tex = this.assetMap[`icon_${type}`];
         if (tex) {
             const texture = new Texture(tex, this.scene, false, false, Texture.TRILINEAR_SAMPLINGMODE);
             texture.hasAlpha = true;
@@ -98,7 +114,9 @@ export class ProjectileSystem {
             sphere.position.y = readyPos.y + Math.sin(t * 2) * 0.02;
             const cam2 = this.scene.activeCamera;
             if (cam2) {
-                const newPos = cam2.position.add(cam2.getDirection(Vector3.Forward()).scale(0.4)).add(new Vector3(0.15, -0.2, 0));
+                const newPos = cam2.position
+                    .add(cam2.getDirection(Vector3.Forward()).scale(0.4))
+                    .add(new Vector3(0.15, -0.2, 0));
                 sphere.position.x = newPos.x;
                 sphere.position.z = newPos.z;
             }
@@ -108,6 +126,7 @@ export class ProjectileSystem {
 
         this.readyProjectile = sphere;
     }
+
 
     launch() {
         const now = performance.now();
