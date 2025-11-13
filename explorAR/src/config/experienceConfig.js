@@ -48,6 +48,19 @@ export const experiencesConfig = [
                 ]
             },
             {
+                id: "m3Taquile",
+                type: "throw",
+                panel: "throw",
+                params: {
+                    numberOfPlots: 6,
+                    spawnRadius: 1.2,
+                    plotSize: 0.38,
+                },
+                assets: [
+                    { type: "image", key: "target", url: "/assets/games/Minigame3/Taquile/target.png" },
+                ]
+            },
+            {
                 id: "check",
                 type: "check",
                 panel: "check",
