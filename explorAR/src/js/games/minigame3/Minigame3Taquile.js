@@ -25,6 +25,10 @@ export class Minigame3Taquile {
         this.miniConfig = this.exp.minigames?.find((m) => m.id === "m3Taquile");
         this.score = startingScore;
         this.timer = null;
+        this.projectiles = null;
+        this._tapHandler = null;
+        this._proxyObserver = null;
+
         this.isRunning = false;
         this.isAnimating = false;
 
@@ -96,14 +100,19 @@ export class Minigame3Taquile {
         });
 
         this._registerProjectileTargets();
-        window.addEventListener("click", () => this.projectiles.tap());
 
-        this.scene.onBeforeRenderObservable.add(() => {
+        // Guardar handler para poder removerlo en dispose()
+        this._tapHandler = () => this.projectiles.tap();
+        window.addEventListener("click", this._tapHandler);
+
+        // Guardar observer para poder removerlo en dispose()
+        this._proxyObserver = this.scene.onBeforeRenderObservable.add(() => {
             for (const proxy of this.projectiles.targets) {
                 const real = proxy.metadata?.real;
                 if (real) proxy.position = real.getAbsolutePosition();
             }
         });
+
     }
 
     _registerProjectileTargets() {
@@ -520,11 +529,42 @@ export class Minigame3Taquile {
 
 
     dispose() {
+        // 1. Quitar listener de click
+        if (this._tapHandler) {
+            window.removeEventListener("click", this._tapHandler);
+            this._tapHandler = null;
+        }
+
+        // 2. Quitar observer del onBeforeRender
+        if (this._proxyObserver) {
+            this.scene.onBeforeRenderObservable.remove(this._proxyObserver);
+            this._proxyObserver = null;
+        }
+
+        // 3. Disponer sistema de proyectiles
+        if (this.projectiles) {
+            this.projectiles.dispose?.();
+            this.projectiles = null;
+        }
+
+        // 4. Limpiar escalones y planos
         for (const s of this.steps) this._disposeTargets(s);
         this.steps.forEach((s) => s.dispose());
+        this.steps = [];
+
+        this.stairsRoot?.dispose();
+        this.stairsRoot = null;
+
         this.basePlane?.dispose();
+        this.basePlane = null;
+
         this.slopePlane?.dispose();
+        this.slopePlane = null;
+
+        // 5. Timer HUD
         this.hud?.stopTimer?.();
+
         console.log("[Minigame3Taquile] Recursos liberados");
     }
+
 }
