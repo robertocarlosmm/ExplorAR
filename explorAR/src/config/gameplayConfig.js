@@ -31,7 +31,13 @@ export const gameplayConfig = {
         },
         m3Lucumo: {
             base: 0,                    // No puntaje fijo inicial
-            completeBonus: 15,              // Por germinación correcta
+            completeBonus: 15,              
+            timeBonusPerSec: 2,         // Bonus por tiempo sobrante
+        },
+        m3Taquile: {
+            base: 0,                    // No puntaje fijo inicial
+            completeBonus: 15,          // por acierto a target
+            failPenalty: 1,             // por fallo a target
             timeBonusPerSec: 2,         // Bonus por tiempo sobrante
         },
         check: {

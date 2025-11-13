@@ -28,6 +28,14 @@ export class Minigame3Taquile {
         this.isRunning = false;
         this.isAnimating = false;
 
+        //score
+        // Puntajes desde gameplayConfig
+        this.pointsHit = gameplayConfig.scoring?.m3Taquile?.completeBonus ?? 15;
+        this.pointsFail = gameplayConfig.scoring?.m3Taquile?.failPenalty ?? 1;
+        this.timeBonusPerSec = gameplayConfig.scoring?.m3Taquile?.timeBonusPerSec ?? 2;
+        this.startingScore = startingScore;
+
+
         // Geometría de escalera
         this.stepWidth = 2.4;
         this.stepDepth = 0.45;
@@ -43,80 +51,59 @@ export class Minigame3Taquile {
         // Targets
         this.targetUrl = null;
         this.targetsPerStep = 2;
-        this.stepSlots = 7; // dividir el ancho del escalón en 7
-        this.targetSize = 0.28; // tamaño del png sobre el escalón
+        this.stepSlots = 7;
+        this.targetSize = 0.28;
+        this.indicatorSize = 0.32; // Ligeramente más grande que el target
 
         this.steps = [];
         this.basePlane = null;
         this.slopePlane = null;
-
-        this.stairsRoot = null; // solo los escalones se mueven
+        this.stairsRoot = null;
     }
 
     async start() {
         console.log("[Minigame3Taquile] Iniciando RA...");
 
-        // HUD
         this.hud?.show?.();
-        const totalTime = gameplayConfig?.timer?.default ?? 60;
+        const totalTime = gameplayConfig.timeSequence[3] || 60;
         this.hud?.startTimer?.(totalTime, null, () => this._onTimeUp());
-        this.hud?.updateScore?.(this.score);
+        this.hud?.setScore?.(this.score);
 
-        // cargar asset target desde experienceConfig
         this._resolveTargetAsset();
-
-        // escena
         this.scene.clearColor = new Color3(0.1, 0.1, 0.15);
 
-        // base y pendiente fijas (invisibles)
         this._createBaseAndSlope();
-
-        // contenedor de escalones
         this.stairsRoot = new TransformNode("stairsRoot", this.scene);
 
-        // escalones iniciales y targets en 1,3,5
         this._createInitialStairs();
         this._spawnRandomTargetsGlobal();
 
-        // tap global para avanzar 6 escalones - TESTEO
-        /*this.scene.onPointerDown = async () => {
-            if (!this.isRunning || this.isAnimating) return;
-            await this._advanceStep6();
-        };*/
-
         this.isRunning = true;
-        console.log("[Minigame3Taquile] Escalera lista. Tap para subir.");
+        console.log("[Minigame3Taquile] Escalera lista.");
 
-        // Sistema de proyectiles tipo Vicos
         this.projectiles = new ProjectileSystem({
             scene: this.scene,
             hud: this.hud,
-            projectileTypes: ["ball"], // una sola categoría
+            projectileTypes: ["ball"],
             projectileConfig: {
                 ball: { hitRadius: 0.18, speed: 3, gravity: -2.5 }
             },
-            assetMap: {}, // sin iconos PNG
+            assetMap: {},
             onHit: (type, mesh) => this._handleProjectileHit(mesh),
             speed: 3,
             gravity: -2.5,
             range: 6,
         });
 
-        // Registrar targets PNG y overlays como objetivos
         this._registerProjectileTargets();
-
-        // Escuchar el tap global
         window.addEventListener("click", () => this.projectiles.tap());
 
-        // actualiza proxies cada frame para que sigan el movimiento
         this.scene.onBeforeRenderObservable.add(() => {
             for (const proxy of this.projectiles.targets) {
                 const real = proxy.metadata?.real;
                 if (real) proxy.position = real.getAbsolutePosition();
             }
         });
-
-
     }
 
     _registerProjectileTargets() {
@@ -125,13 +112,7 @@ export class Minigame3Taquile {
         const meshes = [];
 
         for (const step of this.steps) {
-            // overlay = golpe incorrecto
-            if (step.overlay) {
-                const p = this._createWorldProxy(step.overlay);
-                meshes.push(p);
-            }
-
-            // targets png = golpe correcto
+            // Registrar solo los targets PNG (no el overlay completo)
             if (step.targets?.length) {
                 for (const t of step.targets) {
                     const p = this._createWorldProxy(t);
@@ -140,11 +121,8 @@ export class Minigame3Taquile {
             }
         }
 
-        // registrar proxies
         this.projectiles.registerTargets(meshes);
     }
-
-
 
     _resolveTargetAsset() {
         const targetAsset = this.miniConfig.assets?.find(a => a.key === "target");
@@ -164,52 +142,83 @@ export class Minigame3Taquile {
     }
 
     _handleProjectileHit(mesh) {
-        if (!mesh) return;
+        if (!this.isRunning) return;
 
-        // Si es proxy, obtener el mesh real
-        const real = mesh.metadata?.real || mesh;
-
-        // Encontrar el escalón al que pertenece
-        const step = this.steps.find(s =>
-            s.overlay === real ||
-            s.targets?.includes(real)
-        );
-
-        // Si no pertenece a ningún escalón → no hacer nada
-        if (!step) {
-            console.log("[Taquile] Impacto ignorado (zona vacía):", real.name);
+        // ❌ Lanzamiento fallado (no golpeó target real)
+        if (!mesh || !mesh.metadata?.real) {
+            this.score = Math.max(0, this.score - this.pointsFail);
+            this.hud?.setScore?.(this.score);
+            console.log("[Taquile] ❌ Fallo → -" + this.pointsFail);
             return;
         }
 
-        // Impacto en TARGET (correcto)
-        if (step.targets.includes(real)) {
-            console.log("[Taquile] ✓ HIT CORRECTO (target) en escalón:", step.metadata.index);
+        const real = mesh.metadata.real;
 
-            // Cambiar color del overlay (cuadrado de la malla) a VERDE
-            step.overlay.material.diffuseColor = new Color3(0.1, 1.0, 0.1);
-            step.overlay.material.alpha = 1.0;
+        // Encontrar el escalón y el target específico
+        let targetStep = null;
+        let hitTarget = null;
 
-            real._marked = true;
+        for (const step of this.steps) {
+            if (step.targets?.includes(real)) {
+                targetStep = step;
+                hitTarget = real;
+                break;
+            }
         }
 
-        // Impacto en OVERLAY (incorrecto)
-        else if (step.overlay === real) {
-            console.log("[Taquile] ✗ HIT INCORRECTO (overlay) en escalón:", step.metadata.index);
-
-            // Pintar overlay en ROJO
-            step.overlay.material.diffuseColor = new Color3(1, 0.1, 0.1);
-            step.overlay.material.alpha = 0.6;
-
-            real._markedMiss = true;
+        if (!hitTarget) {
+            // Miss silencioso
+            this.score = Math.max(0, this.score - this.pointsFail);
+            this.hud?.setScore?.(this.score);
+            console.log("[Taquile] ❌ Fallo → -" + this.pointsFail);
+            return;
         }
 
-        // Verificar si completó los 6 targets
+        // Doble hit ignorado
+        if (hitTarget._marked) return;
+
+        // Marcar hit correcto
+        hitTarget._marked = true;
+        this._showTargetIndicator(hitTarget, new Color3(0.1, 1.0, 0.1));
+
+        // Sumar por acierto
+        this.score += this.pointsHit;
+        this.hud.message("¡Muy bien!", 1200);
+        this.hud?.setScore?.(this.score);
+        console.log("[Taquile] ✓ HIT → +" + this.pointsHit);
+
         if (this._allTargetsMarked()) {
-            console.log("[Taquile] ★ Los 6 targets fueron completados → avanzar escaleras");
+            console.log("[Taquile] ★ Targets completados");
             this._processCompletedTargets();
         }
     }
 
+
+    _showTargetIndicator(targetMesh, color) {
+        // Crear cuadradito detrás del target
+        const indicator = MeshBuilder.CreatePlane(
+            `indicator_${targetMesh.name}`,
+            { width: this.indicatorSize, height: this.indicatorSize },
+            this.scene
+        );
+
+        // Material sólido del color especificado
+        const mat = new StandardMaterial(`mat_indicator_${targetMesh.name}`, this.scene);
+        mat.diffuseColor = color;
+        mat.specularColor = new Color3(0, 0, 0);
+        mat.emissiveColor = color.scale(0.3); // Brillo suave
+        indicator.material = mat;
+
+        // Posicionar detrás del target (renderingGroupId más bajo)
+        indicator.parent = targetMesh.parent; // mismo parent que el target
+        indicator.position.copyFrom(targetMesh.position);
+        indicator.position.y -= 0.001; // Ligeramente atrás
+        indicator.rotation.copyFrom(targetMesh.rotation);
+        indicator.renderingGroupId = 1; // target está en 2
+
+        // Guardar referencia en el target
+        targetMesh._indicator = indicator;
+    }
 
     _allTargetsMarked() {
         let count = 0;
@@ -228,30 +237,23 @@ export class Minigame3Taquile {
         // Animación subir escalones
         await this._advanceStep6();
 
-        // Resetear colores
+        // Resetear marcas (los indicadores se eliminan con dispose)
         for (const s of this.steps) {
-            if (s.overlay?.material) {
-                s.overlay.material.diffuseColor = new Color3(0, 0, 0);
-                s.overlay.material.alpha = 0;
-            }
             if (s.targets) {
-                for (const t of s.targets) t._marked = false;
+                for (const t of s.targets) {
+                    t._marked = false;
+                    t._indicator = null;
+                }
             }
         }
 
-        // Registrar targets nuevos
         this._registerProjectileTargets();
-
         this.isAnimating = false;
     }
 
-
     _createBaseAndSlope() {
-        // Base horizontal invisible
         const matBase = new StandardMaterial("matBase", this.scene);
         matBase.alpha = 0;
-        matBase.diffuseColor = new Color3(0, 0, 0);
-
         this.basePlane = MeshBuilder.CreatePlane(
             "basePlane",
             { width: this.slopeWidth, height: this.slopeWidth },
@@ -262,11 +264,8 @@ export class Minigame3Taquile {
         this.basePlane.material = matBase;
         this.basePlane.visibility = 0;
 
-        // Pendiente fija invisible
         const matSlope = new StandardMaterial("matSlope", this.scene);
         matSlope.alpha = 0;
-        matSlope.diffuseColor = new Color3(0, 0, 0);
-
         this.slopePlane = MeshBuilder.CreatePlane(
             "slopePlane",
             { width: this.slopeWidth, height: this.slopeLength },
@@ -290,47 +289,18 @@ export class Minigame3Taquile {
                 { width: this.stepWidth, height: this.stepDepth },
                 this.scene
             );
-            // horizontales
             step.rotation.x = this.xRotation;
 
-            // posición relativa dentro del root
             const y = i * this.stepHeight;
             const z = i * this.stepDepth;
             step.position = new Vector3(0, y, z);
             step.material = matStep;
             step.parent = this.stairsRoot;
             step.metadata = { index: i };
-            step.targets = []; // contenedor de targets sobre este escalón
+            step.targets = [];
             this.steps.push(step);
-
-            // Crear overlay semitransparente, CONGRUENTE con el escalón y pegado a él
-            const overlay = MeshBuilder.CreatePlane(
-                `overlay_${i}`,
-                { width: this.stepWidth, height: this.stepDepth },
-                this.scene
-            );
-
-            // Parent al escalón y alineación exacta
-            overlay.parent = step;
-            overlay.position = new Vector3(0, 0.001, 0);      // pegadito encima
-            overlay.rotation.x = 0;                           // ya hereda del padre (step)
-            overlay.rotation.y = 0;
-            overlay.rotation.z = 0;
-
-            // Material semitransparente neutro
-            const matOverlay = new StandardMaterial(`matOverlay_${i}`, this.scene);
-            matOverlay.diffuseColor = new Color3(0.2, 0.8, 0.9); // o gris (0.5,0.5,0.5)
-            matOverlay.alpha = 0.35;                             // semitransparente
-            matOverlay.specularColor = new Color3(0, 0, 0);      // sin brillo
-            overlay.material = matOverlay;
-
-            overlay.renderingGroupId = 1;
-            step.overlay = overlay;
-
-
         }
 
-        // alinear el root con la pendiente
         const slopeOrigin = this.slopePlane.position.clone();
         this.stairsRoot.position = new Vector3(
             slopeOrigin.x,
@@ -342,10 +312,9 @@ export class Minigame3Taquile {
     _spawnRandomTargetsGlobal() {
         if (!this.targetUrl) return;
 
-        // Limpiar targets previos
+        // Limpiar targets anteriores
         for (const s of this.steps) this._disposeTargets(s);
 
-        // Material transparente correctamente configurado
         const matTarget = new StandardMaterial("matTarget", this.scene);
         const tex = new Texture(this.targetUrl, this.scene, true, false, Texture.TRILINEAR_SAMPLINGMODE);
         tex.hasAlpha = true;
@@ -355,74 +324,75 @@ export class Minigame3Taquile {
         matTarget.useAlphaFromDiffuseTexture = true;
         matTarget.transparencyMode = StandardMaterial.MATERIAL_ALPHABLEND;
         matTarget.backFaceCulling = false;
-        matTarget.specularColor = new Color3(0, 0, 0);
-        matTarget.emissiveColor = new Color3(1, 1, 1); // Opcional: brillo ligero
 
         const totalTargets = 6;
         const maxPerStep = 2;
-        const stepIndices = [];
 
-        while (stepIndices.length < totalTargets) {
-            const idx = Math.floor(Math.random() * this.steps.length);
-            const count = stepIndices.filter(i => i === idx).length;
-            if (count < maxPerStep) stepIndices.push(idx);
+        // --- NUEVO: asegurar pasos con máximo 2 slots únicos ---
+        const stepCounts = Array(this.steps.length).fill(0);
+        const finalPositions = [];
+
+        while (finalPositions.length < totalTargets) {
+            const stepIndex = Math.floor(Math.random() * this.steps.length);
+            if (stepCounts[stepIndex] >= maxPerStep) continue;
+
+            const slotIndex = Math.floor(Math.random() * this.stepSlots);
+
+            // evitar duplicados exactos step-slot
+            if (finalPositions.some(p => p.step === stepIndex && p.slot === slotIndex)) continue;
+
+            finalPositions.push({ step: stepIndex, slot: slotIndex });
+            stepCounts[stepIndex]++;
         }
 
-        for (const idx of stepIndices) {
-            const step = this.steps[idx];
-            if (!step?.overlay) continue;
+        // --- Crear los 6 targets garantizados ---
+        for (const pos of finalPositions) {
+            const step = this.steps[pos.step];
 
-            const slotIdx = Math.floor(Math.random() * this.stepSlots);
             const w = this.stepWidth;
             const margin = w * 0.05;
             const usable = w - margin * 2;
             const slotWidth = usable / this.stepSlots;
-            const x = -w / 2 + margin + slotWidth * (slotIdx + 0.5);
+            const x = -w / 2 + margin + slotWidth * (pos.slot + 0.5);
 
-            const y = step.overlay.position.y + 0.015;
-            const z = step.overlay.position.z;
-
-            const target = MeshBuilder.CreatePlane(`target_${idx}_${slotIdx}`, {
-                width: this.targetSize,
-                height: this.targetSize,
-            }, this.scene);
+            const target = MeshBuilder.CreatePlane(
+                `target_${pos.step}_${pos.slot}`,
+                { width: this.targetSize, height: this.targetSize },
+                this.scene
+            );
 
             target.position = new Vector3(x, 0.002, 0);
-            target.rotation.x = 0;
             target.material = matTarget;
-            target.renderingGroupId = 2; // más alto para dibujar encima
-            target.parent = step.overlay;
+            target.renderingGroupId = 2;
+            target.parent = step;
 
             if (!step.targets) step.targets = [];
             step.targets.push(target);
         }
+
         this._registerProjectileTargets();
-
     }
-
 
 
     _disposeTargets(step) {
         if (!step?.targets) return;
         for (const t of step.targets) {
+            // Eliminar indicador si existe
+            if (t._indicator) {
+                t._indicator.dispose();
+                t._indicator = null;
+            }
             t?.dispose();
         }
         step.targets = [];
     }
 
-    _pickTwoDistinct(min, max) {
-        const a = Math.floor(Math.random() * (max - min + 1)) + min;
-        let b = Math.floor(Math.random() * (max - min + 1)) + min;
-        while (b === a) b = Math.floor(Math.random() * (max - min + 1)) + min;
-        return [a, b];
-    }
-
     async _advanceStep6() {
         if (this.steps.length === 0) return;
         this.isAnimating = true;
-        console.log("[Taquile] Avanzar 6 gradas: crear arriba → deslizar → eliminar abajo → regenerar targets");
+        console.log("[Taquile] Avanzar 6 gradas");
 
-        // 1) crear 6 nuevos arriba
+        // Crear 6 nuevos arriba
         for (let i = 0; i < 6; i++) {
             const last = this.steps[this.steps.length - 1];
             const newIndex = last.metadata.index + 1;
@@ -441,38 +411,14 @@ export class Minigame3Taquile {
             newStep.metadata = { index: newIndex };
             newStep.targets = [];
             this.steps.push(newStep);
-
-            //overlay
-            const overlay = MeshBuilder.CreatePlane(
-                `overlay_${newIndex}`,
-                { width: this.stepWidth, height: this.stepDepth },
-                this.scene
-            );
-
-            // Parent y alineación local
-            overlay.parent = newStep;
-            overlay.position = new Vector3(0, 0.001, 0);
-
-            // Material semitransparente
-            const matOverlay = new StandardMaterial(`matOverlay_${i}`, this.scene);
-            matOverlay.diffuseColor = new Color3(0, 0, 0); // color irrelevante
-            matOverlay.alpha = 0;                         // INVISIBLE total
-            matOverlay.specularColor = new Color3(0, 0, 0);
-
-            overlay.material = matOverlay;
-
-            overlay.renderingGroupId = 1;
-            newStep.overlay = overlay;
-
-
         }
 
-        // 2) animar el conjunto Y- y Z- (hacia la cámara) la distancia de 6 escalones
+        // Animar
         const moveY = this.stepHeight * 6;
         const moveZ = this.stepDepth * 6;
         await this._animateStairsDownForward(moveY, moveZ);
 
-        // 3) eliminar los 6 inferiores y sus targets
+        // Eliminar los 6 inferiores
         for (let i = 0; i < 6; i++) {
             const s = this.steps.shift();
             if (s) {
@@ -481,7 +427,6 @@ export class Minigame3Taquile {
             }
         }
 
-        // 4) regenerar targets 
         this._spawnRandomTargetsGlobal();
         this._reflowStepsFromZero();
 
@@ -491,22 +436,16 @@ export class Minigame3Taquile {
     _reflowStepsFromZero() {
         if (this.steps.length === 0) return;
 
-        // Toma como base el primero
         const baseY = this.steps[0].position.y;
         const baseZ = this.steps[0].position.z;
 
-        // Reindexa y reasigna posiciones exactas sin flotantes acumulados
         for (let i = 0; i < this.steps.length; i++) {
             const step = this.steps[i];
-            step.metadata.index = i; // opcional, si quieres mantener correlativo
+            step.metadata.index = i;
             step.position.y = baseY + i * this.stepHeight;
             step.position.z = baseZ + i * this.stepDepth;
-
-            // El overlay ahora es hijo del step y tiene pos local (0, 0.001, 0),
-            // por lo que no requiere ajustes: siempre quedará pegado.
         }
     }
-
 
     _animateStairsDownForward(deltaY, deltaZ) {
         return new Promise((resolve) => {
@@ -526,9 +465,9 @@ export class Minigame3Taquile {
             );
 
             const startY = this.stairsRoot.position.y;
-            const endY = startY - deltaY;  // baja
+            const endY = startY - deltaY;
             const startZ = this.stairsRoot.position.z;
-            const endZ = startZ - deltaZ;  // avanza hacia la cámara
+            const endZ = startZ - deltaZ;
 
             animY.setKeys([{ frame: 0, value: startY }, { frame: 60, value: endY }]);
             animZ.setKeys([{ frame: 0, value: startZ }, { frame: 60, value: endZ }]);
@@ -538,7 +477,6 @@ export class Minigame3Taquile {
             animY.setEasingFunction(easing);
             animZ.setEasingFunction(easing);
 
-            // duración visible
             this.scene.beginDirectAnimation(
                 this.stairsRoot,
                 [animY, animZ],
@@ -552,21 +490,36 @@ export class Minigame3Taquile {
     }
 
     _onTimeUp() {
-        this.hud?.showPopup?.({
-            title: "Tiempo agotado",
-            message: "Fin del minijuego de Taquile",
-            buttonText: "Continuar",
-            onClose: () => this._endGame(),
+        console.log("[Taquile] ⏰ Tiempo finalizado");
+
+        this.hud?.stopTimer();
+
+        this.hud.showEndPopup({
+            score: this.score,
+            timeExpired: false,
+            onRetry: () => this._restart(),
+            onContinue: () => this._endGame()
         });
+    }
+
+    _restart() {
+        console.log("[Taquile] Reiniciando minijuego...");
+        this.dispose();
+
+        this.score = this.startingScore;
+        this.hud?.setScore?.(this.startingScore);
+
+        this.start();
     }
 
     _endGame() {
         this.isRunning = false;
+        this.dispose();
         this.onGameEnd?.();
     }
 
+
     dispose() {
-        // limpiar targets
         for (const s of this.steps) this._disposeTargets(s);
         this.steps.forEach((s) => s.dispose());
         this.basePlane?.dispose();
