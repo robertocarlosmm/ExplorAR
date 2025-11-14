@@ -1,6 +1,5 @@
 // equipmentLauncher.js
 import { EquipmentGame } from "./EquipmentGame.js";
-import { Minigame2InfoPanel } from "../../panels/minigame2Panel.js";
 
 /**
  * Lanza el flujo completo del Minijuego 2.
