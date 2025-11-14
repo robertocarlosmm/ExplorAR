@@ -24,6 +24,11 @@ export class PuzzleGame {
         this._half = 0;
         this._pieceHalf = 0;
 
+        this.penaltySeconds = gameplayConfig.scoring.puzzle3D.timePenalty;
+        this.penaltyPoitns = gameplayConfig.scoring.puzzle3D.pointsPenalty;
+        this.bonusPerPiece = gameplayConfig.scoring.puzzle3D.perPiece;
+        this.bonusTime = gameplayConfig.scoring.puzzle3D.timeBonusPerSec;
+
         this.interactionManager = null;
 
         this.onGameEnd = null;      // juego terminado
@@ -262,7 +267,7 @@ export class PuzzleGame {
 
             if (isCorrect) {
                 pieceObj.locked = true; // 🔒 se bloquea (no se moverá más)
-                this._addScore(gameplayConfig.scoring.puzzle3D.perPiece);
+                this._addScore(this.bonusPerPiece);
                 this.hud.message("¡Correcto!", 600);
             } else {
                 pieceObj.locked = false; // 🔓 puede volver a moverse
@@ -302,15 +307,22 @@ export class PuzzleGame {
     _onWin() {
         // Detiene el temporizador y registra victoria
         this.hud.stopTimer();
+        const remaining = Math.max(0, this.hud._timeLeft ?? 0);
+        let bonusPerSec = Number(this.bonusTime ?? 0);
+        let timeBonusPoints = 0;
+        if (Number.isFinite(bonusPerSec) && bonusPerSec > 0 && remaining > 0) {
+            timeBonusPoints = Math.floor(remaining * bonusPerSec);
+            console.log(
+                `[PuzzleGame] Bonus por tiempo: ${remaining}s * ${bonusPerSec} = +${timeBonusPoints} pts`
+            );
+            this._addScore(timeBonusPoints);
+        }
+
         this.isCompleted = true;
 
         console.log("[PuzzleGame] 🎉 ¡Victoria detectada!");
         this.hud.message("¡Felicidades, completaste el puzzle!", 2000);
 
-        // Aquí luego podrás llamar a un panel de “Victoria” o a la siguiente pantalla
-        // Ejemplo:
-        // this.hud.showPanel(PuzzleWinPanel, { score: this.score });
-        // Mostrar popup de fin de minijuego (victoria)
         this.hud.showEndPopup({
             score: this.score,                    // puntaje actual
             onRetry: () => {
@@ -341,16 +353,14 @@ export class PuzzleGame {
     }
 
     _applyPenalty() {
-        const penaltySeconds = gameplayConfig.scoring.puzzle3D.timePenalty;
-        const penaltyPoitns = gameplayConfig.scoring.puzzle3D.pointsPenalty;
 
-        console.log(`[PuzzleGame] Penalización: -${penaltyPoitns} puntos`);
-        this._addScore(-penaltyPoitns);
-        console.log(`[PuzzleGame] Penalización: -${penaltySeconds}s`);
-        this.hud.decreaseTime(penaltySeconds);
+        console.log(`[PuzzleGame] Penalización: -${this.penaltyPoitns} puntos`);
+        this._addScore(-this.penaltyPoitns);
+        /*console.log(`[PuzzleGame] Penalización: -${penaltySeconds}s`);
+        this.hud.decreaseTime(penaltySeconds);*/
 
         // Opcional: pequeña animación o feedback
-        this.hud.message(`-${penaltySeconds}s`, 1000);
+        //this.hud.message(`-${penaltySeconds}s`, 1000);
     }
 
     _fail() {
