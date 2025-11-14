@@ -267,6 +267,7 @@ export class PuzzleGame {
 
             if (isCorrect) {
                 pieceObj.locked = true; // 🔒 se bloquea (no se moverá más)
+                pieceObj.mesh.isPickable = false;  
                 this._addScore(this.bonusPerPiece);
                 this.hud.message("¡Correcto!", 600);
             } else {
