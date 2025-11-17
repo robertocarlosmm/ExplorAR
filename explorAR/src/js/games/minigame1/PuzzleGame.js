@@ -37,7 +37,6 @@ export class PuzzleGame {
         this.bonusPerPiece = gameplayConfig.scoring.puzzle3D.perPiece;
         this.bonusTime = gameplayConfig.scoring.puzzle3D.timeBonusPerSec;
 
-        // Estado de drag integrado (antes lo hacía InteractionManager)
         this._draggables = new Map();
         this._draggingEnabled = false;
         this._firstTouchHandled = false; // para el fix del primer toque
