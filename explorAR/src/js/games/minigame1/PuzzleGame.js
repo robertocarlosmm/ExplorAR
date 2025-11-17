@@ -1,6 +1,14 @@
 // src/js/games/minigame1/PuzzleGame.js
-import { MeshBuilder, StandardMaterial, Color3, Vector3, TransformNode, Texture } from "@babylonjs/core";
-import { InteractionManager } from "../../input/InteractionManager.js";
+import {
+    MeshBuilder,
+    StandardMaterial,
+    Color3,
+    Vector3,
+    TransformNode,
+    Texture,
+    Matrix
+} from "@babylonjs/core";
+import { PointerDragBehavior } from "@babylonjs/core/Behaviors/Meshes/pointerDragBehavior";
 import { gameplayConfig } from "../../../config/gameplayConfig.js";
 
 export class PuzzleGame {
@@ -14,7 +22,7 @@ export class PuzzleGame {
         this.board = null;
         this.slots = [];          // { index, center: Vector3 }
         this.slotOccupant = [];   // index -> mesh | null
-        this.pieces = [];         // { mesh, startPos, slotIndex }
+        this.pieces = [];         // { mesh, startPos, slotIndex, correctIndex, locked }
 
         this.score = 0;
         this.hintsLeft = 3;
@@ -29,7 +37,10 @@ export class PuzzleGame {
         this.bonusPerPiece = gameplayConfig.scoring.puzzle3D.perPiece;
         this.bonusTime = gameplayConfig.scoring.puzzle3D.timeBonusPerSec;
 
-        this.interactionManager = null;
+        // Estado de drag integrado (antes lo hacía InteractionManager)
+        this._draggables = new Map();
+        this._draggingEnabled = false;
+        this._firstTouchHandled = false; // para el fix del primer toque
 
         this.onGameEnd = null;      // juego terminado
     }
@@ -43,11 +54,20 @@ export class PuzzleGame {
 
         this.board = new TransformNode("puzzle-board", this.scene);
         this.board.position.copyFrom(boardPos);
+
+        // girar 180° para que mire hacia la cámara
+        this.board.rotation.y = Math.PI;
+
         console.log("[PuzzleGame] Tablero colocado en posición detectada:", boardPos);
 
-        // Ground del tablero (solo guí­a)
+
+        // Ground del tablero (solo guía)
         const size = 0.72;
-        const gridMesh = MeshBuilder.CreateGround("board-grid", { width: size, height: size }, this.scene);
+        const gridMesh = MeshBuilder.CreateGround(
+            "board-grid",
+            { width: size, height: size },
+            this.scene
+        );
         gridMesh.parent = this.board;
         const gridMat = new StandardMaterial("grid-mat", this.scene);
         gridMat.diffuseColor = new Color3(0.9, 0.9, 0.9);
@@ -55,13 +75,12 @@ export class PuzzleGame {
         gridMesh.material = gridMat;
         gridMesh.isPickable = false;
 
-        // Crear SOLO slots (sin highlight)
+        // Crear slots y piezas
         this._buildSlots(size);
         await this._spawnPieces(size);
 
-        // InteractionManager
-        this.interactionManager = new InteractionManager(this.scene);
-        this.interactionManager.enable();
+        // Activar sistema de drag integrado
+        this._enableDragging();
 
         const bounds = {
             minX: -this._half + this._pieceHalf,
@@ -72,72 +91,153 @@ export class PuzzleGame {
 
         const snapThreshold = this._cell * 0.35; // 35% de la celda
 
+        // Registrar drag para cada pieza
         this.pieces.forEach((p) => {
-            this.interactionManager.registerDraggable(p.mesh, {
-                planeNode: this.board,
-                fixedYLocal: this._anchorY,
-                bounds,
-                onDragStart: () => {
-                    // Evitar mover si ya está bloqueada
-                    if (p.locked) return false;
-
-                    // Liberar slot anterior si lo tenía
-                    if (p.slotIndex != null) {
-                        this.slotOccupant[p.slotIndex] = null;
-                        p.slotIndex = null;
-                    }
-                },
-                // sin onDragMove (se quitó highlight)
-                onDragEnd: (mesh, localPos) => {
-                    this._trySnap(p, localPos, snapThreshold);
-                }
-            });
-        });
-
-        // === Prevención de desplazamiento inicial ===
-        let firstTouch = true;
-
-        // Recorremos los draggables y sobreescribimos su onDragStart para interceptar el primer toque
-        this.pieces.forEach((p) => {
-            const original = this.interactionManager._draggables.get(p.mesh);
-            if (!original) return;
-
-            const behavior = original.behavior;
-            behavior.onDragStartObservable.addOnce(() => {
-                if (firstTouch) {
-                    firstTouch = false;
-
-                    // Detectamos si todas las piezas cambiaron su posición (p.ej. salto en Z)
-                    const deltas = this.pieces.map(pp => pp.mesh.position.z - pp.startPos.z);
-                    const promedioDeltaZ = deltas.reduce((a, b) => a + b, 0) / deltas.length;
-                    const saltoDetectado = Math.abs(promedioDeltaZ) > 0.02; // umbral de ~2cm
-
-                    if (saltoDetectado) {
-                        console.warn("[PuzzleGame] Desplazamiento detectado en primer toque. Restaurando posiciones...");
-                        this.pieces.forEach(pp => {
-                            pp.mesh.position.copyFrom(pp.startPos);
-                        });
-                    }
-                }
-            });
+            this._registerDraggableForPiece(p, bounds, snapThreshold);
         });
 
         // HUD
-        this.hud.setScore(0);          // NUEVO: marcador visible en 0 al iniciar
+        this.hud.setScore(0);
         this.hud.setTime(this.timeLimit);
         this.hud.startTimer(this.timeLimit, null, () => this._fail());
-
     }
 
     dispose() {
         this.hud.stopTimer();
+
+        // Limpieza de behaviors de drag
+        this._disableDragging();
+
         this.pieces.forEach((p) => p.mesh.dispose());
         this.board?.dispose();
-        this.interactionManager?.dispose();
 
         this.pieces = [];
         this.slots = [];
         this.slotOccupant = [];
+    }
+
+    // ---------- SISTEMA DE DRAG INTEGRADO ----------
+
+    _enableDragging() {
+        if (this._draggingEnabled) return;
+        this._draggingEnabled = true;
+        console.log("[PuzzleGame] Drag integrado activado (PointerDragBehavior).");
+    }
+
+    _disableDragging() {
+        if (!this._draggingEnabled) return;
+        for (const { behavior } of this._draggables.values()) {
+            behavior.detach();
+        }
+        this._draggables.clear();
+        this._draggingEnabled = false;
+        this._firstTouchHandled = false;
+        console.log("[PuzzleGame] Drag integrado desactivado.");
+    }
+
+    /**
+     * Registra el drag para una pieza concreta del puzzle.
+     * Usa:
+     *  - this.board como plano base
+     *  - this._anchorY como altura local constante
+     *  - bounds para limitar el área
+     *  - snapThreshold para decidir encaje en slot
+     */
+    _registerDraggableForPiece(pieceObj, bounds, snapThreshold) {
+        const mesh = pieceObj.mesh;
+        const planeNode = this.board;
+        if (!planeNode) {
+            console.warn("[PuzzleGame] No hay board para registrar drag.");
+            return;
+        }
+
+        // Plano de arrastre según la orientación real del tablero
+        const boardNormal = planeNode.up.clone();
+        const behavior = new PointerDragBehavior({
+            dragPlaneNormal: boardNormal,
+            useObjectOrientationForDragging: false
+        });
+        behavior.updateDragPlane = false; // plano fijo
+
+        mesh.addBehavior(behavior);
+
+        let invBoardWorld = null;
+
+        behavior.onDragStartObservable.add(() => {
+            // --- Fix global del primer toque (para el salto de Z) ---
+            if (!this._firstTouchHandled) {
+                this._firstTouchHandled = true;
+
+                const deltas = this.pieces.map(pp => pp.mesh.position.z - pp.startPos.z);
+                const promedioDeltaZ = deltas.reduce((a, b) => a + b, 0) / deltas.length;
+                const saltoDetectado = Math.abs(promedioDeltaZ) > 0.02; // ~2cm
+
+                if (saltoDetectado) {
+                    console.warn("[PuzzleGame] Desplazamiento detectado en primer toque. Restaurando posiciones...");
+                    this.pieces.forEach(pp => {
+                        pp.mesh.position.copyFrom(pp.startPos);
+                    });
+                }
+            }
+
+            // No permitir mover piezas bloqueadas
+            if (pieceObj.locked) {
+                console.log("[PuzzleGame] Intento de arrastrar pieza bloqueada:", mesh.name);
+                return;
+            }
+
+            // Liberar slot anterior si lo tenía
+            if (pieceObj.slotIndex != null) {
+                this.slotOccupant[pieceObj.slotIndex] = null;
+                pieceObj.slotIndex = null;
+            }
+
+            // Calcular matriz inversa del tablero: mundo -> local
+            planeNode.computeWorldMatrix(true);
+            const boardWorld = planeNode.getWorldMatrix();
+            invBoardWorld = new Matrix();
+            boardWorld.invertToRef(invBoardWorld);
+
+            console.log("[PuzzleGame] DRAG START ->", mesh.name);
+        });
+
+        behavior.onDragObservable.add((evt) => {
+            if (!invBoardWorld) return;
+
+            // Punto en mundo del behavior
+            const world = evt.dragPlanePoint
+                ?? evt.draggedPosition
+                ?? mesh.getAbsolutePosition();
+
+            // Convertir a coordenadas locales del tablero
+            const local = Vector3.TransformCoordinates(world, invBoardWorld);
+            local.y = this._anchorY;
+
+            // Aplicar límites
+            if (bounds) {
+                const b = bounds;
+                if (local.x < b.minX) local.x = b.minX;
+                if (local.x > b.maxX) local.x = b.maxX;
+                if (local.z < b.minZ) local.z = b.minZ;
+                if (local.z > b.maxZ) local.z = b.maxZ;
+            }
+
+            // Aplicar posición local
+            mesh.position.copyFrom(local);
+        });
+
+        behavior.onDragEndObservable.add(() => {
+            const local = mesh.position.clone(); // ya está en coords locales del board
+            this._trySnap(pieceObj, local, snapThreshold);
+            console.log("[PuzzleGame] DRAG END ->", mesh.name, "@", local);
+        });
+
+        const abs = mesh.getAbsolutePosition();
+        console.log(
+            `[PuzzleGame] Registrado draggable: ${mesh.name} @ (${abs.x.toFixed(3)}, ${abs.y.toFixed(3)}, ${abs.z.toFixed(3)})`
+        );
+
+        this._draggables.set(mesh, { behavior, piece: pieceObj });
     }
 
     // ---------- construcción ----------
@@ -167,25 +267,35 @@ export class PuzzleGame {
 
         console.log(`[PuzzleGame] Cargando textura base: ${this.imageUrl}`);
 
-        // Carga la textura base (una sola vez)
-        const baseTexture = new Texture(this.imageUrl, this.scene, true, false, Texture.TRILINEAR_SAMPLINGMODE, null, null, null, false);
+        const baseTexture = new Texture(
+            this.imageUrl,
+            this.scene,
+            true,
+            false,
+            Texture.TRILINEAR_SAMPLINGMODE,
+            null,
+            null,
+            null,
+            false
+        );
         baseTexture.wrapU = baseTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
 
-
-        // Tras el borde inferior del tablero
+        // Mezclar el orden de aparición (Fisher–Yates)
         const indices = Array.from({ length: count }, (_, i) => i);
-
-        // Mezclar el orden de aparición (Fisher–Yates shuffle)
         for (let i = indices.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [indices[i], indices[j]] = [indices[j], indices[i]];
         }
 
         for (let i = 0; i < count; i++) {
-            const index = indices[i]; // índice de la pieza (para textura y correctIndex)
+            const index = indices[i];
             const offsetX = (i - (count - 1) / 2) * (pieceSize * 1.1);
 
-            const piece = MeshBuilder.CreateGround(`piece-${index}`, { width: pieceSize, height: pieceSize }, this.scene);
+            const piece = MeshBuilder.CreateGround(
+                `piece-${index}`,
+                { width: pieceSize, height: pieceSize },
+                this.scene
+            );
             piece.parent = this.board;
 
             const forwardPush = 1.05;
@@ -195,10 +305,9 @@ export class PuzzleGame {
                 -this._half - pieceSize * 0.5 + forwardPush
             );
 
-            // Asignar textura según su índice real (no el mezclado)
             this._applyImageFragment(piece, index, n, baseTexture);
 
-            // Calcular índice correcto (espejo vertical)
+            // Índice correcto (espejo vertical)
             const raux = Math.floor(index / n);
             const caux = index % n;
             const mirrorRow = n - 1 - raux;
@@ -216,27 +325,22 @@ export class PuzzleGame {
         console.log(`[PuzzleGame] ${count} piezas spawneadas con textura completa.`);
     }
 
-    //asignar texturas a las piezas
     _applyImageFragment(piece, index, n, baseTexture) {
         const row = Math.floor(index / n);
         const col = index % n;
 
         const mat = new StandardMaterial(`p-mat-${index}`, this.scene);
-
-        // Clonamos la textura base para esta pieza
         mat.diffuseTexture = baseTexture.clone();
         mat.diffuseTexture.wrapU = mat.diffuseTexture.wrapV = Texture.CLAMP_ADDRESSMODE;
 
-        // Escala y desplazamiento UV correctos
         mat.diffuseTexture.uScale = 1 / n;
         mat.diffuseTexture.vScale = 1 / n;
         mat.diffuseTexture.uOffset = col / n;
-        mat.diffuseTexture.vOffset = (n - 1 - row) / n; // asegura orientación correcta
+        mat.diffuseTexture.vOffset = (n - 1 - row) / n;
 
         mat.specularColor = new Color3(0, 0, 0);
         piece.material = mat;
     }
-
 
     // ---------- snap ----------
 
@@ -249,7 +353,10 @@ export class PuzzleGame {
             const dx = localPos.x - c.x;
             const dz = localPos.z - c.z;
             const d = Math.hypot(dx, dz);
-            if (d < dmin) { dmin = d; best = i; }
+            if (d < dmin) {
+                dmin = d;
+                best = i;
+            }
         }
         return { idx: best, dist: dmin };
     }
@@ -266,12 +373,12 @@ export class PuzzleGame {
             const isCorrect = pieceObj.correctIndex === idx;
 
             if (isCorrect) {
-                pieceObj.locked = true; // 🔒 se bloquea (no se moverá más)
-                pieceObj.mesh.isPickable = false;  
+                pieceObj.locked = true;
+                pieceObj.mesh.isPickable = false;
                 this._addScore(this.bonusPerPiece);
                 this.hud.message("¡Correcto!", 600);
             } else {
-                pieceObj.locked = false; // 🔓 puede volver a moverse
+                pieceObj.locked = false;
                 this._applyPenalty();
                 this.hud.message("Encajó, pero no es el lugar correcto", 600);
             }
@@ -306,7 +413,6 @@ export class PuzzleGame {
     }
 
     _onWin() {
-        // Detiene el temporizador y registra victoria
         this.hud.stopTimer();
         const remaining = Math.max(0, this.hud._timeLeft ?? 0);
         let bonusPerSec = Number(this.bonusTime ?? 0);
@@ -325,21 +431,20 @@ export class PuzzleGame {
         this.hud.message("¡Felicidades, completaste el puzzle!", 2000);
 
         this.hud.showEndPopup({
-            score: this.score,                    // puntaje actual
+            score: this.score,
             onRetry: () => {
                 console.log("[PuzzleGame] Reintentar puzzle");
-                this._restart();                    // método que reinicia este puzzle
+                this._restart();
             },
             onContinue: () => {
                 console.log("[PuzzleGame] Continuar con siguiente minijuego (por ahora: exit)");
                 this.onGameEnd?.();
-                //this._exit();                       // método temporal para salir
             },
-            timeExpired: false                    // ganó, así que mostramos ambos botones
+            timeExpired: false
         });
     }
 
-    // ---------- HUD ----------
+    // ---------- HUD / puntuación ----------
 
     _useHint() {
         if (this.hintsLeft <= 0) return;
@@ -354,28 +459,21 @@ export class PuzzleGame {
     }
 
     _applyPenalty() {
-
         console.log(`[PuzzleGame] Penalización: -${this.penaltyPoitns} puntos`);
         this._addScore(-this.penaltyPoitns);
-        /*console.log(`[PuzzleGame] Penalización: -${penaltySeconds}s`);
-        this.hud.decreaseTime(penaltySeconds);*/
-
-        // Opcional: pequeña animación o feedback
-        //this.hud.message(`-${penaltySeconds}s`, 1000);
     }
 
     _fail() {
         this.hud.stopTimer();
         this.hud.message("Se acabó el tiempo. Inténtalo de nuevo.", 2000);
 
-        // Mostrar popup sin botón de continuar
         this.hud.showEndPopup({
             score: this.score,
             onRetry: () => {
                 console.log("[PuzzleGame] Reintentar tras perder");
                 this._restart();
             },
-            onContinue: null,   // se oculta
+            onContinue: null,
             timeExpired: true
         });
     }
@@ -383,18 +481,16 @@ export class PuzzleGame {
     _restart() {
         console.log("[PuzzleGame] Reiniciando minijuego...");
 
-        // Reset lógico del minijuego
         this.score = 0;
         this.hintsLeft = 3;
         this.isCompleted = false;
+        this._firstTouchHandled = false;
 
-        // Reset visual del HUD
         this.hud.setScore(0);
         this.hud.stopTimer();
 
-        // Reconstruye escena y cronómetro
+        // Reconstruye
         this.dispose();
         this.start();
     }
-
 }
