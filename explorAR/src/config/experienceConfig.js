@@ -67,22 +67,22 @@ export const experiencesConfig = [
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
-                    correctos: ["p1", "p3", "p5", "p7", "p9"],
-                    incorrectos: ["p2", "p4", "p6", "p8", "p10"]
+                    correctos: ["p1", "p2", "p3", "p4", "p5"],
+                    incorrectos: ["p6", "p7", "p8", "p9", "p10"]
                 },
                 assets: [
                     { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
                     { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
-                    { type: "image", key: "p1", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p2", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p3", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p4", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p5", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p6", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p7", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p8", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p9", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p1", url: "/assets/games/Minigame4/m3Taquile1.jpg" },
+                    { type: "image", key: "p2", url: "/assets/games/Minigame4/m3Taquile2.jpg" },
+                    { type: "image", key: "p3", url: "/assets/games/Minigame4/m3Taquile3.jpg" },
+                    { type: "image", key: "p4", url: "/assets/games/Minigame4/m3Taquile4.jpg" },
+                    { type: "image", key: "p5", url: "/assets/games/Minigame4/m3Taquile5.jpg" },
+                    { type: "image", key: "p6", url: "/assets/games/Minigame4/m3Lucumo3.jpg" },
+                    { type: "image", key: "p7", url: "/assets/games/Minigame4/m3Lucumo5.jpg" },
+                    { type: "image", key: "p8", url: "/assets/games/Minigame4/m3Tambopata4.jpg" },
+                    { type: "image", key: "p9", url: "/assets/games/Minigame4/m3Tambopata2.jpg" },
+                    { type: "image", key: "p10", url: "/assets/games/Minigame4/m3Vicos4.jpg" },
                 ]
             },
             {
@@ -177,22 +177,22 @@ export const experiencesConfig = [
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
-                    correctos: ["p1", "p3", "p5", "p7", "p9"],
-                    incorrectos: ["p2", "p4", "p6", "p8", "p10"]
+                    correctos: ["p1", "p2", "p3", "p4", "p5"],
+                    incorrectos: ["p6", "p7", "p8", "p9", "p10"]
                 },
                 assets: [
                     { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
                     { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
-                    { type: "image", key: "p1", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p2", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p3", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p4", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p5", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p6", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p7", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p8", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p9", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p1", url: "/assets/games/Minigame4/m3Vicos1.jpg" },
+                    { type: "image", key: "p2", url: "/assets/games/Minigame4/m3Vicos2.jpg" },
+                    { type: "image", key: "p3", url: "/assets/games/Minigame4/m3Vicos3.jpg" },
+                    { type: "image", key: "p4", url: "/assets/games/Minigame4/m3Vicos4.jpg" },
+                    { type: "image", key: "p5", url: "/assets/games/Minigame4/m3Vicos5.jpg" },
+                    { type: "image", key: "p6", url: "/assets/games/Minigame4/m3Tambopata2.jpg" },
+                    { type: "image", key: "p7", url: "/assets/games/Minigame4/m3Tambopata3.jpg" },
+                    { type: "image", key: "p8", url: "/assets/games/Minigame4/m3Tambopata4.jpg" },
+                    { type: "image", key: "p9", url: "/assets/games/Minigame4/m3Lucumo5.jpg" },
+                    { type: "image", key: "p10", url: "/assets/games/Minigame4/m3Lucumo6.jpg" },
                 ]
             },
             {
@@ -283,22 +283,22 @@ export const experiencesConfig = [
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
-                    correctos: ["p1", "p3", "p5", "p7", "p9"],
-                    incorrectos: ["p2", "p4", "p6", "p8", "p10"]
+                    correctos: ["p1", "p2", "p3", "p4", "p5"],
+                    incorrectos: ["p6", "p7", "p8", "p9", "p10"]
                 },
                 assets: [
                     { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
                     { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
-                    { type: "image", key: "p1", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p2", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p3", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p4", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p5", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p6", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p7", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p8", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p9", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p1", url: "/assets/games/Minigame4/m3Tambopata1.jpg" },
+                    { type: "image", key: "p2", url: "/assets/games/Minigame4/m3Tambopata2.jpg" },
+                    { type: "image", key: "p3", url: "/assets/games/Minigame4/m3Tambopata3.jpg" },
+                    { type: "image", key: "p4", url: "/assets/games/Minigame4/m3Tambopata4.jpg" },
+                    { type: "image", key: "p5", url: "/assets/games/Minigame4/m3Tambopata5.jpg" },
+                    { type: "image", key: "p6", url: "/assets/games/Minigame4/m3Vicos4.jpg" },
+                    { type: "image", key: "p7", url: "/assets/games/Minigame4/m3Vicos2.jpg" },
+                    { type: "image", key: "p8", url: "/assets/games/Minigame4/m3Taquile5.jpg" },
+                    { type: "image", key: "p9", url: "/assets/games/Minigame4/m3Lucumo6.jpg" },
+                    { type: "image", key: "p10", url: "/assets/games/Minigame4/m3Taquile2.jpg" },
                 ]
             },
             {
@@ -390,22 +390,22 @@ export const experiencesConfig = [
                 params: {
                     spawnRadius: 1.2,
                     singlespeed: 0.02,
-                    correctos: ["p1", "p3", "p5", "p7", "p9"],
-                    incorrectos: ["p2", "p4", "p6", "p8", "p10"]
+                    correctos: ["p1", "p2", "p3", "p4", "p5"],
+                    incorrectos: ["p6", "p7", "p8", "p9", "p10"]
                 },
                 assets: [
                     { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
                     { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
-                    { type: "image", key: "p1", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p2", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p3", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p4", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p5", url: "/assets/default/default.jpg" },
-                    { type: "image", key: "p6", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p7", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p8", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p9", url: "/assets/default/default2.jpg" },
-                    { type: "image", key: "p10", url: "/assets/default/default2.jpg" },
+                    { type: "image", key: "p1", url: "/assets/games/Minigame4/m3Lucumo1.jpg" },
+                    { type: "image", key: "p2", url: "/assets/games/Minigame4/m3Lucumo3.jpg" },
+                    { type: "image", key: "p3", url: "/assets/games/Minigame4/m3Lucumo4.jpg" },
+                    { type: "image", key: "p4", url: "/assets/games/Minigame4/m3Lucumo5.jpg" },
+                    { type: "image", key: "p5", url: "/assets/games/Minigame4/m3Lucumo6.jpg" },
+                    { type: "image", key: "p6", url: "/assets/games/Minigame4/m3Tambopata3.jpg" },
+                    { type: "image", key: "p7", url: "/assets/games/Minigame4/m3Tambopata2.jpg" },
+                    { type: "image", key: "p8", url: "/assets/games/Minigame4/m3Taquile4.jpg" },
+                    { type: "image", key: "p9", url: "/assets/games/Minigame4/m3Taquile2.jpg" },
+                    { type: "image", key: "p10", url: "/assets/games/Minigame4/m3Vicos5.jpg" },
                 ]
             },
             {
