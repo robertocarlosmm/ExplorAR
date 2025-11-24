@@ -339,36 +339,49 @@ export class PhotoStudio {
         img.className = "movable-sticker";
         img.draggable = false;
 
-        // ========= ESTADO DE GESTOS =========
+        // ===== ESTADO GESTOS =====
         const activePointers = new Map(); // pointerId -> { x, y }
 
-        // Drag (1 dedo)
+        // Arrastre (1 dedo)
         let isDragging = false;
         let dragPointerId = null;
         let dragOffsetCenterX = 0;
         let dragOffsetCenterY = 0;
 
-        // Pinch (2 dedos, zoom uniforme)
-        let isPinching = false;
+        // Pinch + rotación (2 dedos)
+        let isGesturing = false;
         let pinchStartDistance = 0;
+        let gestureStartAngle = 0;
         let baseScale = 1;
-        let currentScale = 1;
+        let baseRotation = 0;
 
-        const MIN_SCALE = 0.3; // puedes ajustar si quieres más chico
-        const MAX_SCALE = 8;   // grande sin miedo, y si se sale de la pantalla, todo bien
+        // Escala y rotación actuales del sticker
+        let currentScale = 1;
+        let currentRotation = 0; // en radianes
+
+        const MIN_SCALE = 0.3;
+        const MAX_SCALE = 8;
 
         const updateTransform = () => {
-            // Siempre traducimos al centro y escalamos uniforme
-            img.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+            img.style.transform = `translate(-50%, -50%) rotate(${currentRotation}rad) scale(${currentScale})`;
         };
 
         const getDistance = () => {
             const pts = Array.from(activePointers.values());
             if (pts.length < 2) return 0;
             const [p1, p2] = pts;
-            const dx = p1.x - p2.x;
-            const dy = p1.y - p2.y;
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
             return Math.hypot(dx, dy);
+        };
+
+        const getAngle = () => {
+            const pts = Array.from(activePointers.values());
+            if (pts.length < 2) return 0;
+            const [p1, p2] = pts;
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            return Math.atan2(dy, dx); // ángulo entre los dos dedos
         };
 
         const startDrag = (pointerId, clientX, clientY) => {
@@ -378,9 +391,9 @@ export class PhotoStudio {
 
             dragPointerId = pointerId;
             isDragging = true;
-            isPinching = false;
+            isGesturing = false;
 
-            // Guardamos la diferencia entre dedo y centro del sticker
+            // diferencia dedo–centro para mantener el “agarre”
             dragOffsetCenterX = clientX - centerX;
             dragOffsetCenterY = clientY - centerY;
         };
@@ -394,8 +407,7 @@ export class PhotoStudio {
             let centerX = ev.clientX - dragOffsetCenterX;
             let centerY = ev.clientY - dragOffsetCenterY;
 
-            // Opcional: mantenemos el CENTRO dentro del viewport,
-            // aunque el sticker sea enorme y sobresalga.
+            // Mantener el CENTRO dentro del viewport (el sticker puede sobresalir)
             const minCX = parentRect.left;
             const maxCX = parentRect.left + parentRect.width;
             const minCY = parentRect.top;
@@ -411,36 +423,44 @@ export class PhotoStudio {
             img.style.left = `${localX}px`;
             img.style.top = `${localY}px`;
 
-            // Mantener translate(-50%, -50%) + scale
             updateTransform();
         };
 
-        const startPinch = () => {
+        const startGesture = () => {
             if (activePointers.size < 2) return;
 
-            const distance = getDistance();
-            if (!distance) return;
+            const dist = getDistance();
+            if (!dist) return;
 
-            pinchStartDistance = distance;
+            pinchStartDistance = dist;
+            gestureStartAngle = getAngle();
+
             baseScale = currentScale;
+            baseRotation = currentRotation;
 
-            isPinching = true;
+            isGesturing = true;
             isDragging = false;
             dragPointerId = null;
         };
 
-        const applyPinch = () => {
-            if (!isPinching || activePointers.size < 2) return;
+        const applyGesture = () => {
+            if (!isGesturing || activePointers.size < 2) return;
 
-            const distance = getDistance();
-            if (!distance || !pinchStartDistance) return;
+            const dist = getDistance();
+            const angle = getAngle();
+            if (!dist) return;
 
-            let factor = distance / pinchStartDistance;
+            // Escala
+            let factor = dist / (pinchStartDistance || 1);
             let newScale = baseScale * factor;
-
-            // Limitar un poco para evitar locuras, pero permitiendo crecer bastante
             newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+
+            // Rotación
+            const deltaAngle = angle - gestureStartAngle;
+            let newRotation = baseRotation + deltaAngle;
+
             currentScale = newScale;
+            currentRotation = newRotation;
 
             updateTransform();
         };
@@ -455,19 +475,18 @@ export class PhotoStudio {
                 // 1 dedo → drag
                 startDrag(ev.pointerId, ev.clientX, ev.clientY);
             } else if (activePointers.size === 2) {
-                // 2 dedos → pinch (zoom uniforme)
-                startPinch();
+                // 2 dedos → pinch + rotate
+                startGesture();
             }
         };
 
         const onMove = (ev) => {
             if (!activePointers.has(ev.pointerId)) return;
 
-            // Actualizamos posición del puntero activo
             activePointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
 
-            if (isPinching && activePointers.size >= 2) {
-                applyPinch();
+            if (isGesturing && activePointers.size >= 2) {
+                applyGesture();
             } else if (isDragging) {
                 applyDrag(ev);
             }
@@ -477,16 +496,14 @@ export class PhotoStudio {
             if (activePointers.has(ev.pointerId)) {
                 activePointers.delete(ev.pointerId);
             }
-
             img.releasePointerCapture?.(ev.pointerId);
 
             if (activePointers.size === 0) {
-                // No hay dedos activos
                 isDragging = false;
-                isPinching = false;
+                isGesturing = false;
                 dragPointerId = null;
             } else if (activePointers.size === 1) {
-                // Si veníamos de pinch y quedó 1 dedo, volvemos a drag con ese dedo
+                // Si veníamos de gesto con 2 dedos y queda 1, volvemos a drag con ese dedo
                 const [remainingId, pt] = activePointers.entries().next().value;
                 startDrag(remainingId, pt.x, pt.y);
             }
@@ -501,10 +518,12 @@ export class PhotoStudio {
         this.layerEl.appendChild(img);
         this.activeStickerEl = img;
 
-        // Aseguramos transform inicial coherente (center + escala 1)
+        // Transform inicial: centrado, sin rotación, sin escala extra
         currentScale = 1;
+        currentRotation = 0;
         updateTransform();
     }
+
 
     _nextSticker() {
         if (!this.stickers.length) return;
