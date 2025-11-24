@@ -95,9 +95,9 @@ export const experiencesConfig = [
                     star3: "star3"
                 },
                 assets: [
-                    { type: "sticker", key: "star1", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "sticker", key: "star2", url: "/assets/default/default.jpg" },
-                    { type: "sticker", key: "star3", url: "/assets/default/default2.jpg" },
+                    { type: "sticker", key: "star1", url: "/assets/games/photo/photoTaquile1.png" },
+                    { type: "sticker", key: "star2", url: "/assets/games/photo/photoTaquile2.png" },
+                    { type: "sticker", key: "star3", url: "/assets/games/photo/photoTaquile3.png" },
                 ]
             }
         ]
@@ -205,9 +205,9 @@ export const experiencesConfig = [
                     star3: "star3"
                 },
                 assets: [
-                    { type: "sticker", key: "star1", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "sticker", key: "star2", url: "/assets/default/default.jpg" },
-                    { type: "sticker", key: "star3", url: "/assets/default/default2.jpg" },
+                    { type: "sticker", key: "star1", url: "/assets/games/photo/photoVicos1.png" },
+                    { type: "sticker", key: "star2", url: "/assets/games/photo/photoVicos2.png" },
+                    { type: "sticker", key: "star3", url: "/assets/games/photo/photoVicos3.png" },
                 ]
             }
         ]
@@ -311,9 +311,9 @@ export const experiencesConfig = [
                     star3: "star3"
                 },
                 assets: [
-                    { type: "sticker", key: "star1", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "sticker", key: "star2", url: "/assets/default/default.jpg" },
-                    { type: "sticker", key: "star3", url: "/assets/default/default2.jpg" },
+                    { type: "sticker", key: "star1", url: "/assets/games/photo/photoTambopata1.png" },
+                    { type: "sticker", key: "star2", url: "/assets/games/photo/photoTambopata2.png" },
+                    { type: "sticker", key: "star3", url: "/assets/games/photo/photoTambopata3.png" },
                 ]
             }
         ]
@@ -418,9 +418,9 @@ export const experiencesConfig = [
                     star3: "star3"
                 },
                 assets: [
-                    { type: "sticker", key: "star1", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "sticker", key: "star2", url: "/assets/default/default.jpg" },
-                    { type: "sticker", key: "star3", url: "/assets/default/default2.jpg" },
+                    { type: "sticker", key: "star1", url: "/assets/games/photo/photoLucumo1.png" },
+                    { type: "sticker", key: "star2", url: "/assets/games/photo/photoLucumo2.png" },
+                    { type: "sticker", key: "star3", url: "/assets/games/photo/photoLucumo3.png" },
                 ]
             }
         ]
