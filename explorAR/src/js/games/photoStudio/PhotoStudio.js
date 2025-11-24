@@ -139,6 +139,7 @@ export class PhotoStudio {
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
+            transform-origin: center center; /* <-- NUEVO: escala uniforme desde el centro */
             max-width: 28vw;
             max-height: 28vh;
             user-select: none;
@@ -228,6 +229,7 @@ export class PhotoStudio {
         // Bloquear scroll
         document.body.classList.add("photo-mode");
     }
+
 
     _removeStyles() {
         if (this.styleEl) {
@@ -337,53 +339,171 @@ export class PhotoStudio {
         img.className = "movable-sticker";
         img.draggable = false;
 
-        // Drag simple (traslación)
-        let dragging = false;
-        let offsetX = 0, offsetY = 0;
+        // ========= ESTADO DE GESTOS =========
+        const activePointers = new Map(); // pointerId -> { x, y }
+
+        // Drag (1 dedo)
+        let isDragging = false;
+        let dragPointerId = null;
+        let dragOffsetCenterX = 0;
+        let dragOffsetCenterY = 0;
+
+        // Pinch (2 dedos, zoom uniforme)
+        let isPinching = false;
+        let pinchStartDistance = 0;
+        let baseScale = 1;
+        let currentScale = 1;
+
+        const MIN_SCALE = 0.3; // puedes ajustar si quieres más chico
+        const MAX_SCALE = 8;   // grande sin miedo, y si se sale de la pantalla, todo bien
+
+        const updateTransform = () => {
+            // Siempre traducimos al centro y escalamos uniforme
+            img.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+        };
+
+        const getDistance = () => {
+            const pts = Array.from(activePointers.values());
+            if (pts.length < 2) return 0;
+            const [p1, p2] = pts;
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            return Math.hypot(dx, dy);
+        };
+
+        const startDrag = (pointerId, clientX, clientY) => {
+            const rect = img.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            dragPointerId = pointerId;
+            isDragging = true;
+            isPinching = false;
+
+            // Guardamos la diferencia entre dedo y centro del sticker
+            dragOffsetCenterX = clientX - centerX;
+            dragOffsetCenterY = clientY - centerY;
+        };
+
+        const applyDrag = (ev) => {
+            if (!isDragging || ev.pointerId !== dragPointerId) return;
+
+            const parentRect = this.layerEl.getBoundingClientRect();
+
+            // Centro nuevo, basado en el dedo menos el offset
+            let centerX = ev.clientX - dragOffsetCenterX;
+            let centerY = ev.clientY - dragOffsetCenterY;
+
+            // Opcional: mantenemos el CENTRO dentro del viewport,
+            // aunque el sticker sea enorme y sobresalga.
+            const minCX = parentRect.left;
+            const maxCX = parentRect.left + parentRect.width;
+            const minCY = parentRect.top;
+            const maxCY = parentRect.top + parentRect.height;
+
+            centerX = Math.max(minCX, Math.min(maxCX, centerX));
+            centerY = Math.max(minCY, Math.min(maxCY, centerY));
+
+            // Convertimos a coords locales del layer
+            const localX = centerX - parentRect.left;
+            const localY = centerY - parentRect.top;
+
+            img.style.left = `${localX}px`;
+            img.style.top = `${localY}px`;
+
+            // Mantener translate(-50%, -50%) + scale
+            updateTransform();
+        };
+
+        const startPinch = () => {
+            if (activePointers.size < 2) return;
+
+            const distance = getDistance();
+            if (!distance) return;
+
+            pinchStartDistance = distance;
+            baseScale = currentScale;
+
+            isPinching = true;
+            isDragging = false;
+            dragPointerId = null;
+        };
+
+        const applyPinch = () => {
+            if (!isPinching || activePointers.size < 2) return;
+
+            const distance = getDistance();
+            if (!distance || !pinchStartDistance) return;
+
+            let factor = distance / pinchStartDistance;
+            let newScale = baseScale * factor;
+
+            // Limitar un poco para evitar locuras, pero permitiendo crecer bastante
+            newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+            currentScale = newScale;
+
+            updateTransform();
+        };
 
         const onDown = (ev) => {
-            dragging = true;
-            const rect = img.getBoundingClientRect();
-            offsetX = ev.clientX - rect.left;
-            offsetY = ev.clientY - rect.top;
+            ev.preventDefault();
+
+            activePointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
             img.setPointerCapture?.(ev.pointerId);
+
+            if (activePointers.size === 1) {
+                // 1 dedo → drag
+                startDrag(ev.pointerId, ev.clientX, ev.clientY);
+            } else if (activePointers.size === 2) {
+                // 2 dedos → pinch (zoom uniforme)
+                startPinch();
+            }
         };
+
         const onMove = (ev) => {
-            if (!dragging) return;
-            // Limitar dentro del viewport
-            const parentRect = this.layerEl.getBoundingClientRect();
-            let x = ev.clientX - offsetX - parentRect.left;
-            let y = ev.clientY - offsetY - parentRect.top;
+            if (!activePointers.has(ev.pointerId)) return;
 
-            // Dimensiones actuales del sticker
-            const w = img.getBoundingClientRect().width;
-            const h = img.getBoundingClientRect().height;
+            // Actualizamos posición del puntero activo
+            activePointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
 
-            // Limites
-            const minX = 0, minY = 0;
-            const maxX = parentRect.width - w;
-            const maxY = parentRect.height - h;
-
-            x = Math.max(minX, Math.min(maxX, x));
-            y = Math.max(minY, Math.min(maxY, y));
-
-            img.style.left = `${x}px`;
-            img.style.top = `${y}px`;
-            img.style.transform = `translate(0,0)`; // al mover por px, desactivar translate inicial
+            if (isPinching && activePointers.size >= 2) {
+                applyPinch();
+            } else if (isDragging) {
+                applyDrag(ev);
+            }
         };
-        const onUp = (ev) => {
-            dragging = false;
+
+        const onUpOrCancel = (ev) => {
+            if (activePointers.has(ev.pointerId)) {
+                activePointers.delete(ev.pointerId);
+            }
+
             img.releasePointerCapture?.(ev.pointerId);
+
+            if (activePointers.size === 0) {
+                // No hay dedos activos
+                isDragging = false;
+                isPinching = false;
+                dragPointerId = null;
+            } else if (activePointers.size === 1) {
+                // Si veníamos de pinch y quedó 1 dedo, volvemos a drag con ese dedo
+                const [remainingId, pt] = activePointers.entries().next().value;
+                startDrag(remainingId, pt.x, pt.y);
+            }
         };
 
         img.addEventListener("pointerdown", onDown);
         img.addEventListener("pointermove", onMove);
-        img.addEventListener("pointerup", onUp);
-        img.addEventListener("pointercancel", onUp);
+        img.addEventListener("pointerup", onUpOrCancel);
+        img.addEventListener("pointercancel", onUpOrCancel);
         img.addEventListener("dragstart", (e) => e.preventDefault());
 
         this.layerEl.appendChild(img);
         this.activeStickerEl = img;
+
+        // Aseguramos transform inicial coherente (center + escala 1)
+        currentScale = 1;
+        updateTransform();
     }
 
     _nextSticker() {
