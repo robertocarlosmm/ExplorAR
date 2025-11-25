@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <!-- Codificación y pantalla completa real -->
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+
+  <!-- Orientación fija en vertical -->
+  <meta name="screen-orientation" content="portrait" />
+  <meta name="x5-orientation" content="portrait" />
+  <title>ExplorAR</title>
+  <!-- Fuente Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet" />
+  <script type="module" crossorigin src="/explorAR/assets/index-Bdyd0m81.js"></script>
+  <link rel="stylesheet" crossorigin href="/explorAR/assets/index-Bxw4TuY6.css">
+</head>
+
+<body>
+  <main class="container">
+
+    <!-- Pantalla de inicio -->
+    <section id="experience-list" class="screen active">
+      <header>
+        <h1>ExplorAR</h1>
+      </header>
+
+      <p id="instruction" class="subtitle">Elige una experiencia para jugar</p>
+      <div class="grid" id="grid-container"></div>
+
+      <footer>
+        <p class="footer-note">Juega en un espacio despejado</p>
+      </footer>
+    </section>
+
+    <!-- Pantalla de detalle -->
+    <section id="experience-detail" class="screen">
+      <header>
+        <h1>ExplorAR</h1>
+
+      </header>
+
+      <div class="detail-card">
+        <img id="detail-image" alt="Imagen experiencia" />
+        <div class="detail-name" id="detail-title"></div>
+      </div>
+
+      <div class="buttons">
+        <button class="btn primary" id="btn-continue-detail">Continuar</button>
+        <button class="btn secondary" id="btn-back">Regresar</button>
+      </div>
+    </section>
+
+    <!-- Contenedor del juego / sesión WebXR -->
+    <section id="game-container" class="screen">
+      <!-- Lienzo de render Babylon/WebXR -->
+      <canvas id="renderCanvas"></canvas>
+
+      <!-- HUD AR (DOM Overlay root único) -->
+      <div id="hud" class="hud hidden" aria-live="polite" aria-atomic="true">
+        <!-- Barra superior global (siempre visible) -->
+        <div class="topbar">
+          <span id="hud-score">PUNTOS: 0</span>
+          <span id="hud-timer">00:00</span>
+          <div class="spacer"></div>
+          <button id="btn-exit" class="hud-btn danger" title="Salir">Salir</button>
+        </div>
+
+        <!-- Mensaje central (aparece/desaparece) -->
+        <div id="center-msg" class="center-msg" role="status"></div>
+
+        <!-- Aquí se monta dinámicamente el panel del minijuego activo -->
+        <div id="hud-panel-slot"></div>
+
+        <!-- POPUP -->
+        <div id="game-end-popup" class="hidden popup">
+          <div class="popup-content">
+            <h2 id="popup-score">Puntaje: 0</h2>
+            <div class="popup-buttons">
+              <button id="btn-retry">Reintentar</button>
+              <button id="btn-continue">Continuar</button>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </section>
+
+    <div id="loading-screen" style="display: none;">
+      Cargando...
+    </div>
+
+  </main>
+
+</body>
+
+</html>
