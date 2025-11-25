@@ -29,23 +29,23 @@ export async function startMinigame3(gameManager) {
 
     const TUTORIAL_CONTENT = {
         taquile: {
-            title: "Tradición textil de Taquile",
-            description: "Descubre el arte del tejido y su significado cultural.",
+            title: "Sube las escaleras de Taquile",
+            description: "Acierta a los objetivos pra poder continuar",
             imageUrl: "./assets/tutorial/minigame3TaqTutorial.png",
         },
         vicos: {
             title: "Agricultura ancestral en Vicos",
-            description: "Aprende sobre técnicas de cultivo en los Andes.",
+            description: "Acierta a los lgares óptimos para sembrar y regar",
             imageUrl: "./assets/tutorial/minigame3VicTutorial.png",
         },
         tambopata: {
-            title: "Fauna y conservación en Tambopata",
-            description: "Conoce el ecosistema amazónico y sus especies.",
+            title: "Observación de fauna en Tambopata",
+            description: "Acierta a los objetivos, pero ten cuidado con la fauna local",
             imageUrl: "./assets/tutorial/minigame3TamTutorial.png",
         },
         lucumo: {
-            title: "Aventura en Lomas de Lúcumo",
-            description: "Supera los retos naturales de este destino.",
+            title: "Seguir el camino en Lomas de Lúcumo",
+            description: "Acierta a los visitantes para devolverlos al camino correcto",
             imageUrl: "./assets/tutorial/minigame3LucTutorial.png",
         },
         default: {

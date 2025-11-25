@@ -24,8 +24,8 @@ export async function startMinigame4(gameManager) {
 
     // 3 Configurar contenido genérico del tutorial (común a todas las experiencias)
     const data = {
-        title: "Guía a los visitantes perdidos",
-        description: "Usa tus señales para ayudarlos a volver al camino correcto. ¡Evita desperdiciar tiempo!",
+        title: "Reconoce lo perteneciente al lugar",
+        description: "Recuerda lo que descubriste y elige qué pertenece o no al lugar que visitaste.",
         imageUrl: "./assets/tutorial/minigame4Tutorial.png",
         buttonText: "Comenzar",
     };
