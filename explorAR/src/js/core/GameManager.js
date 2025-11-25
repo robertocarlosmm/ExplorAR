@@ -1,6 +1,5 @@
 import { XRSession } from "../core/xr/xrSession.js";
 import { launchMinigame } from "../games/registry.js";
-//import { preloadAssets } from "./assetLoader.js";
 
 export class GameManager {
     constructor({ hud, game, onExit } = {}) {
