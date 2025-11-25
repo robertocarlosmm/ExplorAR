@@ -1,14 +1,9 @@
 // test/equipmentGame.test.js
 import { describe, it, expect, vi } from "vitest"
 import { Vector3, Color3 } from "@babylonjs/core"
-
-// AJUSTA ESTA RUTA según dónde tengas EquipmentGame
 import { EquipmentGame } from "../src/js/games/minigame2/EquipmentGame.js"
-
-// (Opcional) si quieres usar la config real para chequear el cálculo:
 import { gameplayConfig } from "../src/config/gameplayConfig.js"
 
-/** HUD de mentira para no depender de la UI real */
 function createHudMock() {
     return {
         setScore: vi.fn(),
@@ -21,7 +16,6 @@ function createHudMock() {
     }
 }
 
-/** Scene fake, solo con lo mínimo que algunas funciones esperan */
 function createSceneMock() {
     return {
         meshes: [],

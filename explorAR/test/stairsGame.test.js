@@ -1,10 +1,6 @@
-// test/stairsGame.test.js
 import { describe, it, expect, vi } from "vitest"
-
-// AJUSTA ESTA RUTA a tu proyecto real
 import { Minigame3Taquile } from "../src/js/games/minigame3/Minigame3Taquile.js"
 
-// HUD fake (solo lo que usa este minijuego)
 function createHudMock() {
     return {
         show: vi.fn(),
@@ -17,7 +13,6 @@ function createHudMock() {
     }
 }
 
-// Scene fake (no usaremos Babylon aquí)
 function createSceneMock() {
     return {
         onBeforeRenderObservable: {
@@ -67,11 +62,8 @@ describe("Minigame3Taquile – _handleProjectileHit (lógica de aciertos y fallo
             { targets: [target] }
         ]
 
-        // Stub para no crear indicadores reales
         const indicatorSpy = vi.spyOn(game, "_showTargetIndicator").mockImplementation(() => { })
-        // Stub para decir que aún no hemos marcado todos los targets
         const allMarkedSpy = vi.spyOn(game, "_allTargetsMarked").mockReturnValue(false)
-
         // ProjectileSystem entrega un "proxy" con metadata.real = target
         const proxyMesh = { metadata: { real: target } }
 
@@ -94,7 +86,7 @@ describe("Minigame3Taquile – _handleProjectileHit (lógica de aciertos y fallo
         game.pointsHit = 15
         game.score = 10
 
-        const target = { name: "target_0", _marked: true } // YA marcado
+        const target = { name: "target_0", _marked: true } 
         game.steps = [{ targets: [target] }]
 
         const indicatorSpy = vi.spyOn(game, "_showTargetIndicator").mockImplementation(() => { })
@@ -219,7 +211,6 @@ describe("Minigame3Taquile – _onTimeUp, _restart y _endGame", () => {
 
         const popup = hud.showEndPopup.mock.calls[0][0]
         expect(popup.score).toBe(7)
-        // OJO: el código actual usa timeExpired: false incluso en _onTimeUp
         expect(popup.timeExpired).toBe(false)
         expect(typeof popup.onRetry).toBe("function")
         expect(typeof popup.onContinue).toBe("function")

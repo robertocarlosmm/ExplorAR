@@ -1,10 +1,6 @@
-// test/seedGame.test.js
 import { describe, it, expect, vi } from "vitest"
-
-// AJUSTA ESTA RUTA según tu estructura real
 import { Minigame3Vicos } from "../src/js/games/minigame3/Minigame3Vicos.js"
 
-// HUD mock (solo lo que usa este minijuego)
 function createHudMock() {
     return {
         show: vi.fn(),
@@ -19,7 +15,6 @@ function createHudMock() {
     }
 }
 
-// Scene mock mínimo
 function createSceneMock() {
     return {
         onBeforeRenderObservable: {
@@ -232,7 +227,6 @@ describe("Minigame3Vicos – _handleHit: riego con agua y estados de la planta",
         expect(hud.message).toHaveBeenLastCalledWith("💀 ¡PLANTA AHOGADA! Parcela perdida", 2000)
         expect(wiltSevereSpy).toHaveBeenCalledTimes(1)
 
-        // En varios puntos se puede haber llamado a _spawnNextBatch; aquí solo verificamos que no reviente
         expect(spawnBatchSpy).toHaveBeenCalled()
         expect(visualSpy).toHaveBeenCalled()
     })
@@ -352,7 +346,6 @@ describe("Minigame3Vicos – _onTimeUp, _restart, _endGame", () => {
         expect(popup.score).toBe(15)
         expect(typeof popup.onRetry).toBe("function")
         expect(typeof popup.onContinue).toBe("function")
-        // En el código actual, timeExpired siempre es false aquí
         expect(popup.timeExpired).toBe(false)
     })
 

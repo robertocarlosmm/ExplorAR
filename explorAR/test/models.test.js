@@ -1,7 +1,5 @@
 // test/models.test.js
 import { describe, it, expect } from "vitest"
-
-// Modelos reales del proyecto
 import { Experience } from "../src/js/models/Experience.js"
 import { ExperienceResult } from "../src/js/models/ExperienceResult.js"
 import { Game } from "../src/js/core/Game.js"
@@ -74,9 +72,6 @@ describe("ExperienceResult (acumulación de score por experiencia)", () => {
 
     it("updateResult acumula score y recalcula estrellas sin reventar", () => {
         const result = new ExperienceResult("taquile")
-
-        // Estas llamadas ejecutan finalize() internamente.
-        // Asegúrate de que ExperienceResult.finalize() use umbrales válidos.
         result.updateResult(80)
         result.updateResult(70)
 
@@ -88,7 +83,7 @@ describe("ExperienceResult (acumulación de score por experiencia)", () => {
 })
 
 // ---------------------------------------------------------------------------
-// GAME: selectExperience (lo que hace la clase actual)
+// GAME: selectExperience 
 // ---------------------------------------------------------------------------
 
 describe("Game (selección de experiencia)", () => {

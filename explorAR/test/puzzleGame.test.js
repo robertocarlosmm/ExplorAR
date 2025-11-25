@@ -1,9 +1,7 @@
-// test/puzzleGame.test.js
 import { describe, it, expect, vi } from "vitest"
 import { Vector3 } from "@babylonjs/core"
 import { PuzzleGame } from "../src/js/games/minigame1/PuzzleGame.js"
 
-// Hud falso para no depender de la UI real
 function createHudMock() {
     return {
         setScore: vi.fn(),
@@ -77,7 +75,7 @@ describe("PuzzleGame – lógica de encaje de piezas", () => {
 
         // Score inicial
         game.score = 20
-        game.penaltyPoitns = 5 // ¡ojo el typo en el código original!
+        game.penaltyPoitns = 5 
 
         // Pieza cuyo slot correcto es el 1, pero caerá cerca del 0
         const pieceObj = {
@@ -183,7 +181,6 @@ describe("PuzzleGame – detección de puzzle completo y victoria", () => {
         const onGameEnd = vi.fn()
         game.onGameEnd = onGameEnd
 
-        // Espiamos showEndPopup para capturar callbacks
         let popupConfig = null
         hud.showEndPopup = vi.fn((cfg) => {
             popupConfig = cfg

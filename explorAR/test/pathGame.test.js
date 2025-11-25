@@ -1,10 +1,6 @@
-// test/pathGame.test.js
 import { describe, it, expect, vi } from "vitest"
-
-// AJUSTA ESTA RUTA según tu proyecto
 import { Minigame3Lucumo } from "../src/js/games/minigame3/Minigame3Lucumo.js"
 
-// HUD falso
 function createHudMock() {
     return {
         show: vi.fn(),
@@ -17,7 +13,6 @@ function createHudMock() {
     }
 }
 
-// Scene falso (no usamos Babylon en los tests)
 function createSceneMock() {
     return {
         meshes: [],

@@ -2,10 +2,8 @@
 import { describe, it, expect, vi } from "vitest"
 import { Color3 } from "@babylonjs/core"
 
-// AJUSTA ESTA RUTA según tu proyecto
 import { Minigame3Tambopata } from "../src/js/games/minigame3/Minigame3Tambopata.js"
 
-// HUD falso
 function createHudMock() {
     return {
         show: vi.fn(),
@@ -228,8 +226,6 @@ describe("Minigame3Tambopata – completar todas las luces y bonus de tiempo", (
         // Este impacto pasa luz2 de green1 → green2
         game._handleHit("light_ball", luz2.mesh)
 
-        // Score: +10 por el impacto
-        // Bonus: 5 * 2 = 10 → total 20
         expect(game.score).toBe(20)
         expect(hud.setScore).toHaveBeenLastCalledWith(20)
         expect(hud.message).toHaveBeenCalledWith(

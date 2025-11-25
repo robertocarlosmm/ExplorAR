@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-// test/photoStudio.test.js
+
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PhotoStudio } from "../src/js/games/photoStudio/PhotoStudio.js";
 
@@ -41,7 +41,6 @@ describe("PhotoStudio – _resolveStickersFromConfig", () => {
 
         expect(studio.stickers.length).toBe(1);
         expect(studio.stickers[0].key).toBe("star1");
-        // no hace falta validar la URL exacta, solo que sea de la carpeta de photo
         expect(studio.stickers[0].url).toContain("/ExplorAR/assets/games/photo/");
     });
 

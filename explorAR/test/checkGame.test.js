@@ -22,7 +22,6 @@ function createSceneMock() {
         _nodes: [],
         transformNodes: [],
 
-        // Lo que usa Node/TransformNode internamente
         getUniqueId() {
             return uid++
         },
@@ -32,7 +31,6 @@ function createSceneMock() {
             this._nodes.push(node)
         },
 
-        // Lo que usa CheckGame directamente
         activeCamera: {
             globalPosition: { x: 0, y: 1.6, z: 0 },
             getForwardRay: () => ({ direction: { x: 0, y: 0, z: 1 } }),
@@ -82,7 +80,6 @@ describe("CheckGame – _onTimeUp (fin de tiempo)", () => {
         expect(typeof popupConfig.onRetry).toBe("function")
         expect(typeof popupConfig.onContinue).toBe("function")
 
-        // Simulamos callbacks del popup
         popupConfig.onRetry()
         expect(restartSpy).toHaveBeenCalledTimes(1)
 
