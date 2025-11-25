@@ -50,7 +50,7 @@ export class UIController {
                 const tutorialData = {
                     title: "Descubre el lugar oculto",
                     description: "Mueve las piezas para ver la imagen oculta",
-                    imageUrl: "/assets/tutorial/minigame1Tutorial.png",
+                    imageUrl: "/ExplorAR/assets/tutorial/minigame1Tutorial.png",
                     buttonText: "Comenzar",
                     onStart: () => this.handlers.onContinue?.(exp) // main.js → Nav.goExperience → XR + Puzzle
                 };

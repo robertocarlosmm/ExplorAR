@@ -42,7 +42,7 @@ describe("PhotoStudio – _resolveStickersFromConfig", () => {
         expect(studio.stickers.length).toBe(1);
         expect(studio.stickers[0].key).toBe("star1");
         // no hace falta validar la URL exacta, solo que sea de la carpeta de photo
-        expect(studio.stickers[0].url).toContain("/assets/games/photo/");
+        expect(studio.stickers[0].url).toContain("/ExplorAR/assets/games/photo/");
     });
 
     it("para 2 estrellas carga star1 + star2", () => {

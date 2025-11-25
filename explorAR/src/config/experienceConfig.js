@@ -2,7 +2,7 @@ export const experiencesConfig = [
     {
         id: "taquile",
         name: "Isla Taquile",
-        image: "/assets/images/taquile_foto.jpg",
+        image: "/ExplorAR/assets/images/taquile_foto.jpg",
         description: "Isla del Lago Titicaca, famosa por su textilería artesanal.",
         minigames: [
             {
@@ -11,7 +11,7 @@ export const experiencesConfig = [
                 panel: "puzzle",
                 params: { grid: 3 },
                 assets: [
-                    { type: "image", key: "board", url: "/assets/games/Minigame1/Taquile_minijuego1.jpg" }
+                    { type: "image", key: "board", url: "/ExplorAR/assets/games/Minigame1/Taquile_minijuego1.jpg" }
                 ]
             },
             {
@@ -32,19 +32,19 @@ export const experiencesConfig = [
                 },
                 assets: [
                     //mochila
-                    { type: "model", key: "backpack", url: "/assets/games/Minigame2/backpack.glb" },
+                    { type: "model", key: "backpack", url: "/ExplorAR/assets/games/Minigame2/backpack.glb" },
 
                     // Correctos
-                    { type: "image", key: "ticket_lancha", url: "/assets/games/Minigame2/ticket_lancha.png" },
-                    { type: "image", key: "casaca", url: "/assets/games/Minigame2/casaca.png" },
-                    { type: "image", key: "calzado_trekking", url: "/assets/games/Minigame2/calzado_trekking.png" },
-                    { type: "image", key: "protector_solar", url: "/assets/games/Minigame2/protector_solar.png" },
+                    { type: "image", key: "ticket_lancha", url: "/ExplorAR/assets/games/Minigame2/ticket_lancha.png" },
+                    { type: "image", key: "casaca", url: "/ExplorAR/assets/games/Minigame2/casaca.png" },
+                    { type: "image", key: "calzado_trekking", url: "/ExplorAR/assets/games/Minigame2/calzado_trekking.png" },
+                    { type: "image", key: "protector_solar", url: "/ExplorAR/assets/games/Minigame2/protector_solar.png" },
 
                     // Incorrectos
-                    { type: "image", key: "sandalias", url: "/assets/games/Minigame2/sandalias.png" },
-                    { type: "image", key: "botas_caucho", url: "/assets/games/Minigame2/botas_caucho.png" },
-                    { type: "image", key: "guantes_trabajo", url: "/assets/games/Minigame2/guantes_trabajo.png" },
-                    { type: "image", key: "paraguas", url: "/assets/games/Minigame2/paraguas.png" }
+                    { type: "image", key: "sandalias", url: "/ExplorAR/assets/games/Minigame2/sandalias.png" },
+                    { type: "image", key: "botas_caucho", url: "/ExplorAR/assets/games/Minigame2/botas_caucho.png" },
+                    { type: "image", key: "guantes_trabajo", url: "/ExplorAR/assets/games/Minigame2/guantes_trabajo.png" },
+                    { type: "image", key: "paraguas", url: "/ExplorAR/assets/games/Minigame2/paraguas.png" }
                 ]
             },
             {
@@ -57,7 +57,7 @@ export const experiencesConfig = [
                     plotSize: 0.38,
                 },
                 assets: [
-                    { type: "image", key: "target", url: "/assets/games/Minigame3/Taquile/target.png" },
+                    { type: "image", key: "target", url: "/ExplorAR/assets/games/Minigame3/Taquile/target.png" },
                 ]
             },
             {
@@ -71,18 +71,18 @@ export const experiencesConfig = [
                     incorrectos: ["p6", "p7", "p8", "p9", "p10"]
                 },
                 assets: [
-                    { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
-                    { type: "image", key: "p1", url: "/assets/games/Minigame4/m3Taquile1.jpg" },
-                    { type: "image", key: "p2", url: "/assets/games/Minigame4/m3Taquile2.jpg" },
-                    { type: "image", key: "p3", url: "/assets/games/Minigame4/m3Taquile3.jpg" },
-                    { type: "image", key: "p4", url: "/assets/games/Minigame4/m3Taquile4.jpg" },
-                    { type: "image", key: "p5", url: "/assets/games/Minigame4/m3Taquile5.jpg" },
-                    { type: "image", key: "p6", url: "/assets/games/Minigame4/m3Lucumo3.jpg" },
-                    { type: "image", key: "p7", url: "/assets/games/Minigame4/m3Lucumo5.jpg" },
-                    { type: "image", key: "p8", url: "/assets/games/Minigame4/m3Tambopata4.jpg" },
-                    { type: "image", key: "p9", url: "/assets/games/Minigame4/m3Tambopata2.jpg" },
-                    { type: "image", key: "p10", url: "/assets/games/Minigame4/m3Vicos4.jpg" },
+                    { type: "icon", key: "check_icon", url: "/ExplorAR/assets/games/Minigame4/check_icon.png" },
+                    { type: "icon", key: "wrong_icon", url: "/ExplorAR/assets/games/Minigame4/wrong_icon.png" },
+                    { type: "image", key: "p1", url: "/ExplorAR/assets/games/Minigame4/m3Taquile1.jpg" },
+                    { type: "image", key: "p2", url: "/ExplorAR/assets/games/Minigame4/m3Taquile2.jpg" },
+                    { type: "image", key: "p3", url: "/ExplorAR/assets/games/Minigame4/m3Taquile3.jpg" },
+                    { type: "image", key: "p4", url: "/ExplorAR/assets/games/Minigame4/m3Taquile4.jpg" },
+                    { type: "image", key: "p5", url: "/ExplorAR/assets/games/Minigame4/m3Taquile5.jpg" },
+                    { type: "image", key: "p6", url: "/ExplorAR/assets/games/Minigame4/m3Lucumo3.jpg" },
+                    { type: "image", key: "p7", url: "/ExplorAR/assets/games/Minigame4/m3Lucumo5.jpg" },
+                    { type: "image", key: "p8", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata4.jpg" },
+                    { type: "image", key: "p9", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata2.jpg" },
+                    { type: "image", key: "p10", url: "/ExplorAR/assets/games/Minigame4/m3Vicos4.jpg" },
                 ]
             },
             {
@@ -95,9 +95,9 @@ export const experiencesConfig = [
                     star3: "star3"
                 },
                 assets: [
-                    { type: "sticker", key: "star1", url: "/assets/games/photo/photoTaquile1.png" },
-                    { type: "sticker", key: "star2", url: "/assets/games/photo/photoTaquile2.png" },
-                    { type: "sticker", key: "star3", url: "/assets/games/photo/photoTaquile3.png" },
+                    { type: "sticker", key: "star1", url: "/ExplorAR/assets/games/photo/photoTaquile1.png" },
+                    { type: "sticker", key: "star2", url: "/ExplorAR/assets/games/photo/photoTaquile2.png" },
+                    { type: "sticker", key: "star3", url: "/ExplorAR/assets/games/photo/photoTaquile3.png" },
                 ]
             }
         ]
@@ -105,7 +105,7 @@ export const experiencesConfig = [
     {
         id: "vicos",
         name: "Vicos",
-        image: "/assets/images/vicos_foto.jpg",
+        image: "/ExplorAR/assets/images/vicos_foto.jpg",
         description: "Comunidad andina en Áncash, con turismo vivencial en el Callejón de Huaylas.",
         minigames: [
             {
@@ -114,7 +114,7 @@ export const experiencesConfig = [
                 panel: "puzzle",
                 params: { grid: 3 },
                 assets: [
-                    { type: "image", key: "board", url: "/assets/games/Minigame1/vicos_minijuego1.jpg" }
+                    { type: "image", key: "board", url: "/ExplorAR/assets/games/Minigame1/vicos_minijuego1.jpg" }
                 ]
             },
             {
@@ -135,19 +135,19 @@ export const experiencesConfig = [
                 },
                 assets: [
                     //mochila
-                    { type: "model", key: "backpack", url: "/assets/games/Minigame2/backpack.glb" },
+                    { type: "model", key: "backpack", url: "/ExplorAR/assets/games/Minigame2/backpack.glb" },
 
                     // Correctos
-                    { type: "image", key: "comunicacion", url: "/assets/games/Minigame2/comunicacion.png" },
-                    { type: "image", key: "bolsa_dormir", url: "/assets/games/Minigame2/bolsa_de_dormir.png" },
-                    { type: "image", key: "linterna", url: "/assets/games/Minigame2/linterna.png" },
-                    { type: "image", key: "baston_trekking", url: "/assets/games/Minigame2/baston_trekking.png" },
+                    { type: "image", key: "comunicacion", url: "/ExplorAR/assets/games/Minigame2/comunicacion.png" },
+                    { type: "image", key: "bolsa_dormir", url: "/ExplorAR/assets/games/Minigame2/bolsa_de_dormir.png" },
+                    { type: "image", key: "linterna", url: "/ExplorAR/assets/games/Minigame2/linterna.png" },
+                    { type: "image", key: "baston_trekking", url: "/ExplorAR/assets/games/Minigame2/baston_trekking.png" },
 
                     // Incorrectos
-                    { type: "image", key: "sandalias", url: "/assets/games/Minigame2/sandalias.png" },
-                    { type: "image", key: "vinoculares", url: "/assets/games/Minigame2/vinoculares.png" },
-                    { type: "image", key: "protector_solar", url: "/assets/games/Minigame2/protector_solar.png" },
-                    { type: "image", key: "poncho_impermeable", url: "/assets/games/Minigame2/poncho_impermeable.png" }
+                    { type: "image", key: "sandalias", url: "/ExplorAR/assets/games/Minigame2/sandalias.png" },
+                    { type: "image", key: "vinoculares", url: "/ExplorAR/assets/games/Minigame2/vinoculares.png" },
+                    { type: "image", key: "protector_solar", url: "/ExplorAR/assets/games/Minigame2/protector_solar.png" },
+                    { type: "image", key: "poncho_impermeable", url: "/ExplorAR/assets/games/Minigame2/poncho_impermeable.png" }
                 ]
             },
             {
@@ -162,12 +162,12 @@ export const experiencesConfig = [
                     randomSeed: true,
                 },
                 assets: [
-                    { type: "image", key: "dry_soil", url: "/assets/games/Minigame3/Vicos/dry_soil.png" },
-                    { type: "image", key: "soil_base", url: "/assets/games/Minigame3/Vicos/soil_base.png" },
-                    { type: "image", key: "soil_wet1", url: "/assets/games/Minigame3/Vicos/soil_wet1.png" },
-                    { type: "image", key: "icon_seed", url: "/assets/games/Minigame3/Vicos/icon_seed.png" },
-                    { type: "image", key: "icon_water", url: "/assets/games/Minigame3/Vicos/icon_water.png" },
-                    { type: "model", key: "plant_sprout", url: "/assets/games/Minigame3/Vicos/plant_sprout.glb" },
+                    { type: "image", key: "dry_soil", url: "/ExplorAR/assets/games/Minigame3/Vicos/dry_soil.png" },
+                    { type: "image", key: "soil_base", url: "/ExplorAR/assets/games/Minigame3/Vicos/soil_base.png" },
+                    { type: "image", key: "soil_wet1", url: "/ExplorAR/assets/games/Minigame3/Vicos/soil_wet1.png" },
+                    { type: "image", key: "icon_seed", url: "/ExplorAR/assets/games/Minigame3/Vicos/icon_seed.png" },
+                    { type: "image", key: "icon_water", url: "/ExplorAR/assets/games/Minigame3/Vicos/icon_water.png" },
+                    { type: "model", key: "plant_sprout", url: "/ExplorAR/assets/games/Minigame3/Vicos/plant_sprout.glb" },
                 ]
             },
             {
@@ -181,18 +181,18 @@ export const experiencesConfig = [
                     incorrectos: ["p6", "p7", "p8", "p9", "p10"]
                 },
                 assets: [
-                    { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
-                    { type: "image", key: "p1", url: "/assets/games/Minigame4/m3Vicos1.jpg" },
-                    { type: "image", key: "p2", url: "/assets/games/Minigame4/m3Vicos2.jpg" },
-                    { type: "image", key: "p3", url: "/assets/games/Minigame4/m3Vicos3.jpg" },
-                    { type: "image", key: "p4", url: "/assets/games/Minigame4/m3Vicos4.jpg" },
-                    { type: "image", key: "p5", url: "/assets/games/Minigame4/m3Vicos5.jpg" },
-                    { type: "image", key: "p6", url: "/assets/games/Minigame4/m3Tambopata2.jpg" },
-                    { type: "image", key: "p7", url: "/assets/games/Minigame4/m3Tambopata3.jpg" },
-                    { type: "image", key: "p8", url: "/assets/games/Minigame4/m3Tambopata4.jpg" },
-                    { type: "image", key: "p9", url: "/assets/games/Minigame4/m3Lucumo5.jpg" },
-                    { type: "image", key: "p10", url: "/assets/games/Minigame4/m3Lucumo6.jpg" },
+                    { type: "icon", key: "check_icon", url: "/ExplorAR/assets/games/Minigame4/check_icon.png" },
+                    { type: "icon", key: "wrong_icon", url: "/ExplorAR/assets/games/Minigame4/wrong_icon.png" },
+                    { type: "image", key: "p1", url: "/ExplorAR/assets/games/Minigame4/m3Vicos1.jpg" },
+                    { type: "image", key: "p2", url: "/ExplorAR/assets/games/Minigame4/m3Vicos2.jpg" },
+                    { type: "image", key: "p3", url: "/ExplorAR/assets/games/Minigame4/m3Vicos3.jpg" },
+                    { type: "image", key: "p4", url: "/ExplorAR/assets/games/Minigame4/m3Vicos4.jpg" },
+                    { type: "image", key: "p5", url: "/ExplorAR/assets/games/Minigame4/m3Vicos5.jpg" },
+                    { type: "image", key: "p6", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata2.jpg" },
+                    { type: "image", key: "p7", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata3.jpg" },
+                    { type: "image", key: "p8", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata4.jpg" },
+                    { type: "image", key: "p9", url: "/ExplorAR/assets/games/Minigame4/m3Lucumo5.jpg" },
+                    { type: "image", key: "p10", url: "/ExplorAR/assets/games/Minigame4/m3Lucumo6.jpg" },
                 ]
             },
             {
@@ -205,9 +205,9 @@ export const experiencesConfig = [
                     star3: "star3"
                 },
                 assets: [
-                    { type: "sticker", key: "star1", url: "/assets/games/photo/photoVicos1.png" },
-                    { type: "sticker", key: "star2", url: "/assets/games/photo/photoVicos2.png" },
-                    { type: "sticker", key: "star3", url: "/assets/games/photo/photoVicos3.png" },
+                    { type: "sticker", key: "star1", url: "/ExplorAR/assets/games/photo/photoVicos1.png" },
+                    { type: "sticker", key: "star2", url: "/ExplorAR/assets/games/photo/photoVicos2.png" },
+                    { type: "sticker", key: "star3", url: "/ExplorAR/assets/games/photo/photoVicos3.png" },
                 ]
             }
         ]
@@ -215,7 +215,7 @@ export const experiencesConfig = [
     {
         id: "tambopata",
         name: "Corredor Ecoturístico Tambopata",
-        image: "/assets/images/tambopata_foto.jpg",
+        image: "/ExplorAR/assets/images/tambopata_foto.jpg",
         description: "Reserva amazónica del Madre de Dios, con gran biodiversidad.",
         minigames: [
             {
@@ -224,7 +224,7 @@ export const experiencesConfig = [
                 panel: "puzzle",
                 params: { grid: 3 },
                 assets: [
-                    { type: "image", key: "board", url: "/assets/games/Minigame1/tambopata_minijuego1.jpg" }
+                    { type: "image", key: "board", url: "/ExplorAR/assets/games/Minigame1/tambopata_minijuego1.jpg" }
                 ]
             },
             {
@@ -245,19 +245,19 @@ export const experiencesConfig = [
                 },
                 assets: [
                     //mochila
-                    { type: "model", key: "backpack", url: "/assets/games/Minigame2/backpack.glb" },
+                    { type: "model", key: "backpack", url: "/ExplorAR/assets/games/Minigame2/backpack.glb" },
 
                     // Correctos
-                    { type: "image", key: "ticket", url: "/assets/games/Minigame2/ticket.png" },
-                    { type: "image", key: "botas_caucho", url: "/assets/games/Minigame2/botas_caucho.png" },
-                    { type: "image", key: "repelente", url: "/assets/games/Minigame2/repelente.png" },
-                    { type: "image", key: "poncho_impermeable", url: "/assets/games/Minigame2/poncho_impermeable.png" },
+                    { type: "image", key: "ticket", url: "/ExplorAR/assets/games/Minigame2/ticket.png" },
+                    { type: "image", key: "botas_caucho", url: "/ExplorAR/assets/games/Minigame2/botas_caucho.png" },
+                    { type: "image", key: "repelente", url: "/ExplorAR/assets/games/Minigame2/repelente.png" },
+                    { type: "image", key: "poncho_impermeable", url: "/ExplorAR/assets/games/Minigame2/poncho_impermeable.png" },
 
                     // Incorrectos
-                    { type: "image", key: "casaca", url: "/assets/games/Minigame2/casaca.png" },
-                    { type: "image", key: "bufanda", url: "/assets/games/Minigame2/bufanda.png" },
-                    { type: "image", key: "guantes_trabajo", url: "/assets/games/Minigame2/guantes_trabajo.png" },
-                    { type: "image", key: "bolsa_dormir", url: "/assets/games/Minigame2/bolsa_de_dormir.png" }
+                    { type: "image", key: "casaca", url: "/ExplorAR/assets/games/Minigame2/casaca.png" },
+                    { type: "image", key: "bufanda", url: "/ExplorAR/assets/games/Minigame2/bufanda.png" },
+                    { type: "image", key: "guantes_trabajo", url: "/ExplorAR/assets/games/Minigame2/guantes_trabajo.png" },
+                    { type: "image", key: "bolsa_dormir", url: "/ExplorAR/assets/games/Minigame2/bolsa_de_dormir.png" }
                 ]
             },
             {
@@ -270,10 +270,10 @@ export const experiencesConfig = [
                     plotSize: 0.38,
                 },
                 assets: [
-                    { type: "image", key: "flashlight", url: "/assets/games/Minigame3/Tambopata/flashlight.png" },
-                    { type: "icon", key: "icon_light_ball", url: "/assets/games/Minigame3/Tambopata/light_ball.png" },
-                    { type: "model", key: "black_caiman", url: "/assets/games/Minigame3/Tambopata/black_caiman.glb" },
-                    { type: "model", key: "guacamaya", url: "/assets/games/Minigame3/Tambopata/guacamaya.glb" },
+                    { type: "image", key: "flashlight", url: "/ExplorAR/assets/games/Minigame3/Tambopata/flashlight.png" },
+                    { type: "icon", key: "icon_light_ball", url: "/ExplorAR/assets/games/Minigame3/Tambopata/light_ball.png" },
+                    { type: "model", key: "black_caiman", url: "/ExplorAR/assets/games/Minigame3/Tambopata/black_caiman.glb" },
+                    { type: "model", key: "guacamaya", url: "/ExplorAR/assets/games/Minigame3/Tambopata/guacamaya.glb" },
                 ]
             },
             {
@@ -287,18 +287,18 @@ export const experiencesConfig = [
                     incorrectos: ["p6", "p7", "p8", "p9", "p10"]
                 },
                 assets: [
-                    { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
-                    { type: "image", key: "p1", url: "/assets/games/Minigame4/m3Tambopata1.jpg" },
-                    { type: "image", key: "p2", url: "/assets/games/Minigame4/m3Tambopata2.jpg" },
-                    { type: "image", key: "p3", url: "/assets/games/Minigame4/m3Tambopata3.jpg" },
-                    { type: "image", key: "p4", url: "/assets/games/Minigame4/m3Tambopata4.jpg" },
-                    { type: "image", key: "p5", url: "/assets/games/Minigame4/m3Tambopata5.jpg" },
-                    { type: "image", key: "p6", url: "/assets/games/Minigame4/m3Vicos4.jpg" },
-                    { type: "image", key: "p7", url: "/assets/games/Minigame4/m3Vicos2.jpg" },
-                    { type: "image", key: "p8", url: "/assets/games/Minigame4/m3Taquile5.jpg" },
-                    { type: "image", key: "p9", url: "/assets/games/Minigame4/m3Lucumo6.jpg" },
-                    { type: "image", key: "p10", url: "/assets/games/Minigame4/m3Taquile2.jpg" },
+                    { type: "icon", key: "check_icon", url: "/ExplorAR/assets/games/Minigame4/check_icon.png" },
+                    { type: "icon", key: "wrong_icon", url: "/ExplorAR/assets/games/Minigame4/wrong_icon.png" },
+                    { type: "image", key: "p1", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata1.jpg" },
+                    { type: "image", key: "p2", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata2.jpg" },
+                    { type: "image", key: "p3", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata3.jpg" },
+                    { type: "image", key: "p4", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata4.jpg" },
+                    { type: "image", key: "p5", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata5.jpg" },
+                    { type: "image", key: "p6", url: "/ExplorAR/assets/games/Minigame4/m3Vicos4.jpg" },
+                    { type: "image", key: "p7", url: "/ExplorAR/assets/games/Minigame4/m3Vicos2.jpg" },
+                    { type: "image", key: "p8", url: "/ExplorAR/assets/games/Minigame4/m3Taquile5.jpg" },
+                    { type: "image", key: "p9", url: "/ExplorAR/assets/games/Minigame4/m3Lucumo6.jpg" },
+                    { type: "image", key: "p10", url: "/ExplorAR/assets/games/Minigame4/m3Taquile2.jpg" },
                 ]
             },
             {
@@ -311,9 +311,9 @@ export const experiencesConfig = [
                     star3: "star3"
                 },
                 assets: [
-                    { type: "sticker", key: "star1", url: "/assets/games/photo/photoTambopata1.png" },
-                    { type: "sticker", key: "star2", url: "/assets/games/photo/photoTambopata2.png" },
-                    { type: "sticker", key: "star3", url: "/assets/games/photo/photoTambopata3.png" },
+                    { type: "sticker", key: "star1", url: "/ExplorAR/assets/games/photo/photoTambopata1.png" },
+                    { type: "sticker", key: "star2", url: "/ExplorAR/assets/games/photo/photoTambopata2.png" },
+                    { type: "sticker", key: "star3", url: "/ExplorAR/assets/games/photo/photoTambopata3.png" },
                 ]
             }
         ]
@@ -321,7 +321,7 @@ export const experiencesConfig = [
     {
         id: "lucumo",
         name: "Lomas de Lúcumo",
-        image: "/assets/images/lomasLucumo_foto.jpg",
+        image: "/ExplorAR/assets/images/lomasLucumo_foto.jpg",
         description: "Áreas verdes en Lima con senderos de trekking y avistamiento de aves.",
         minigames: [
             {
@@ -330,7 +330,7 @@ export const experiencesConfig = [
                 panel: "puzzle",
                 params: { grid: 3 },
                 assets: [
-                    { type: "image", key: "board", url: "/assets/games/Minigame1/LomasLucumo_minijuego1.jpg" }
+                    { type: "image", key: "board", url: "/ExplorAR/assets/games/Minigame1/LomasLucumo_minijuego1.jpg" }
                 ]
             },
             {
@@ -351,19 +351,19 @@ export const experiencesConfig = [
                 },
                 assets: [
                     //mochila
-                    { type: "model", key: "backpack", url: "/assets/games/Minigame2/backpack.glb" },
+                    { type: "model", key: "backpack", url: "/ExplorAR/assets/games/Minigame2/backpack.glb" },
 
                     // Correctos
-                    { type: "image", key: "ticket", url: "/assets/games/Minigame2/ticket.png" },
-                    { type: "image", key: "calzado_trekking", url: "/assets/games/Minigame2/calzado_trekking.png" },
-                    { type: "image", key: "protector_solar", url: "/assets/games/Minigame2/protector_solar.png" },
-                    { type: "image", key: "termo_agua", url: "/assets/games/Minigame2/termo_agua.png" },
+                    { type: "image", key: "ticket", url: "/ExplorAR/assets/games/Minigame2/ticket.png" },
+                    { type: "image", key: "calzado_trekking", url: "/ExplorAR/assets/games/Minigame2/calzado_trekking.png" },
+                    { type: "image", key: "protector_solar", url: "/ExplorAR/assets/games/Minigame2/protector_solar.png" },
+                    { type: "image", key: "termo_agua", url: "/ExplorAR/assets/games/Minigame2/termo_agua.png" },
 
                     // Incorrectos
-                    { type: "image", key: "botas_caucho", url: "/assets/games/Minigame2/botas_caucho.png" },
-                    { type: "image", key: "poncho_impermeable", url: "/assets/games/Minigame2/poncho_impermeable.png" },
-                    { type: "image", key: "bufanda", url: "/assets/games/Minigame2/bufanda.png" },
-                    { type: "image", key: "casaca", url: "/assets/games/Minigame2/casaca.png" }
+                    { type: "image", key: "botas_caucho", url: "/ExplorAR/assets/games/Minigame2/botas_caucho.png" },
+                    { type: "image", key: "poncho_impermeable", url: "/ExplorAR/assets/games/Minigame2/poncho_impermeable.png" },
+                    { type: "image", key: "bufanda", url: "/ExplorAR/assets/games/Minigame2/bufanda.png" },
+                    { type: "image", key: "casaca", url: "/ExplorAR/assets/games/Minigame2/casaca.png" }
                 ]
             },
             {
@@ -376,11 +376,11 @@ export const experiencesConfig = [
                     plotSize: 0.38,
                 },
                 assets: [
-                    { type: "image", key: "grass", url: "/assets/games/Minigame3/Lucumo/grass.jpg" },
-                    { type: "image", key: "dirt_trail", url: "/assets/games/Minigame3/Lucumo/dirt_trail_2.jpg" },
-                    { type: "model", key: "y_bot", url: "/assets/games/Minigame3/Lucumo/y_bot.glb" },
-                    { type: "image", key: "icon_izquierda", url: "/assets/games/Minigame3/Lucumo/icon_izquierda.png" },
-                    { type: "image", key: "icon_derecha", url: "/assets/games/Minigame3/Lucumo/icon_derecha.png" },
+                    { type: "image", key: "grass", url: "/ExplorAR/assets/games/Minigame3/Lucumo/grass.jpg" },
+                    { type: "image", key: "dirt_trail", url: "/ExplorAR/assets/games/Minigame3/Lucumo/dirt_trail_2.jpg" },
+                    { type: "model", key: "y_bot", url: "/ExplorAR/assets/games/Minigame3/Lucumo/y_bot.glb" },
+                    { type: "image", key: "icon_izquierda", url: "/ExplorAR/assets/games/Minigame3/Lucumo/icon_izquierda.png" },
+                    { type: "image", key: "icon_derecha", url: "/ExplorAR/assets/games/Minigame3/Lucumo/icon_derecha.png" },
                 ]
             },
             {
@@ -394,18 +394,18 @@ export const experiencesConfig = [
                     incorrectos: ["p6", "p7", "p8", "p9", "p10"]
                 },
                 assets: [
-                    { type: "icon", key: "check_icon", url: "/assets/games/Minigame4/check_icon.png" },
-                    { type: "icon", key: "wrong_icon", url: "/assets/games/Minigame4/wrong_icon.png" },
-                    { type: "image", key: "p1", url: "/assets/games/Minigame4/m3Lucumo1.jpg" },
-                    { type: "image", key: "p2", url: "/assets/games/Minigame4/m3Lucumo3.jpg" },
-                    { type: "image", key: "p3", url: "/assets/games/Minigame4/m3Lucumo4.jpg" },
-                    { type: "image", key: "p4", url: "/assets/games/Minigame4/m3Lucumo5.jpg" },
-                    { type: "image", key: "p5", url: "/assets/games/Minigame4/m3Lucumo6.jpg" },
-                    { type: "image", key: "p6", url: "/assets/games/Minigame4/m3Tambopata3.jpg" },
-                    { type: "image", key: "p7", url: "/assets/games/Minigame4/m3Tambopata2.jpg" },
-                    { type: "image", key: "p8", url: "/assets/games/Minigame4/m3Taquile4.jpg" },
-                    { type: "image", key: "p9", url: "/assets/games/Minigame4/m3Taquile2.jpg" },
-                    { type: "image", key: "p10", url: "/assets/games/Minigame4/m3Vicos5.jpg" },
+                    { type: "icon", key: "check_icon", url: "/ExplorAR/assets/games/Minigame4/check_icon.png" },
+                    { type: "icon", key: "wrong_icon", url: "/ExplorAR/assets/games/Minigame4/wrong_icon.png" },
+                    { type: "image", key: "p1", url: "/ExplorAR/assets/games/Minigame4/m3Lucumo1.jpg" },
+                    { type: "image", key: "p2", url: "/ExplorAR/assets/games/Minigame4/m3Lucumo3.jpg" },
+                    { type: "image", key: "p3", url: "/ExplorAR/assets/games/Minigame4/m3Lucumo4.jpg" },
+                    { type: "image", key: "p4", url: "/ExplorAR/assets/games/Minigame4/m3Lucumo5.jpg" },
+                    { type: "image", key: "p5", url: "/ExplorAR/assets/games/Minigame4/m3Lucumo6.jpg" },
+                    { type: "image", key: "p6", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata3.jpg" },
+                    { type: "image", key: "p7", url: "/ExplorAR/assets/games/Minigame4/m3Tambopata2.jpg" },
+                    { type: "image", key: "p8", url: "/ExplorAR/assets/games/Minigame4/m3Taquile4.jpg" },
+                    { type: "image", key: "p9", url: "/ExplorAR/assets/games/Minigame4/m3Taquile2.jpg" },
+                    { type: "image", key: "p10", url: "/ExplorAR/assets/games/Minigame4/m3Vicos5.jpg" },
                 ]
             },
             {
@@ -418,9 +418,9 @@ export const experiencesConfig = [
                     star3: "star3"
                 },
                 assets: [
-                    { type: "sticker", key: "star1", url: "/assets/games/photo/photoLucumo1.png" },
-                    { type: "sticker", key: "star2", url: "/assets/games/photo/photoLucumo2.png" },
-                    { type: "sticker", key: "star3", url: "/assets/games/photo/photoLucumo3.png" },
+                    { type: "sticker", key: "star1", url: "/ExplorAR/assets/games/photo/photoLucumo1.png" },
+                    { type: "sticker", key: "star2", url: "/ExplorAR/assets/games/photo/photoLucumo2.png" },
+                    { type: "sticker", key: "star3", url: "/ExplorAR/assets/games/photo/photoLucumo3.png" },
                 ]
             }
         ]

@@ -63,25 +63,25 @@ minigames: {
     minigame1: {
         tutorialTitle: "Descubre el lugar oculto",
             tutorialDesc: "Mueve las piezas para ver la imagen oculta",
-                tutorialImage: "/assets/tutorial/minigame1Tutorial.png",
+                tutorialImage: "/ExplorAR/assets/tutorial/minigame1Tutorial.png",
                     showInfoPanel: false, // Este NO usa panel de información
         },
     minigame2: {
         tutorialTitle: "Prepárate antes de viajar",
             tutorialDesc: "Elige bien tu equipamiento. Conoce el contexto para no olvidar nada.",
-                tutorialImage: "/assets/tutorial/minigame2Tutorial.png",
+                tutorialImage: "/ExplorAR/assets/tutorial/minigame2Tutorial.png",
                     showInfoPanel: true, // Este SÍ usa panel de información
         },
     minigame3: {
         tutorialTitle: "Título del minijuego 3",
             tutorialDesc: "Descripción...",
-                tutorialImage: "/assets/tutorial/minigame3Tutorial.png",
+                tutorialImage: "/ExplorAR/assets/tutorial/minigame3Tutorial.png",
                     showInfoPanel: false,
         },
     minigame4: {
         tutorialTitle: "Título del minijuego 4",
             tutorialDesc: "Descripción...",
-                tutorialImage: "/assets/tutorial/minigame4Tutorial.png",
+                tutorialImage: "/ExplorAR/assets/tutorial/minigame4Tutorial.png",
                     showInfoPanel: true,
         }
 },

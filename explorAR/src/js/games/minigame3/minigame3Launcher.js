@@ -31,27 +31,27 @@ export async function startMinigame3(gameManager) {
         taquile: {
             title: "Sube las escaleras de Taquile",
             description: "Acierta a los objetivos pra poder continuar",
-            imageUrl: "./assets/tutorial/minigame3TaqTutorial.png",
+            imageUrl: "/ExplorAR/assets/tutorial/minigame3TaqTutorial.png",
         },
         vicos: {
             title: "Agricultura ancestral en Vicos",
             description: "Acierta a los lgares óptimos para sembrar y regar",
-            imageUrl: "./assets/tutorial/minigame3VicTutorial.png",
+            imageUrl: "/ExplorAR/assets/tutorial/minigame3VicTutorial.png",
         },
         tambopata: {
             title: "Observación de fauna en Tambopata",
             description: "Acierta a los objetivos, pero ten cuidado con la fauna local",
-            imageUrl: "./assets/tutorial/minigame3TamTutorial.png",
+            imageUrl: "/ExplorAR/assets/tutorial/minigame3TamTutorial.png",
         },
         lucumo: {
             title: "Seguir el camino en Lomas de Lúcumo",
             description: "Acierta a los visitantes para devolverlos al camino correcto",
-            imageUrl: "./assets/tutorial/minigame3LucTutorial.png",
+            imageUrl: "/ExplorAR/assets/tutorial/minigame3LucTutorial.png",
         },
         default: {
             title: "Minijuego 3",
             description: "Contenido no disponible.",
-            imageUrl: "./assets/tutorial/minigame1Tutorial.png",
+            imageUrl: "/ExplorAR/assets/tutorial/minigame1Tutorial.png",
         },
     };
 

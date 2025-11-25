@@ -189,7 +189,7 @@ export class HUDController {
 
         for (let i = 1; i <= 3; i++) {
             const star = document.createElement('img');
-            star.src = '/assets/images/star.png';
+            star.src = '/ExplorAR/assets/images/star.png';
             star.className = `star ${i <= starsCount ? 'active' : 'inactive'}`;
             starsContainer.appendChild(star);
         }

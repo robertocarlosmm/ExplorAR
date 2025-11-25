@@ -82,7 +82,7 @@ export class GameManager {
 
         // 1️⃣ Mostrar el tutorial reutilizable
         TutorialPanel.show({
-            image: "/assets/tutorial/minigame2Tutorial.png",
+            image: "/ExplorAR/assets/tutorial/minigame2Tutorial.png",
             title: "Prepárate antes de viajar",
             message: "Elige bien tu equipamiento. Conoce el contexto para no olvidar nada.",
             onContinue: () => {

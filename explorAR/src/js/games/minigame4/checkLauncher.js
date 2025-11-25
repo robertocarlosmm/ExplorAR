@@ -26,7 +26,7 @@ export async function startMinigame4(gameManager) {
     const data = {
         title: "Reconoce lo perteneciente al lugar",
         description: "Recuerda lo que descubriste y elige qué pertenece o no al lugar que visitaste.",
-        imageUrl: "./assets/tutorial/minigame4Tutorial.png",
+        imageUrl: "/ExplorAR/assets/tutorial/minigame4Tutorial.png",
         buttonText: "Comenzar",
     };
 

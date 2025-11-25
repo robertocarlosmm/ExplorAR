@@ -20,7 +20,7 @@ export async function startEquipmentGame(gameManager) {
     slot.innerHTML = TutorialPanel.template({
         title: "Prepárate antes de viajar",
         description: "Elige bien tu equipamiento. Conoce el contexto para no olvidar nada.",
-        imageUrl: "./assets/tutorial/minigame2Tutorial.png",
+        imageUrl: "/ExplorAR/assets/tutorial/minigame2Tutorial.png",
         buttonText: "Continuar",
     });
 
