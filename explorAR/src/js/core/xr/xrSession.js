@@ -11,9 +11,9 @@ import {
     PointerEventTypes
 } from "@babylonjs/core";
 import "@babylonjs/core/XR";
-import { setupPlaneDetection } from "../core/xr/planeDetection.js";
-import { setupAnchors } from "../core/xr/anchors.js";
-import { attachBoardToFirstPlane } from "../core/xr/anchorBoard.js";
+import { setupPlaneDetection } from "./planeDetection.js";
+import { setupAnchors } from "./anchors.js";
+import { attachBoardToFirstPlane } from "./anchorBoard.js";
 
 /**
  * Controla la creación, inicio y salida de una sesión WebXR (modo AR)
