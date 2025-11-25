@@ -15,7 +15,7 @@ export function startPuzzleGame(gameManager) {
     // Maneja el evento de finalización del puzzle.
     puzzle.onGameEnd = async () => {
         //console.log("[PuzzleGame] Finalizado. Cerrando XR y buscando siguiente...");
-        gameManager.game?.completeMinigame?.(puzzle.score);
+        //gameManager.game?.completeMinigame?.(puzzle.score);
         gameManager.setCarryScore?.(puzzle.score);
         //console.log("Puntaje llevado al GameManager:", gameManager.getCarryScore());
 

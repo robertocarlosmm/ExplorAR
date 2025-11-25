@@ -1,4 +1,3 @@
-// src/js/game/photoStudio/PhotoStudio.js
 import { experiencesConfig } from "../../../config/experienceConfig.js";
 
 export class PhotoStudio {
@@ -83,9 +82,6 @@ export class PhotoStudio {
     // =========================
     // UI: Overlay & Styles
     // =========================
-    // =========================
-    // UI: Overlay & Styles
-    // =========================
     _injectStyles() {
         // Evita duplicar
         const existing = document.getElementById("photo-studio-styles");
@@ -139,7 +135,7 @@ export class PhotoStudio {
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
-            transform-origin: center center; /* <-- NUEVO: escala uniforme desde el centro */
+            transform-origin: center center; /* escala/rotación desde el centro */
             max-width: 28vw;
             max-height: 28vh;
             user-select: none;
@@ -196,7 +192,7 @@ export class PhotoStudio {
             border-radius: 50%;
             width: 48px;
             height: 48px;
-            font-size: 14px;            /* “Salir” legible dentro del círculo */
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(0,0,0,.35);
@@ -274,16 +270,12 @@ export class PhotoStudio {
 
     _removeOverlay() {
         if (this.root) {
-            // Remover event listeners antes de eliminar el DOM
             const btnPrev = this.root.querySelector("#btn-prev");
             const btnNext = this.root.querySelector("#btn-next");
             const btnCapture = this.root.querySelector("#btn-capture");
             const btnExit = this.root.querySelector("#photo-exit");
+            // (listeners se van con el nodo, no guardamos refs extras)
 
-            // Los listeners se limpiarán automáticamente al remover el elemento,
-            // pero es buena práctica hacerlo explícito si guardaste referencias
-
-            // Remover el overlay del DOM
             this.root.remove();
             this.root = null;
             this.videoEl = null;
@@ -296,7 +288,6 @@ export class PhotoStudio {
     // Stickers desde config
     // =========================
     _resolveStickersFromConfig() {
-        // Buscar experiencia
         const exp = experiencesConfig.find(e => e.id === this.experienceId);
         const photoMini = exp?.minigames?.find(m => m.id === "photo" || m.type === "photo");
 
@@ -306,14 +297,11 @@ export class PhotoStudio {
             return;
         }
 
-        // Tolerante a nombres de params:
-        // Preferencia: star1/star2/star3 → fallback: oneStar/twoStars/threeStars
         const p = photoMini.params || {};
         const key1 = p.star1 ?? p.oneStar;
         const key2 = p.star2 ?? p.twoStars;
         const key3 = p.star3 ?? p.threeStars;
 
-        // Filtrar assets por keys
         const assets = photoMini.assets || [];
         const chosenKeys = [];
         if (this.stars >= 1 && key1) chosenKeys.push(key1);
@@ -357,13 +345,16 @@ export class PhotoStudio {
 
         // Escala y rotación actuales del sticker
         let currentScale = 1;
-        let currentRotation = 0; // en radianes
+        let currentRotation = 0; // radianes
 
         const MIN_SCALE = 0.3;
         const MAX_SCALE = 8;
 
         const updateTransform = () => {
             img.style.transform = `translate(-50%, -50%) rotate(${currentRotation}rad) scale(${currentScale})`;
+            // >>> NUEVO: guardar estado para la captura <<<
+            img.dataset.scale = String(currentScale);
+            img.dataset.rotation = String(currentRotation);
         };
 
         const getDistance = () => {
@@ -381,7 +372,7 @@ export class PhotoStudio {
             const [p1, p2] = pts;
             const dx = p2.x - p1.x;
             const dy = p2.y - p1.y;
-            return Math.atan2(dy, dx); // ángulo entre los dos dedos
+            return Math.atan2(dy, dx);
         };
 
         const startDrag = (pointerId, clientX, clientY) => {
@@ -393,7 +384,6 @@ export class PhotoStudio {
             isDragging = true;
             isGesturing = false;
 
-            // diferencia dedo–centro para mantener el “agarre”
             dragOffsetCenterX = clientX - centerX;
             dragOffsetCenterY = clientY - centerY;
         };
@@ -403,11 +393,9 @@ export class PhotoStudio {
 
             const parentRect = this.layerEl.getBoundingClientRect();
 
-            // Centro nuevo, basado en el dedo menos el offset
             let centerX = ev.clientX - dragOffsetCenterX;
             let centerY = ev.clientY - dragOffsetCenterY;
 
-            // Mantener el CENTRO dentro del viewport (el sticker puede sobresalir)
             const minCX = parentRect.left;
             const maxCX = parentRect.left + parentRect.width;
             const minCY = parentRect.top;
@@ -416,7 +404,6 @@ export class PhotoStudio {
             centerX = Math.max(minCX, Math.min(maxCX, centerX));
             centerY = Math.max(minCY, Math.min(maxCY, centerY));
 
-            // Convertimos a coords locales del layer
             const localX = centerX - parentRect.left;
             const localY = centerY - parentRect.top;
 
@@ -450,12 +437,10 @@ export class PhotoStudio {
             const angle = getAngle();
             if (!dist) return;
 
-            // Escala
             let factor = dist / (pinchStartDistance || 1);
             let newScale = baseScale * factor;
             newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
 
-            // Rotación
             const deltaAngle = angle - gestureStartAngle;
             let newRotation = baseRotation + deltaAngle;
 
@@ -472,10 +457,8 @@ export class PhotoStudio {
             img.setPointerCapture?.(ev.pointerId);
 
             if (activePointers.size === 1) {
-                // 1 dedo → drag
                 startDrag(ev.pointerId, ev.clientX, ev.clientY);
             } else if (activePointers.size === 2) {
-                // 2 dedos → pinch + rotate
                 startGesture();
             }
         };
@@ -503,7 +486,6 @@ export class PhotoStudio {
                 isGesturing = false;
                 dragPointerId = null;
             } else if (activePointers.size === 1) {
-                // Si veníamos de gesto con 2 dedos y queda 1, volvemos a drag con ese dedo
                 const [remainingId, pt] = activePointers.entries().next().value;
                 startDrag(remainingId, pt.x, pt.y);
             }
@@ -518,7 +500,7 @@ export class PhotoStudio {
         this.layerEl.appendChild(img);
         this.activeStickerEl = img;
 
-        // Transform inicial: centrado, sin rotación, sin escala extra
+        // Transform inicial
         currentScale = 1;
         currentRotation = 0;
         updateTransform();
@@ -547,7 +529,6 @@ export class PhotoStudio {
             await this.videoEl.play().catch(() => { });
         } catch (e) {
             console.error("[PhotoStudio] Error getUserMedia:", e);
-            // Mensaje amigable (si HUD disponible)
             this.hud?.message?.("No se pudo acceder a la cámara", 2000);
             throw e;
         }
@@ -583,20 +564,31 @@ export class PhotoStudio {
         // 1) Dibujar el video con COVER + espejo horizontal (solo el video)
         this._drawVideoCoverMirrored(ctx, video, cw, ch);
 
-        // 2) Dibujar sticker en la misma coordenada de pantalla
+        // 2) Dibujar sticker en la misma coordenada de pantalla,
+        //    respetando escala y ROTACIÓN que el usuario ve.
         if (this.activeStickerEl) {
             const sRect = this.activeStickerEl.getBoundingClientRect();
             const rRect = this.root.getBoundingClientRect();
-            const sx = Math.round(sRect.left - rRect.left);
-            const sy = Math.round(sRect.top - rRect.top);
-            const sw = Math.round(sRect.width);
-            const sh = Math.round(sRect.height);
 
-            // Cargar imagen desde el mismo src
-            // (Como ya existe en DOM, debería estar cacheada)
+            // Centro del sticker en coords del canvas
+            const cx = (sRect.left - rRect.left) + sRect.width / 2;
+            const cy = (sRect.top - rRect.top) + sRect.height / 2;
+
+            const sw = sRect.width;
+            const sh = sRect.height;
+
+            // Estado de rotación (y escala, si quisieras usarla más adelante)
+            const rotation = parseFloat(this.activeStickerEl.dataset.rotation || "0");
+            // const scale = parseFloat(this.activeStickerEl.dataset.scale || "1");
+
             const img = this.activeStickerEl;
-            // Ojo: al haber espejado solo el video, el sticker se dibuja normal (como lo ve el usuario)
-            ctx.drawImage(img, sx, sy, sw, sh);
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(rotation);
+            // sw/sh ya representan el tamaño final en pantalla, así que los usamos tal cual
+            ctx.drawImage(img, -sw / 2, -sh / 2, sw, sh);
+            ctx.restore();
         }
 
         // 3) Descargar automáticamente
@@ -606,7 +598,6 @@ export class PhotoStudio {
         a.href = url;
         a.click();
 
-        // (Opcional) feedback
         this.hud?.message?.("📸 Foto guardada", 1500);
     }
 
@@ -619,15 +610,13 @@ export class PhotoStudio {
         const vw = video.videoWidth;
         const vh = video.videoHeight;
 
-        // Calcular escalado tipo "cover"
         const canvasRatio = cw / ch;
         const videoRatio = vw / vh;
 
-        let dw, dh; // dimensiones de destino (canvas)
-        let sx, sy, sw, sh; // recorte del video (source rect)
+        let dw, dh;
+        let sx, sy, sw, sh;
 
         if (videoRatio > canvasRatio) {
-            // el video es "más ancho": recortar lados
             dh = ch;
             dw = Math.round(ch * videoRatio);
             sw = Math.round(vh * canvasRatio);
@@ -635,7 +624,6 @@ export class PhotoStudio {
             sx = Math.round((vw - sw) / 2);
             sy = 0;
         } else {
-            // el video es "más alto": recortar arriba/abajo
             dw = cw;
             dh = Math.round(cw / videoRatio);
             sw = vw;
@@ -644,11 +632,9 @@ export class PhotoStudio {
             sy = Math.round((vh - sh) / 2);
         }
 
-        // Espejar solo el video:
         ctx.save();
         ctx.translate(cw, 0);
         ctx.scale(-1, 1);
-        // Dibujo cubriendo todo el canvas
         ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
         ctx.restore();
     }
