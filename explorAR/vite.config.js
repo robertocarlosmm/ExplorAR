@@ -5,7 +5,7 @@ export default defineConfig(({ mode }) => {
     const isProd = mode === 'production'
 
     return {
-        base: isProd ? '/ExplorAR/' : '/',   // <- en dev = '/', en build = '/explorAR/'
+        //base: isProd ? '/ExplorAR/' : '/',   // <- en dev = '/', en build = '/explorAR/'
         plugins: [mkcert()],
         server: {
             https: true,
