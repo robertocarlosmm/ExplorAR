@@ -56,7 +56,7 @@ export class Minigame3Tambopata {
     }
 
     async start() {
-        console.log("[Minigame3Tambopata] Iniciando...");
+        //console.log("[Minigame3Tambopata] Iniciando...");
 
         const ok = this._loadConfigForTambopata();
         if (!ok) {
@@ -73,7 +73,7 @@ export class Minigame3Tambopata {
         this._generateGridPositions();
 
         this.isRunning = true;
-        console.log("[Minigame3Tambopata] ✓ Base y grilla listas");
+        //console.log("[Minigame3Tambopata] ✓ Base y grilla listas");
 
         await this._spawnNextRound();
 
@@ -124,9 +124,9 @@ export class Minigame3Tambopata {
                 if (a.type === "icon") this.iconMap[a.key] = a.url;
             }
 
-            console.log("[Tambopata] Experiencia:", this.experienceId);
-            console.log("[Tambopata] Models:", Object.keys(this.modelMap));
-            console.log("[Tambopata] Images:", Object.keys(this.imageMap));
+            //console.log("[Tambopata] Experiencia:", this.experienceId);
+            //console.log("[Tambopata] Models:", Object.keys(this.modelMap));
+            //console.log("[Tambopata] Images:", Object.keys(this.imageMap));
             return true;
         } catch (e) {
             console.error("[Minigame3Tambopata] Error cargando config:", e);
@@ -272,8 +272,8 @@ export class Minigame3Tambopata {
             }
 
             if (ok && chosen.length === 4) {
-                console.log("[Tambopata] Celdas animales sin adyacentes compartidos:",
-                    chosen.map(c => `(${c.row},${c.col})`).join(", "));
+                /*console.log("[Tambopata] Celdas animales sin adyacentes compartidos:",
+                    chosen.map(c => `(${c.row},${c.col})`).join(", "));*/
                 return chosen;
             }
         }
@@ -324,7 +324,7 @@ export class Minigame3Tambopata {
         }
 
         this.rondas++;
-        console.log(`[Minigame3Tambopata] ✓ Ronda ${this.rondas}/${this.maxRondas}`);
+        //console.log(`[Minigame3Tambopata] ✓ Ronda ${this.rondas}/${this.maxRondas}`);
     }
 
     _createCellGround(cell) {
@@ -378,7 +378,7 @@ export class Minigame3Tambopata {
 
             // Mallas renderizables reales
             const renderables = result.meshes.filter(m => m.getTotalVertices && m.getTotalVertices() > 0);
-            console.log(`[Tambopata] Renderables importados (${modelKey}):`, renderables.map(m => m.name));
+            //console.log(`[Tambopata] Renderables importados (${modelKey}):`, renderables.map(m => m.name));
 
             const nodeRoot = new TransformNode(`animalRoot_${modelKey}_${cell.row}_${cell.col}`, this.scene);
 
@@ -408,7 +408,7 @@ export class Minigame3Tambopata {
                 key: modelKey
             });
 
-            console.log(`[Tambopata] 🐾 Animal '${modelKey}' en (${cell.row},${cell.col})`);
+            //console.log(`[Tambopata] 🐾 Animal '${modelKey}' en (${cell.row},${cell.col})`);
         } catch (e) {
             console.error("[Tambopata] Error importando modelo:", e);
         }
@@ -507,7 +507,7 @@ export class Minigame3Tambopata {
             });
         }
 
-        console.log(`[Tambopata] 💡 Luces creadas con doble capa: ${cells.length}`);
+        //console.log(`[Tambopata] 💡 Luces creadas con doble capa: ${cells.length}`);
     }
 
 
@@ -653,7 +653,7 @@ export class Minigame3Tambopata {
     }
 
     _onTimeUp() {
-        console.log("[Minigame3Tambopata] ⏰ Tiempo finalizado");
+        //console.log("[Minigame3Tambopata] ⏰ Tiempo finalizado");
         this.hud?.stopTimer?.();
         this.hud?.showEndPopup?.({
             score: this.score,

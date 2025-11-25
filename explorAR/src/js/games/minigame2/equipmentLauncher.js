@@ -5,7 +5,7 @@ import { EquipmentGame } from "./EquipmentGame.js";
  * @param {GameManager} gameManager
  */
 export async function startEquipmentGame(gameManager) {
-    console.log("[EquipmentGame] Iniciando flujo del minijuego 2...");
+    //console.log("[EquipmentGame] Iniciando flujo del minijuego 2...");
 
     // Mostrar HUD
     gameManager?.hud?.show?.();
@@ -56,9 +56,9 @@ export async function startEquipmentGame(gameManager) {
         exitBtn.addEventListener(
             "click",
             () => {
-                console.log(
+                /*console.log(
                     "[EquipmentGame] 'Salir' presionado → limpiando panel de información del minijuego 2."
-                );
+                );*/
                 destroyInfoPanel();
             },
             true // captura: se ejecuta antes del handler global de navegación
@@ -91,9 +91,9 @@ export async function startEquipmentGame(gameManager) {
             experienceId: exp?.id,
             startingScore: gameManager.getCarryScore?.() || 0,
             onRestartRequest: async () => {
-                console.log(
+                /*console.log(
                     "[EquipmentGame] onRestartRequest → volver a pantalla de información."
-                );
+                );*/
                 try {
                     equipment?.dispose();
                 } catch (err) {
@@ -130,10 +130,10 @@ export async function startEquipmentGame(gameManager) {
             const nextId = "minigame3";
             if (nextId) {
                 gameManager.setCarryScore?.(equipment.score);
-                console.log(
+                /*console.log(
                     "Puntaje llevado al GameManager:",
                     gameManager.getCarryScore()
-                );
+                );*/
                 gameManager.launchNextMinigame(nextId);
             } else {
                 gameManager.onExit?.();

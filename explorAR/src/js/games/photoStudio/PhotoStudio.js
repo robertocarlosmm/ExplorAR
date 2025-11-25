@@ -31,7 +31,7 @@ export class PhotoStudio {
         this._onPointerMove = null;
         this._onPointerUp = null;
 
-        console.log("[PhotoStudio] init", { stars: this.stars, experienceId: this.experienceId });
+        //console.log("[PhotoStudio] init", { stars: this.stars, experienceId: this.experienceId });
     }
 
     // =========================
@@ -53,7 +53,7 @@ export class PhotoStudio {
             this._showSticker(0);
         }
 
-        console.log("[PhotoStudio] listo.");
+        //console.log("[PhotoStudio] listo.");
     }
 
     cleanup() {
@@ -74,7 +74,7 @@ export class PhotoStudio {
                 c.remove();
         });
 
-        console.log("[PhotoStudio] cleanup ok");
+        //console.log("[PhotoStudio] cleanup ok");
         // Salida final al lobby (vía callback)
         this.onExit && this.onExit();
     }
@@ -321,7 +321,7 @@ export class PhotoStudio {
         if (this.stars >= 3 && key3) chosenKeys.push(key3);
 
         this.stickers = assets.filter(a => chosenKeys.includes(a.key) && a.type === "sticker");
-        console.log("[PhotoStudio] stickers", this.stickers);
+        //console.log("[PhotoStudio] stickers", this.stickers);
     }
 
     _showSticker(index) {

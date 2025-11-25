@@ -47,7 +47,7 @@ export class EquipmentGame {
     }
 
     async start() {
-        console.log("[EquipmentGame] Iniciando minijuego de equipamiento...");
+        //console.log("[EquipmentGame] Iniciando minijuego de equipamiento...");
 
         this.hud.setScore(this.score);
         this.hud.setTime(this.timeLimit);
@@ -72,7 +72,7 @@ export class EquipmentGame {
             return;
         }
 
-        console.log("[EquipmentGame] Cargando modelo de mochila:", backpackAsset.url);
+        //console.log("[EquipmentGame] Cargando modelo de mochila:", backpackAsset.url);
         await SceneLoader.AppendAsync(backpackAsset.url, "", this.scene);
 
         this.backpack = new TransformNode("BackpackNode", this.scene);
@@ -83,7 +83,7 @@ export class EquipmentGame {
         this.backpack.position = new Vector3(0, 1.0, this._planeZ);
         this.backpack.scaling = new Vector3(0.6, 0.6, 0.6);
 
-        console.log("[EquipmentGame] Mochila posicionada en:", this.backpack.position);
+        //console.log("[EquipmentGame] Mochila posicionada en:", this.backpack.position);
     }
 
     _createSlots() {
@@ -92,7 +92,7 @@ export class EquipmentGame {
         const baseY = origin.y + this._slotYOff;
         const baseZ = this._planeZ;
 
-        console.log("[EquipmentGame] Creando slots de equipamiento...");
+        //console.log("[EquipmentGame] Creando slots de equipamiento...");
 
         for (let i = 0; i < 4; i++) {
             const x = origin.x - 0.195 + i * gapX;
@@ -110,7 +110,7 @@ export class EquipmentGame {
             const slot = { position, occupant: null, mesh: slotPlane };
             this.slots.push(slot);
 
-            console.log(`  → Slot ${i} @ (${x.toFixed(2)}, ${y.toFixed(2)}, ${baseZ.toFixed(2)})`);
+            //console.log(`  → Slot ${i} @ (${x.toFixed(2)}, ${y.toFixed(2)}, ${baseZ.toFixed(2)})`);
 
             // Ahora sí: callback usa el 'slot' correcto
             slotPlane.actionManager = new ActionManager(this.scene);
@@ -119,7 +119,7 @@ export class EquipmentGame {
                     const now = performance.now ? performance.now() : Date.now();
                     if (now - this._lastDropAt < this._dropDebounceMs) return; // evita des-encaje inmediato
                     if (slot.occupant) {
-                        console.log(`[EquipmentGame] Toque sobre slot ${i} ocupado, liberando ítem.`);
+                        //console.log(`[EquipmentGame] Toque sobre slot ${i} ocupado, liberando ítem.`);
                         const mesh = slot.occupant;
                         this._clearSlot(slot);
                         this._returnToOrigin(mesh);
@@ -138,7 +138,7 @@ export class EquipmentGame {
         const stepX = 0.22;
         const size = 0.085;
 
-        console.log("[EquipmentGame] Spawneando ítems debajo de la mochila...");
+        //console.log("[EquipmentGame] Spawneando ítems debajo de la mochila...");
 
         allKeys.forEach((key, i) => {
             const mat = new StandardMaterial("mat-" + key, this.scene);
@@ -162,7 +162,7 @@ export class EquipmentGame {
 
             this._enableInteraction(icon);
             this.pieces.push(icon);
-            console.log(`  → Item ${key} en (${x.toFixed(2)}, ${baseY.toFixed(2)}, ${baseZ.toFixed(2)})`);
+            //console.log(`  → Item ${key} en (${x.toFixed(2)}, ${baseY.toFixed(2)}, ${baseZ.toFixed(2)})`);
         });
     }
 
@@ -185,7 +185,7 @@ export class EquipmentGame {
 
                 if (mesh.metadata.slotIndex !== null) {
                     const slot = this.slots[mesh.metadata.slotIndex];
-                    console.log(`[EquipmentGame] Toque sobre item en slot ${mesh.metadata.slotIndex}, devolviendo al origen.`);
+                    //console.log(`[EquipmentGame] Toque sobre item en slot ${mesh.metadata.slotIndex}, devolviendo al origen.`);
                     this._clearSlot(slot);
                     this._returnToOrigin(mesh);
                 }
@@ -199,11 +199,11 @@ export class EquipmentGame {
         this._draggedPiece = mesh;
         mesh.scaling = new Vector3(1.06, 1.06, 1.06);
         mesh.material.emissiveColor = new Color3(0.8, 0.8, 1);
-        console.log(`[EquipmentGame] Arrastrando ${mesh.name} desde ${mesh.position.toString()}`);
+        //console.log(`[EquipmentGame] Arrastrando ${mesh.name} desde ${mesh.position.toString()}`);
     }
 
     _onDrop(mesh) {
-        console.log(`[EquipmentGame] Soltando ${mesh.name} en posición: ${mesh.position.toString()}`);
+        //console.log(`[EquipmentGame] Soltando ${mesh.name} en posición: ${mesh.position.toString()}`);
         mesh.isDragging = false;
         this._draggedPiece = null;
         mesh.scaling = new Vector3(1, 1, 1);
@@ -213,7 +213,7 @@ export class EquipmentGame {
         const slot = this._nearestSlot2D(mesh.position, snapThreshold);
 
         if (slot) {
-            console.log(`[EquipmentGame] Encaje detectado con slot ${this.slots.indexOf(slot)}`);
+            //console.log(`[EquipmentGame] Encaje detectado con slot ${this.slots.indexOf(slot)}`);
 
             if (mesh.metadata.slotIndex !== null) {
                 this._clearSlot(this.slots[mesh.metadata.slotIndex]);
@@ -241,12 +241,12 @@ export class EquipmentGame {
             this.scene.beginAnimation(mesh, 0, 20, false);
             this._lastDropAt = performance.now ? performance.now() : Date.now();
         } else {
-            console.log(`[EquipmentGame] No encajó, devolviendo ${mesh.name} a su origen.`);
+            //console.log(`[EquipmentGame] No encajó, devolviendo ${mesh.name} a su origen.`);
             this._returnToOrigin(mesh);
         }
 
         const total = this.slots.filter(s => s.occupant).length;
-        console.log(`[EquipmentGame] Slots ocupados: ${total}/${this.slots.length}`);
+        //console.log(`[EquipmentGame] Slots ocupados: ${total}/${this.slots.length}`);
         if (total === this.slots.length) setTimeout(() => this._evaluate(), 400);
     }
 
@@ -273,7 +273,7 @@ export class EquipmentGame {
         // asegurar posición final
         setTimeout(() => {
             mesh.position.copyFrom(origin);
-            console.log(`[EquipmentGame] ${mesh.name} restaurado a posición original:`, origin.toString());
+            //console.log(`[EquipmentGame] ${mesh.name} restaurado a posición original:`, origin.toString());
         }, 350);
     }
 
@@ -305,7 +305,7 @@ export class EquipmentGame {
     }
 
     _evaluate() {
-        console.log("[EquipmentGame] Evaluando resultado...");
+        //console.log("[EquipmentGame] Evaluando resultado...");
         this.hud.stopTimer();
 
         let correct = 0;
@@ -319,9 +319,9 @@ export class EquipmentGame {
                 if (item.metadata.correct) {
                     correct++;
                     selectedCorrectKeys.add(item.metadata.key);
-                    console.log(`  ✓ ${item.metadata.key} correcto`);
+                    //console.log(`  ✓ ${item.metadata.key} correcto`);
                 } else {
-                    console.log(`  ✗ ${item.metadata.key} incorrecto`);
+                    //console.log(`  ✗ ${item.metadata.key} incorrecto`);
                     item.material.diffuseColor = new Color3(1, 0.3, 0.3);
                 }
             }
@@ -331,7 +331,7 @@ export class EquipmentGame {
         const allCorrectKeys = Object.keys(this.feedbacks); // asumiendo que solo correctos tienen feedback
         const missingKeys = allCorrectKeys.filter(k => !selectedCorrectKeys.has(k));
 
-        console.log(`[EquipmentGame] Resultado final: ${correct}/${this.slots.length} correctos.`);
+        //console.log(`[EquipmentGame] Resultado final: ${correct}/${this.slots.length} correctos.`);
 
         if (missingKeys.length === 0) {
             this._win();
@@ -347,7 +347,7 @@ export class EquipmentGame {
                 onClose: () => {
                     // Pequeño respiro y se reanuda el cronómetro
                     setTimeout(() => {
-                        console.log("[EquipmentGame] Reanudando tiempo tras pistas...");
+                        //console.log("[EquipmentGame] Reanudando tiempo tras pistas...");
                         this.hud.startTimer(this.hud._timeLeft, null, () => this._onTimeUp());
                     }, 400);
                 }
@@ -378,18 +378,18 @@ export class EquipmentGame {
         this.score += newPoints;
         this.hud.setScore(this.score);
 
-        console.log("[EquipmentGame] Puntaje calculado con _timeLeft:", {
+        /*console.log("[EquipmentGame] Puntaje calculado con _timeLeft:", {
             base,
             bonus,
             remaining,
             newPoints,
             total: this.score,
-        });
+        });*/
 
         this.hud.showEndPopup({
             score: this.score,
             onRetry: () => {
-                console.log("[EquipmentGame] Reintento solicitado → regresar a info panel.");
+                //console.log("[EquipmentGame] Reintento solicitado → regresar a info panel.");
                 // Aquí ya NO reiniciamos directo el minijuego,
                 // delegamos la decisión al launcher.
                 this.dispose();
@@ -415,7 +415,7 @@ export class EquipmentGame {
     this.hud.showEndPopup({
         score: this.score,
         onRetry: () => {
-            console.log("[EquipmentGame] Tiempo agotado, reintento → regresar a info panel.");
+            //console.log("[EquipmentGame] Tiempo agotado, reintento → regresar a info panel.");
             this.dispose();
             if (this.onRestartRequest) {
                 this.onRestartRequest();
@@ -430,14 +430,14 @@ export class EquipmentGame {
 
 
     _restart() {
-        console.log("[EquipmentGame] Reiniciando minijuego...");
+        //console.log("[EquipmentGame] Reiniciando minijuego...");
         this.score = this.scoreInicial;
         this.dispose();
         this.start();
     }
 
     dispose() {
-        console.log("[EquipmentGame] Liberando recursos...");
+        //console.log("[EquipmentGame] Liberando recursos...");
         this.hud.stopTimer();
         this.pieces.forEach(p => p?.dispose?.());
         this.slots.forEach((s, i) => this.scene.getMeshByName("slot-bg-" + i)?.dispose());

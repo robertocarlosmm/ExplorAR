@@ -57,7 +57,7 @@ export class PuzzleGame {
         // girar 180° para que mire hacia la cámara
         this.board.rotation.y = Math.PI;
 
-        console.log("[PuzzleGame] Tablero colocado en posición detectada:", boardPos);
+        //console.log("[PuzzleGame] Tablero colocado en posición detectada:", boardPos);
 
 
         // Ground del tablero (solo guía)
@@ -120,7 +120,7 @@ export class PuzzleGame {
     _enableDragging() {
         if (this._draggingEnabled) return;
         this._draggingEnabled = true;
-        console.log("[PuzzleGame] Drag integrado activado (PointerDragBehavior).");
+        //console.log("[PuzzleGame] Drag integrado activado (PointerDragBehavior).");
     }
 
     _disableDragging() {
@@ -131,7 +131,7 @@ export class PuzzleGame {
         this._draggables.clear();
         this._draggingEnabled = false;
         this._firstTouchHandled = false;
-        console.log("[PuzzleGame] Drag integrado desactivado.");
+        //console.log("[PuzzleGame] Drag integrado desactivado.");
     }
 
     /**
@@ -181,7 +181,7 @@ export class PuzzleGame {
 
             // No permitir mover piezas bloqueadas
             if (pieceObj.locked) {
-                console.log("[PuzzleGame] Intento de arrastrar pieza bloqueada:", mesh.name);
+                //console.log("[PuzzleGame] Intento de arrastrar pieza bloqueada:", mesh.name);
                 return;
             }
 
@@ -197,7 +197,7 @@ export class PuzzleGame {
             invBoardWorld = new Matrix();
             boardWorld.invertToRef(invBoardWorld);
 
-            console.log("[PuzzleGame] DRAG START ->", mesh.name);
+            //console.log("[PuzzleGame] DRAG START ->", mesh.name);
         });
 
         behavior.onDragObservable.add((evt) => {
@@ -228,13 +228,13 @@ export class PuzzleGame {
         behavior.onDragEndObservable.add(() => {
             const local = mesh.position.clone(); // ya está en coords locales del board
             this._trySnap(pieceObj, local, snapThreshold);
-            console.log("[PuzzleGame] DRAG END ->", mesh.name, "@", local);
+            //console.log("[PuzzleGame] DRAG END ->", mesh.name, "@", local);
         });
 
         const abs = mesh.getAbsolutePosition();
-        console.log(
+        /*console.log(
             `[PuzzleGame] Registrado draggable: ${mesh.name} @ (${abs.x.toFixed(3)}, ${abs.y.toFixed(3)}, ${abs.z.toFixed(3)})`
-        );
+        );*/
 
         this._draggables.set(mesh, { behavior, piece: pieceObj });
     }
@@ -264,7 +264,7 @@ export class PuzzleGame {
         const pieceSize = this._cell * 0.95;
         this._pieceHalf = pieceSize * 0.5;
 
-        console.log(`[PuzzleGame] Cargando textura base: ${this.imageUrl}`);
+        //console.log(`[PuzzleGame] Cargando textura base: ${this.imageUrl}`);
 
         const baseTexture = new Texture(
             this.imageUrl,
@@ -321,7 +321,7 @@ export class PuzzleGame {
             });
         }
 
-        console.log(`[PuzzleGame] ${count} piezas spawneadas con textura completa.`);
+        //console.log(`[PuzzleGame] ${count} piezas spawneadas con textura completa.`);
     }
 
     _applyImageFragment(piece, index, n, baseTexture) {
@@ -389,14 +389,14 @@ export class PuzzleGame {
             this.hud.message("No encajó", 600);
         }
 
-        console.log("=== Estado actual de las piezas ===");
+        //console.log("=== Estado actual de las piezas ===");
         this.pieces.forEach((p, i) => {
             const pos = p.mesh.position;
-            console.log(
+            /*console.log(
                 `piece-${i}: (${pos.x.toFixed(3)}, ${pos.y.toFixed(3)}, ${pos.z.toFixed(3)}) ${p.locked ? "[LOCKED]" : ""}`
-            );
+            );*/
         });
-        console.log("===================================");
+        //console.log("===================================");
     }
 
     // ---------- verificación de finalización ----------
@@ -405,7 +405,7 @@ export class PuzzleGame {
         const allCorrect = this.pieces.every(p => p.locked === true);
 
         if (allCorrect) {
-            console.log("[PuzzleGame] 🏆 Puzzle completado!");
+            //console.log("[PuzzleGame] 🏆 Puzzle completado!");
             this.hud.message("¡Puzzle completado!", 2000);
             this._onWin();
         }
@@ -418,25 +418,25 @@ export class PuzzleGame {
         let timeBonusPoints = 0;
         if (Number.isFinite(bonusPerSec) && bonusPerSec > 0 && remaining > 0) {
             timeBonusPoints = Math.floor(remaining * bonusPerSec);
-            console.log(
+            /*console.log(
                 `[PuzzleGame] Bonus por tiempo: ${remaining}s * ${bonusPerSec} = +${timeBonusPoints} pts`
-            );
+            );*/
             this._addScore(timeBonusPoints);
         }
 
         this.isCompleted = true;
 
-        console.log("[PuzzleGame] 🎉 ¡Victoria detectada!");
+        //console.log("[PuzzleGame] 🎉 ¡Victoria detectada!");
         this.hud.message("¡Felicidades, completaste el puzzle!", 2000);
 
         this.hud.showEndPopup({
             score: this.score,
             onRetry: () => {
-                console.log("[PuzzleGame] Reintentar puzzle");
+                //console.log("[PuzzleGame] Reintentar puzzle");
                 this._restart();
             },
             onContinue: () => {
-                console.log("[PuzzleGame] Continuar con siguiente minijuego (por ahora: exit)");
+                //console.log("[PuzzleGame] Continuar con siguiente minijuego (por ahora: exit)");
                 this.onGameEnd?.();
             },
             timeExpired: false
@@ -458,7 +458,7 @@ export class PuzzleGame {
     }
 
     _applyPenalty() {
-        console.log(`[PuzzleGame] Penalización: -${this.penaltyPoitns} puntos`);
+        //console.log(`[PuzzleGame] Penalización: -${this.penaltyPoitns} puntos`);
         this._addScore(-this.penaltyPoitns);
     }
 
@@ -469,7 +469,7 @@ export class PuzzleGame {
         this.hud.showEndPopup({
             score: this.score,
             onRetry: () => {
-                console.log("[PuzzleGame] Reintentar tras perder");
+                //console.log("[PuzzleGame] Reintentar tras perder");
                 this._restart();
             },
             onContinue: null,
@@ -478,7 +478,7 @@ export class PuzzleGame {
     }
 
     _restart() {
-        console.log("[PuzzleGame] Reiniciando minijuego...");
+        //console.log("[PuzzleGame] Reiniciando minijuego...");
 
         this.score = 0;
         this.hintsLeft = 3;

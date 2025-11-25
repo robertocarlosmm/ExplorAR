@@ -66,7 +66,7 @@ export class Minigame3Taquile {
     }
 
     async start() {
-        console.log("[Minigame3Taquile] Iniciando RA...");
+        //console.log("[Minigame3Taquile] Iniciando RA...");
 
         this.hud?.show?.();
         const totalTime = gameplayConfig.timeSequence[3] || 60;
@@ -83,7 +83,7 @@ export class Minigame3Taquile {
         this._spawnRandomTargetsGlobal();
 
         this.isRunning = true;
-        console.log("[Minigame3Taquile] Escalera lista.");
+        //console.log("[Minigame3Taquile] Escalera lista.");
 
         this.projectiles = new ProjectileSystem({
             scene: this.scene,
@@ -139,7 +139,7 @@ export class Minigame3Taquile {
         if (!this.targetUrl) {
             console.warn("[Taquile] target.png no definido en experienceConfig.");
         } else {
-            console.log("[Taquile] target.png resuelto:", this.targetUrl);
+            //console.log("[Taquile] target.png resuelto:", this.targetUrl);
         }
     }
 
@@ -157,7 +157,7 @@ export class Minigame3Taquile {
         if (!mesh || !mesh.metadata?.real) {
             this.score = Math.max(0, this.score - this.pointsFail);
             this.hud?.setScore?.(this.score);
-            console.log("[Taquile] ❌ Fallo → -" + this.pointsFail);
+            //console.log("[Taquile] ❌ Fallo → -" + this.pointsFail);
             return;
         }
 
@@ -179,7 +179,7 @@ export class Minigame3Taquile {
             // Miss silencioso
             this.score = Math.max(0, this.score - this.pointsFail);
             this.hud?.setScore?.(this.score);
-            console.log("[Taquile] ❌ Fallo → -" + this.pointsFail);
+            //console.log("[Taquile] ❌ Fallo → -" + this.pointsFail);
             return;
         }
 
@@ -194,10 +194,10 @@ export class Minigame3Taquile {
         this.score += this.pointsHit;
         this.hud.message("¡Muy bien!", 1200);
         this.hud?.setScore?.(this.score);
-        console.log("[Taquile] ✓ HIT → +" + this.pointsHit);
+        //console.log("[Taquile] ✓ HIT → +" + this.pointsHit);
 
         if (this._allTargetsMarked()) {
-            console.log("[Taquile] ★ Targets completados");
+            //console.log("[Taquile] ★ Targets completados");
             this._processCompletedTargets();
         }
     }
@@ -399,7 +399,7 @@ export class Minigame3Taquile {
     async _advanceStep6() {
         if (this.steps.length === 0) return;
         this.isAnimating = true;
-        console.log("[Taquile] Avanzar 6 gradas");
+        //console.log("[Taquile] Avanzar 6 gradas");
 
         // Crear 6 nuevos arriba
         for (let i = 0; i < 6; i++) {
@@ -499,7 +499,7 @@ export class Minigame3Taquile {
     }
 
     _onTimeUp() {
-        console.log("[Taquile] ⏰ Tiempo finalizado");
+        //console.log("[Taquile] ⏰ Tiempo finalizado");
 
         this.hud?.stopTimer();
 
@@ -512,7 +512,7 @@ export class Minigame3Taquile {
     }
 
     _restart() {
-        console.log("[Taquile] Reiniciando minijuego...");
+        //console.log("[Taquile] Reiniciando minijuego...");
         this.dispose();
 
         this.score = this.startingScore;
@@ -564,7 +564,7 @@ export class Minigame3Taquile {
         // 5. Timer HUD
         this.hud?.stopTimer?.();
 
-        console.log("[Minigame3Taquile] Recursos liberados");
+        //console.log("[Minigame3Taquile] Recursos liberados");
     }
 
 }

@@ -45,7 +45,7 @@ export class CheckGame {
     }
 
     async start() {
-        console.log("[CheckGame] 🚀 start()");
+        //console.log("[CheckGame] 🚀 start()");
         if (!this._loadConfig()) {
             console.error("[CheckGame] ❌ Config inválida");
             return;
@@ -89,7 +89,7 @@ export class CheckGame {
         // 🔹 Spawnear uno inmediatamente
         const firstIndex = Math.floor(Math.random() * this.remainingKeys.length);
         const firstKey = this.remainingKeys[firstIndex];
-        console.log(`[CheckGame] 🪂 Primera caída iniciada con key: ${firstKey}`);
+        //console.log(`[CheckGame] 🪂 Primera caída iniciada con key: ${firstKey}`);
         this._spawnFallingItem(center, firstKey);
         this.remainingKeys.splice(firstIndex, 1); // eliminar el usado
 
@@ -97,19 +97,19 @@ export class CheckGame {
         const spawnInterval = setInterval(() => {
             if (!this.isRunning || this.remainingKeys.length === 0) {
                 clearInterval(spawnInterval);
-                console.log("[CheckGame] 🛑 Fin de generación de ítems (ya no quedan imágenes)");
+                //console.log("[CheckGame] 🛑 Fin de generación de ítems (ya no quedan imágenes)");
                 return;
             }
 
             const randomIndex = Math.floor(Math.random() * this.remainingKeys.length);
             const randomKey = this.remainingKeys[randomIndex];
-            console.log(`[CheckGame] 🪂 Nueva caída iniciada con key: ${randomKey}`);
+            //console.log(`[CheckGame] 🪂 Nueva caída iniciada con key: ${randomKey}`);
 
             this._spawnFallingItem(center, randomKey);
             this.remainingKeys.splice(randomIndex, 1);
         }, 5000);
 
-        console.log("[CheckGame] ✅ Setup completo (solo imágenes, sin repeticiones)");
+        //console.log("[CheckGame] ✅ Setup completo (solo imágenes, sin repeticiones)");
     }
 
     dispose() {
@@ -121,7 +121,7 @@ export class CheckGame {
         try { this.floor?.dispose(); } catch { }
         try { this.item?.dispose(); } catch { }
         try { this.root?.dispose(); } catch { }
-        console.log("[CheckGame] 🧹 Recursos liberados");
+        //console.log("[CheckGame] 🧹 Recursos liberados");
     }
 
     _loadConfig() {
@@ -145,9 +145,9 @@ export class CheckGame {
             this.correctKeys = params.correctos || [];
             this.incorrectKeys = params.incorrectos || [];
 
-            console.log("[CheckGame] ✔️ Assets cargados:", this.imageKeys.length);
-            console.log("[CheckGame] ✔️ Correctos:", this.correctKeys);
-            console.log("[CheckGame] ✔️ Incorrectos:", this.incorrectKeys);
+            //console.log("[CheckGame] ✔️ Assets cargados:", this.imageKeys.length);
+            //console.log("[CheckGame] ✔️ Correctos:", this.correctKeys);
+            //console.log("[CheckGame] ✔️ Incorrectos:", this.incorrectKeys);
 
             return true;
         } catch (e) {
@@ -158,7 +158,7 @@ export class CheckGame {
 
 
     _createFloor(center) {
-        console.log("[CheckGame] 🟫 Creando piso (horizontal)...");
+        //console.log("[CheckGame] 🟫 Creando piso (horizontal)...");
         this.floor = MeshBuilder.CreateGround("floor_plane", { width: 2, height: 2 }, this.scene);
         this.floor.parent = this.root;
         this.floor.position = new Vector3(center.x, this.groundY, center.z);
@@ -169,7 +169,7 @@ export class CheckGame {
     }
 
     _createTopPlane(center) {
-        console.log("[CheckGame] 🛖 Creando plano techo (vertical frente a cámara)...");
+        //console.log("[CheckGame] 🛖 Creando plano techo (vertical frente a cámara)...");
         this.topPlane = MeshBuilder.CreatePlane("top_plane", { width: 0.8, height: 0.8 }, this.scene);
         this.topPlane.parent = this.root;
 
@@ -182,7 +182,7 @@ export class CheckGame {
         mat.alpha = 0.15;
         this.topPlane.material = mat;
 
-        console.log("[CheckGame] ✅ Techo en Y =", this.topPlane.position.y.toFixed(2));
+        //console.log("[CheckGame] ✅ Techo en Y =", this.topPlane.position.y.toFixed(2));
     }
 
     _spawnFallingItem(center, key) {
@@ -252,14 +252,14 @@ export class CheckGame {
                 const correct = this.correctKeys.includes(key);
                 if (correct) {
                     this.score += this.correctBonus;
-                    console.log(`[CheckGame] ✅ Correcto → ${this.score}`);
+                    //console.log(`[CheckGame] ✅ Correcto → ${this.score}`);
                     this.hud.message("✅ Correcto", 1000);
                 } else {
                     this.score -= this.wrongPenalty;
-                    console.log(`[CheckGame] ❌ Incorrecto → ${this.score}`);
+                    //console.log(`[CheckGame] ❌ Incorrecto → ${this.score}`);
                     this.hud.message("⚠️ Incorrecto", 1000);
                     if (!this.remainingKeys.includes(key)) this.remainingKeys.push(key); // 🔁 reintento
-                    console.log(`[CheckGame] 🔁 ${key} regresó al pool`);
+                    //console.log(`[CheckGame] 🔁 ${key} regresó al pool`);
                 }
                 this.hud?.setScore?.(this.score);
                 removeGroup();
@@ -273,14 +273,14 @@ export class CheckGame {
                 const incorrect = this.incorrectKeys.includes(key);
                 if (incorrect) {
                     this.score += this.correctBonus;
-                    console.log(`[CheckGame] ✅ Correctamente marcado como incorrecto → ${this.score}`);
+                    //console.log(`[CheckGame] ✅ Correctamente marcado como incorrecto → ${this.score}`);
                     this.hud.message("✅ Correcto", 1000);
                 } else {
                     this.score -= this.wrongPenalty;
-                    console.log(`[CheckGame] ⚠️ Mal marcado → ${this.score}`);
+                    //console.log(`[CheckGame] ⚠️ Mal marcado → ${this.score}`);
                     this.hud.message("⚠️ Incorrecto", 1000);
                     if (!this.remainingKeys.includes(key)) this.remainingKeys.push(key); // 🔁 reintento
-                    console.log(`[CheckGame] 🔁 ${key} regresó al pool`);
+                    //console.log(`[CheckGame] 🔁 ${key} regresó al pool`);
                 }
                 this.hud?.setScore?.(this.score);
                 removeGroup();
@@ -309,11 +309,11 @@ export class CheckGame {
         this.item.position.y -= this.fallSpeed * dt;
 
         if (Math.random() < 0.08) {
-            console.log("[CheckGame] y =", this.item.position.y.toFixed(2));
+            //console.log("[CheckGame] y =", this.item.position.y.toFixed(2));
         }
 
         if (this.item.position.y <= this.groundY + 0.01) {
-            console.log("[CheckGame] 💥 Ítem tocó el piso");
+            //console.log("[CheckGame] 💥 Ítem tocó el piso");
             this.item.position.y = this.groundY + 0.01;
             this.isRunning = false; // detener caída
         }
@@ -324,7 +324,7 @@ export class CheckGame {
     // Fin
     // ===============================
     _onTimeUp() {
-        console.log("[CheckGame] ⏰ Tiempo finalizado");
+        //console.log("[CheckGame] ⏰ Tiempo finalizado");
         this.isRunning = false;
         this.hud?.stopTimer?.();
 
@@ -333,14 +333,14 @@ export class CheckGame {
             score: this.score,
             onRetry: () => this._restart(),
             onContinue: () => {
-                console.log("[CheckGame] Continuar presionado (sin acción por ahora)");
+                //console.log("[CheckGame] Continuar presionado (sin acción por ahora)");
                 this._endGame();
             },
         });
     }
 
     _restart() {
-        console.log("[CheckGame] 🔁 Reiniciando minijuego...");
+        //console.log("[CheckGame] 🔁 Reiniciando minijuego...");
         this.dispose();
         this.score = this.startingScore;
         this.hud?.updateScore?.(this.startingScore);
@@ -349,7 +349,7 @@ export class CheckGame {
     }
 
     _endGame() {
-        console.log("[CheckGame] 🧩 Fin del juego Check");
+        //console.log("[CheckGame] 🧩 Fin del juego Check");
         this.dispose();
         this.onGameEnd?.();
     }

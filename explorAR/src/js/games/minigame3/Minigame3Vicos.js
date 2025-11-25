@@ -47,7 +47,7 @@ export class Minigame3Vicos {
     // Ciclo de vida
     // ===========================
     async start() {
-        console.log("[Minigame3Vicos] Iniciando minijuego Vicos - VERSIÓN MEJORADA");
+        //console.log("[Minigame3Vicos] Iniciando minijuego Vicos - VERSIÓN MEJORADA");
 
         const ok = this._loadConfigForVicos();
         if (!ok) {
@@ -66,7 +66,7 @@ export class Minigame3Vicos {
         this._spawnInitialPlots();
 
         this.isRunning = true;
-        console.log("[Minigame3Vicos] ✓ Terreno listo con sistema de capas");
+        //console.log("[Minigame3Vicos] ✓ Terreno listo con sistema de capas");
 
         // Sistema de lanzamiento mejorado con previsualización
         this.projectiles = new ProjectileSystem({
@@ -101,7 +101,7 @@ export class Minigame3Vicos {
         // Inicializa contadores si no existen
         if (plot.waterLevel == null) plot.waterLevel = 0;
 
-        console.log(`[Vicos] Impacto: tipo=${type}, estado=${plot.state}, waterLevel=${plot.waterLevel}`);
+        //console.log(`[Vicos] Impacto: tipo=${type}, estado=${plot.state}, waterLevel=${plot.waterLevel}`);
 
         // ═══════════════════════════════════════════
         // REGLA 1: Suelo seco es PERMANENTE - NO se puede recuperar
@@ -138,7 +138,7 @@ export class Minigame3Vicos {
             this.hud.setScore(this.score);
             this.hud.message("🌱 Semilla plantada", 800);
 
-            console.log("[Vicos] ✓ Semilla sembrada:", plot.mesh.name);
+            //console.log("[Vicos] ✓ Semilla sembrada:", plot.mesh.name);
             this._applyPlotVisual(plot);
             return;
         }
@@ -162,7 +162,7 @@ export class Minigame3Vicos {
                 this.hud.setScore(this.score);
                 this.hud.message("💧 Riego perfecto", 800);
                 this._spawnPlant(plot);
-                console.log("[Vicos] ✓ Nivel agua: 1 - Estado óptimo");
+                //console.log("[Vicos] ✓ Nivel agua: 1 - Estado óptimo");
             }
             else if (plot.waterLevel === 2) {
                 plot.state = "watered2"; // Verde intenso
@@ -170,7 +170,7 @@ export class Minigame3Vicos {
                 this.hud.setScore(this.score);
                 this.hud.message("💧💧 Planta muy saludable", 800);
                 this._growPlant(plot);
-                console.log("[Vicos] ✓ Nivel agua: 2 - Estado excelente");
+                //console.log("[Vicos] ✓ Nivel agua: 2 - Estado excelente");
             }
             else if (plot.waterLevel === 3) {
                 plot.state = "overwatered"; // Naranja
@@ -178,7 +178,7 @@ export class Minigame3Vicos {
                 this.hud.setScore(this.score);
                 this.hud.message("⚠️ ¡Demasiada agua!", 1200);
                 this._wiltPlant(plot);
-                console.log("[Vicos] ⚠ Nivel agua: 3 - Sobreregado");
+                //console.log("[Vicos] ⚠ Nivel agua: 3 - Sobreregado");
             }
             else if (plot.waterLevel >= 4) {
                 // ★ MUERTE PERMANENTE - YA NO SE PUEDE USAR ★
@@ -187,7 +187,7 @@ export class Minigame3Vicos {
                 this.score = Math.max(0, this.score - this.overwaterPenalty);
                 this.hud.message("💀 ¡PLANTA AHOGADA! Parcela perdida", 2000);
                 this._wiltPlantSevere(plot);
-                console.log("[Vicos] ✖ Nivel agua: 4+ - PLANTA MUERTA PERMANENTE");
+                //console.log("[Vicos] ✖ Nivel agua: 4+ - PLANTA MUERTA PERMANENTE");
             }
 
             this.hud?.updateScore?.(this.score);
@@ -200,7 +200,7 @@ export class Minigame3Vicos {
             const allComplete = fertile.every(p => p.state === "watered1" || p.state === "watered2" || p.state === "overwatered" || p.state === "excess");
 
             if (allComplete && fertile.length > 0) {
-                console.log("[Vicos] ✅ Lote completado, desbloqueando nuevo grupo");
+                //console.log("[Vicos] ✅ Lote completado, desbloqueando nuevo grupo");
                 this._spawnNextBatch();
             }
 
@@ -215,7 +215,7 @@ export class Minigame3Vicos {
     // ===========================
     _applyPlotVisual(plot) {
         if (!plot?.mesh || !plot?.baseMesh) {
-            console.warn("[Vicos] Plot sin meshes válidos:", plot);
+            //console.warn("[Vicos] Plot sin meshes válidos:", plot);
             return;
         }
 
@@ -232,7 +232,7 @@ export class Minigame3Vicos {
         baseMat.emissiveColor = new Color3(0, 0, 0);
         baseMat.backFaceCulling = false;
 
-        console.log(`[Vicos] Aplicando color ${plot.state}:`, baseMat.diffuseColor);
+        //console.log(`[Vicos] Aplicando color ${plot.state}:`, baseMat.diffuseColor);
 
         // ═══════════════════════════════════════════
         // CAPA 2: TEXTURA PNG (encima, muestra solo la tierra)
@@ -282,7 +282,7 @@ export class Minigame3Vicos {
         };
 
         const color = colorMap[state] ?? new Color3(1, 1, 1);
-        console.log(`[Vicos] Color para estado '${state}':`, color);
+        //console.log(`[Vicos] Color para estado '${state}':`, color);
         return color;
     }
 
@@ -310,7 +310,7 @@ export class Minigame3Vicos {
             );
 
             if (!this.assetMap["dry_soil"] || !this.assetMap["soil_base"]) {
-                console.warn("[Minigame3Vicos] Falta dry_soil o soil_base en assets del config.");
+                //console.warn("[Minigame3Vicos] Falta dry_soil o soil_base en assets del config.");
             }
             return true;
         } catch (e) {
@@ -353,7 +353,7 @@ export class Minigame3Vicos {
             }
         }
 
-        console.log("[Minigame3Vicos] Grid 4x4 generado (centro bloqueado).");
+        //console.log("[Minigame3Vicos] Grid 4x4 generado (centro bloqueado).");
     }
 
     _spawnInitialPlots() {
@@ -366,11 +366,11 @@ export class Minigame3Vicos {
             const state = isDry ? "dry" : "fertile";
             this._spawnPlotAt(cell.pos, state);
         }
-        console.log(`[Minigame3Vicos] ✓ Spawned ${this.plots.length} parcelas (4 fértiles, 2 infértiles)`);
+        //console.log(`[Minigame3Vicos] ✓ Spawned ${this.plots.length} parcelas (4 fértiles, 2 infértiles)`);
     }
 
     _spawnNextBatch() {
-        console.log("[Vicos] Spawneando siguiente lote de parcelas...");
+        //console.log("[Vicos] Spawneando siguiente lote de parcelas...");
         const remainingCells = this.gridPositions.filter(p => p.available && !this.plots.find(x => x.pos.equals(p.pos)));
         if (remainingCells.length < 6) return;
 
@@ -384,39 +384,39 @@ export class Minigame3Vicos {
     }
 
     _getNextProjectileTypeWeighted() {
-        console.groupCollapsed("[Vicos:getNextProjectileTypeWeighted] 🔄 Evaluando próximo proyectil...");
+        //console.groupCollapsed("[Vicos:getNextProjectileTypeWeighted] 🔄 Evaluando próximo proyectil...");
 
         // 1️⃣ Filtramos parcelas fértiles activas
         const fertileAlive = this.plots.filter(p =>
             p.state !== "dry" && p.state !== "excess"
         );
-        console.log("Total de parcelas activas (fértiles vivas):", fertileAlive.length);
+        //console.log("Total de parcelas activas (fértiles vivas):", fertileAlive.length);
 
         // 2️⃣ Contamos necesidades
         const needSeed = fertileAlive.filter(p => !p.hasPlant).length;
         const needWater = fertileAlive.filter(p => p.hasPlant && p.state !== "watered2").length;
-        console.log("→ Necesitan semilla:", needSeed);
-        console.log("→ Necesitan agua:", needWater);
+        //console.log("→ Necesitan semilla:", needSeed);
+        //console.log("→ Necesitan agua:", needWater);
 
         // 3️⃣ Calculamos pesos
         const weightSeed = needSeed;
         const weightWater = needWater * 2;
-        console.log("→ Pesos: semilla =", weightSeed, " | agua =", weightWater);
+        //console.log("→ Pesos: semilla =", weightSeed, " | agua =", weightWater);
 
         // 4️⃣ Casos borde
         if (weightSeed === 0 && weightWater === 0) {
-            console.warn("⚠️ Ninguna parcela necesita nada — devolviendo 'seed' por defecto.");
-            console.groupEnd();
+            //console.warn("⚠️ Ninguna parcela necesita nada — devolviendo 'seed' por defecto.");
+            //console.groupEnd();
             return "seed";
         }
         if (weightSeed === 0) {
-            console.log("✅ Solo hay necesidad de agua → 'water'");
-            console.groupEnd();
+            //console.log("✅ Solo hay necesidad de agua → 'water'");
+            //console.groupEnd();
             return "water";
         }
         if (weightWater === 0) {
-            console.log("✅ Solo hay necesidad de semillas → 'seed'");
-            console.groupEnd();
+            //console.log("✅ Solo hay necesidad de semillas → 'seed'");
+            //console.groupEnd();
             return "seed";
         }
 
@@ -426,8 +426,8 @@ export class Minigame3Vicos {
         const chosen = (r < weightWater) ? "water" : "seed";
 
         // 6️⃣ Reporte final
-        console.log(`🎯 Sorteo aleatorio -> total=${total.toFixed(2)}, random=${r.toFixed(2)}, elegido=${chosen}`);
-        console.groupEnd();
+        //console.log(`🎯 Sorteo aleatorio -> total=${total.toFixed(2)}, random=${r.toFixed(2)}, elegido=${chosen}`);
+        //console.groupEnd();
 
         return chosen;
     }
@@ -502,7 +502,7 @@ export class Minigame3Vicos {
 
         this.plots.push(newPlot);
 
-        console.log(`[Vicos] ✓ Spawned parcela: estado=${state}, pos=${position.x.toFixed(2)},${position.z.toFixed(2)}`);
+        //console.log(`[Vicos] ✓ Spawned parcela: estado=${state}, pos=${position.x.toFixed(2)},${position.z.toFixed(2)}`);
     }
 
     // ===========================
@@ -523,7 +523,7 @@ export class Minigame3Vicos {
     async _spawnPlant(plot) {
         const assetUrl = this.assetMap["plant_sprout"];
         if (!assetUrl) {
-            console.warn("[Vicos] No hay asset 'plant_sprout' en el config.");
+            //console.warn("[Vicos] No hay asset 'plant_sprout' en el config.");
             return;
         }
 
@@ -561,7 +561,7 @@ export class Minigame3Vicos {
         }
 
         plot.plantMesh = mesh;
-        console.log(`[Vicos] Planta brotó en parcela ${plot.index}`);
+        //console.log(`[Vicos] Planta brotó en parcela ${plot.index}`);
     }
 
 
@@ -573,7 +573,7 @@ export class Minigame3Vicos {
         if (mat && "emissiveColor" in mat) {
             mat.emissiveColor = mat.emissiveColor?.add(new Color3(0.02, 0.12, 0.02));
         }
-        console.log(`[Vicos] 🌿 Planta creció en parcela ${plot.index}`);
+        //console.log(`[Vicos] 🌿 Planta creció en parcela ${plot.index}`);
     }
 
     _wiltPlant(plot) {
@@ -585,7 +585,7 @@ export class Minigame3Vicos {
             if ("emissiveColor" in mat) mat.emissiveColor = new Color3(0.10, 0.06, 0.02);
             if ("alpha" in mat) mat.alpha = 0.75;
         }
-        console.log(`[Vicos] 💧 Exceso de agua: planta marchita en parcela ${plot.index}`);
+        //console.log(`[Vicos] 💧 Exceso de agua: planta marchita en parcela ${plot.index}`);
     }
 
     _wiltPlantSevere(plot) {
@@ -618,21 +618,21 @@ export class Minigame3Vicos {
             }
         }
 
-        console.log(`[Vicos] 🥀 Planta marchita severamente en parcela ${plot.index}`);
+        //console.log(`[Vicos] 🥀 Planta marchita severamente en parcela ${plot.index}`);
     }
 
     // ===========================
     // Fin de partida y limpieza
     // ===========================
     _onTimeUp() {
-        console.log("[Minigame3Vicos] ⏰ Tiempo finalizado");
+        //console.log("[Minigame3Vicos] ⏰ Tiempo finalizado");
         this.hud.stopTimer();
 
         this.hud.showEndPopup({
             score: this.score,
             onRetry: () => this._restart(),
             onContinue: () => {
-                console.log("[Minigame3Vicos] Continuar presionado (sin acción por ahora)");
+                //console.log("[Minigame3Vicos] Continuar presionado (sin acción por ahora)");
                 this._endGame();
             },
             timeExpired: false
@@ -640,7 +640,7 @@ export class Minigame3Vicos {
     }
 
     _restart() {
-        console.log("[Minigame3Vicos] Reiniciando minijuego...");
+        //console.log("[Minigame3Vicos] Reiniciando minijuego...");
         this.dispose();
         this.score = this.startingScore;
         this.hud?.updateScore?.(this.startingScore);
@@ -660,7 +660,7 @@ export class Minigame3Vicos {
                 p.mesh?.dispose();
                 p.baseMesh?.dispose(); // ★ Eliminar ambas capas
             } catch (e) {
-                console.warn("[Vicos] Error disposing plot:", e);
+                //console.warn("[Vicos] Error disposing plot:", e);
             }
         }
         this.plots = [];
@@ -672,10 +672,10 @@ export class Minigame3Vicos {
             this.base?.dispose();
             this.projectiles?.dispose();
         } catch (e) {
-            console.warn("[Vicos] Error en dispose:", e);
+            //console.warn("[Vicos] Error en dispose:", e);
         }
         this.hud?.stopTimer?.();
-        console.log("[Minigame3Vicos] ✓ Recursos liberados.");
+        //console.log("[Minigame3Vicos] ✓ Recursos liberados.");
     }
 
     _failGracefully(msg) {

@@ -9,7 +9,7 @@ import { Minigame3Tambopata } from "./Minigame3Tambopata.js";
  */
 
 export async function startMinigame3(gameManager) {
-    console.log("[Minigame3Launcher] Mostrando SOLO tutorial del minijuego 3...");
+    //console.log("[Minigame3Launcher] Mostrando SOLO tutorial del minijuego 3...");
 
     // 1) Mostrar HUD / slot activo (mismo patrón que minigame2)
     const slot = document.getElementById("hud-panel-slot") || document.getElementById("hud");
@@ -25,7 +25,7 @@ export async function startMinigame3(gameManager) {
     const exp = gameManager?.experienceManager?.currentExperience ?? gameManager?.game?.currentExperience;
     const expId = exp?.id || "default";
 
-    console.log(`[Minigame3Launcher] Experiencia actual: ${expId}`);
+    //console.log(`[Minigame3Launcher] Experiencia actual: ${expId}`);
 
     const TUTORIAL_CONTENT = {
         taquile: {
@@ -68,7 +68,7 @@ export async function startMinigame3(gameManager) {
     // 4) click en continua
     TutorialPanel.mount(slot.firstElementChild, {
         onStart: async () => {
-            console.log("[Minigame3Launcher] Iniciando sesión RA para la experiencia actual...");
+            //console.log("[Minigame3Launcher] Iniciando sesión RA para la experiencia actual...");
 
             // Limpiar tutorial
             slot.innerHTML = "";
@@ -132,15 +132,15 @@ export async function startMinigame3(gameManager) {
 
             // 6 Definir callback de fin de juego
             gameInstance.onGameEnd = async () => {
-                console.log(`[Minigame3Launcher] Fin del minijuego 3 (${expId}), cerrando XR...`);
+                //console.log(`[Minigame3Launcher] Fin del minijuego 3 (${expId}), cerrando XR...`);
                 await gameManager.closeXRSession();
                 await new Promise((r) => setTimeout(r, 150));
-                console.log("[Minigame3Launcher] Sesión XR cerrada.");
+                //console.log("[Minigame3Launcher] Sesión XR cerrada.");
 
                 const nextId = "minigame4";
                 if(nextId) {
                     gameManager.setCarryScore?.(gameInstance.score);
-                    console.log("Puntaje llevado al GameManager:", gameManager.getCarryScore());
+                    //console.log("Puntaje llevado al GameManager:", gameManager.getCarryScore());
                     gameManager.launchNextMinigame(nextId);
                 }else{
                     gameManager.onExit?.();

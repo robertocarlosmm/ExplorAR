@@ -6,7 +6,7 @@ import { CheckGame } from "./CheckGame.js";
  */
 
 export async function startMinigame4(gameManager) {
-    console.log("[Minigame4Launcher] Iniciando flujo del minijuego 4...");
+    //console.log("[Minigame4Launcher] Iniciando flujo del minijuego 4...");
 
     // 1 Preparar HUD y panel
     const slot = document.getElementById("hud-panel-slot") || document.getElementById("hud");
@@ -20,7 +20,7 @@ export async function startMinigame4(gameManager) {
 
     const exp = gameManager?.experienceManager?.currentExperience ?? gameManager?.game?.currentExperience;
     const expId = exp?.id || "default";
-    console.log(`[Minigame4Launcher] Experiencia actual: ${expId}`);
+    //console.log(`[Minigame4Launcher] Experiencia actual: ${expId}`);
 
     // 3 Configurar contenido genérico del tutorial (común a todas las experiencias)
     const data = {
@@ -36,7 +36,7 @@ export async function startMinigame4(gameManager) {
     // 5 Montar evento de inicio
     TutorialPanel.mount(slot.firstElementChild, {
         onStart: async () => {
-            console.log("[Minigame4Launcher] Iniciando experiencia RA...");
+            //console.log("[Minigame4Launcher] Iniciando experiencia RA...");
 
             // Ocultar panel de tutorial
             slot.innerHTML = "";
@@ -56,7 +56,7 @@ export async function startMinigame4(gameManager) {
 
             // 7 Definir comportamiento al finalizar
             gameInstance.onGameEnd = async () => {
-                console.log("[Minigame4Launcher] Fin del minijuego 4, cerrando XR...");
+                //console.log("[Minigame4Launcher] Fin del minijuego 4, cerrando XR...");
                 await gameManager.closeXRSession();
                 await new Promise((r) => setTimeout(r, 150));
 
@@ -64,12 +64,12 @@ export async function startMinigame4(gameManager) {
                 gameManager.setCarryScore?.(gameInstance.score);
 
                 // Aquí puedes decidir si continúa o termina la experiencia
-                console.log("Puntaje final:", gameInstance.score);
+                //console.log("Puntaje final:", gameInstance.score);
                 
                 const nextId = "photostudio";
                 if(nextId) {
                     gameManager.setCarryScore?.(gameInstance.score);
-                    console.log("Puntaje llevado al GameManager:", gameManager.getCarryScore());
+                    //console.log("Puntaje llevado al GameManager:", gameManager.getCarryScore());
                     gameManager.launchNextMinigame(nextId);
                 }else{
                     gameManager.onExit?.();

@@ -43,7 +43,7 @@ export class ProjectileSystem {
         this._createReadyProjectile();
         this._updateHUDIcons();
 
-        console.log(`[ProjectileSystem] Inicializado con ${projectileTypes.length} tipos`);
+        //console.log(`[ProjectileSystem] Inicializado con ${projectileTypes.length} tipos`);
     }
 
     tap() {

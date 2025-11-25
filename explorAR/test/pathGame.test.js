@@ -95,15 +95,16 @@ describe("Minigame3Lucumo – _decideNextProjectileType", () => {
             [0, 0, 0, 0, 0, 0, 0]
         ]
 
-        // caso 1: más cerca del borde izquierdo -> izquierda
+        // caso 1: más cerca del borde izquierdo del CAMINO -> derecha
         game.bots = [{ row: 1, col: 1, isMoving: false }]
         let type = game._decideNextProjectileType()
-        expect(type).toBe("izquierda")
+        expect(type).toBe("derecha")
 
-        // caso 2: más cerca del borde derecho -> derecha
+        // caso 2: más cerca del borde derecho del CAMINO -> izquierda
         game.bots = [{ row: 1, col: 5, isMoving: false }]
         type = game._decideNextProjectileType()
-        expect(type).toBe("derecha")
+        expect(type).toBe("izquierda")
+
     })
 
     it("si el bot ya está sobre el camino, no se considera candidato y devuelve 'derecha' si no hay otros", () => {

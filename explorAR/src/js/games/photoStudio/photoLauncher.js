@@ -8,20 +8,20 @@ import { PhotoStudio } from "./PhotoStudio.js";
  * @param {string} experienceId
  */
 export async function startPhotoStudio(gameManager) {
-    //console.log("[PhotoLauncher] Start", { stars, experienceId });
+    ////console.log("[PhotoLauncher] Start", { stars, experienceId });
     const score = gameManager.getCarryScore?.() || 0;
     let stars = 3;
     if (score < 250) stars = 1;
     else if (score < 350) stars = 2;
-    console.log(`[PhotoLauncher] Puntaje ${score} → ${stars} estrella(s)`);
+    //console.log(`[PhotoLauncher] Puntaje ${score} → ${stars} estrella(s)`);
     const exp = gameManager?.experienceManager?.currentExperience ?? gameManager?.game?.currentExperience;
     const experienceId = exp?.id || "default";
-    console.log(`[Minigame4Launcher] Experiencia actual: ${experienceId}`);
+    //console.log(`[Minigame4Launcher] Experiencia actual: ${experienceId}`);
 
     // 1) Cerrar XR por si el minijuego dejó sesión activa (liberar cámara)
     try {
         if (gameManager?.xrSession?.isActive) {
-            console.log("[PhotoLauncher] Cerrando XRSession previa...");
+            //console.log("[PhotoLauncher] Cerrando XRSession previa...");
             await gameManager.closeXRSession();
             await new Promise(r => setTimeout(r, 200)); // breve espera para liberar dispositivo
         }
@@ -53,7 +53,7 @@ export async function startPhotoStudio(gameManager) {
                 console.warn("[PhotoLauncher] Error limpiando HUD o clases:", err);
             }
 
-            console.log("[PhotoLauncher] Saliendo al lobby desde PhotoStudio...");
+            //console.log("[PhotoLauncher] Saliendo al lobby desde PhotoStudio...");
             // Cierre ordenado del flujo (idéntico a otros minijuegos)
             gameManager?.onExit?.();
         }
@@ -62,7 +62,7 @@ export async function startPhotoStudio(gameManager) {
     // 4) Iniciar
     try {
         await studio.start();
-        console.log("[PhotoLauncher] PhotoStudio iniciado.");
+        //console.log("[PhotoLauncher] PhotoStudio iniciado.");
     } catch (e) {
         console.error("[PhotoLauncher] No se pudo iniciar el estudio:", e);
         gameManager?.hud?.message?.("No se pudo iniciar la cámara", 2000);

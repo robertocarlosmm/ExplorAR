@@ -52,7 +52,7 @@ export class Minigame3Lucumo {
     }
 
     async start() {
-        console.log("[Minigame3Lucumo] Iniciando...");
+        //console.log("[Minigame3Lucumo] Iniciando...");
 
         const ok = this._loadConfigForLucumo();
         if (!ok) {
@@ -105,7 +105,7 @@ export class Minigame3Lucumo {
 
 
         this.isRunning = true;
-        console.log("[Minigame3Lucumo] ✓ Camino + bots listos.");
+        //console.log("[Minigame3Lucumo] ✓ Camino + bots listos.");
     }
 
     _loadConfigForLucumo() {
@@ -132,7 +132,7 @@ export class Minigame3Lucumo {
             if (!this.botUrl) {
                 console.warn("[Lucumo] No se encontró 'y_bot' en assets; no se spawnearán bots.");
             } else {
-                console.log("[Lucumo] ✓ botUrl (y_bot) =", this.botUrl);
+                //console.log("[Lucumo] ✓ botUrl (y_bot) =", this.botUrl);
             }
             return true;
         } catch (e) {
@@ -164,7 +164,7 @@ export class Minigame3Lucumo {
                 this.grid.push({ row: r, col: c, pos: new Vector3(x, 0.002, z) });
             }
         }
-        console.log(`[Lucumo] Grid ${this.gridSize}x${this.gridSize} generado; cellSize=${cellSize.toFixed(3)} plotSize=${this.plotSize.toFixed(3)}`);
+        //console.log(`[Lucumo] Grid ${this.gridSize}x${this.gridSize} generado; cellSize=${cellSize.toFixed(3)} plotSize=${this.plotSize.toFixed(3)}`);
     }
 
     _generatePath() {
@@ -303,8 +303,8 @@ export class Minigame3Lucumo {
             }
         }
 
-        console.log("[Lucumo] Camino generado (conectado y serpenteante):\n" +
-            path.map(r => r.join("")).join("\n"));
+        /*console.log("[Lucumo] Camino generado (conectado y serpenteante):\n" +
+            path.map(r => r.join("")).join("\n"));*/
         return path;
     }
 
@@ -322,7 +322,7 @@ export class Minigame3Lucumo {
         }
 
         const tileSize = this.plotSize * 0.99;
-        console.log(`[Lucumo] Construyendo path; tileSize=${tileSize.toFixed(3)}`);
+        //console.log(`[Lucumo] Construyendo path; tileSize=${tileSize.toFixed(3)}`);
 
         for (let r = 0; r < this.gridSize; r++) {
             for (let c = 0; c < this.gridSize; c++) {
@@ -345,7 +345,7 @@ export class Minigame3Lucumo {
                 ground.material = mat;
             }
         }
-        console.log("[Lucumo] ✓ Path construido.");
+        //console.log("[Lucumo] ✓ Path construido.");
     }
 
     // ----───────────── PROYECTILES ──────────────────────────────
@@ -444,7 +444,7 @@ export class Minigame3Lucumo {
 
         // Evitar mover bots ya en el camino
         if (this.currentPath[bot.row][bot.col] === 1) {
-            console.log(`[Lucumo] Bot en (${bot.row},${bot.col}) ya está en el camino; no se mueve.`);
+            //console.log(`[Lucumo] Bot en (${bot.row},${bot.col}) ya está en el camino; no se mueve.`);
             return;
         }
 
@@ -460,13 +460,13 @@ export class Minigame3Lucumo {
                     this.score += this.completeBonus;
                     this.hud?.setScore?.(this.score);
                     this.hud?.message?.("¡Muy bien!", 1000);
-                    console.log(`[Lucumo] +${this.completeBonus} puntos → total: ${this.score}`);
+                    //console.log(`[Lucumo] +${this.completeBonus} puntos → total: ${this.score}`);
                 }
 
                 // Verificar si todos los bots regresaron
                 const allOnPath = this.bots.every(b => this.currentPath[b.row]?.[b.col] === 1);
                 if (allOnPath) {
-                    console.log("[Lucumo] 🎯 Todos los bots regresaron al camino. Fin anticipado del juego.");
+                    //console.log("[Lucumo] 🎯 Todos los bots regresaron al camino. Fin anticipado del juego.");
                     this._finishGameEarly();
                 }
             }
@@ -483,7 +483,7 @@ export class Minigame3Lucumo {
         }
 
         this.wave = wave;
-        console.log(`[Lucumo] 🔄 Spawneando oleada #${wave}...`);
+        //console.log(`[Lucumo] 🔄 Spawneando oleada #${wave}...`);
 
         // 1️⃣ Obtener celdas libres (no camino y sin bot)
         const libres = [];
@@ -501,12 +501,12 @@ export class Minigame3Lucumo {
 
         // 2️⃣ Elegir hasta 5 sin repetir fila
         const seleccion = this._pickCellsNoRepeatRow(libres, this.botsPerWave);
-        console.log(`[Lucumo] Bots seleccionados (oleada #${wave}):`, seleccion.map(c => `(${c.row},${c.col})`).join(", "));
+        //console.log(`[Lucumo] Bots seleccionados (oleada #${wave}):`, seleccion.map(c => `(${c.row},${c.col})`).join(", "));
 
         // 3️⃣ Spawnear cada bot en esas posiciones
         for (let idx = 0; idx < seleccion.length; idx++) {
             const cell = seleccion[idx];
-            console.log(`[Lucumo] Cargando Y_Bot #${idx + 1} (oleada #${wave}) en celda (${cell.row},${cell.col}) ...`);
+            //console.log(`[Lucumo] Cargando Y_Bot #${idx + 1} (oleada #${wave}) en celda (${cell.row},${cell.col}) ...`);
 
             const result = await SceneLoader.ImportMeshAsync(null, "", this.botUrl, this.scene);
 
@@ -547,13 +547,13 @@ export class Minigame3Lucumo {
                 wave, // ← para saber a qué oleada pertenece
             });
 
-            console.log(`[Lucumo] ✓ Y_Bot #${idx + 1} spawn OK en (${cell.row},${cell.col}), scale=${scale.toFixed(3)}.`);
+            //console.log(`[Lucumo] ✓ Y_Bot #${idx + 1} spawn OK en (${cell.row},${cell.col}), scale=${scale.toFixed(3)}.`);
         }
 
         this.totalBotsSpawned += seleccion.length;
         this.projectiles?.registerTargets?.(this.bots.map(b => b.root));
 
-        console.log(`[Lucumo] ✅ Oleada #${wave} completada (${this.totalBotsSpawned} bots en total).`);
+        //console.log(`[Lucumo] ✅ Oleada #${wave} completada (${this.totalBotsSpawned} bots en total).`);
     }
 
 
@@ -649,7 +649,7 @@ export class Minigame3Lucumo {
             const bot = this._findBotByPickedMesh(pick.pickedMesh);
             if (!bot) return;
             if (bot.isMoving) {
-                console.log("[Lucumo] Tap ignorado: bot ya se está moviendo.");
+                //console.log("[Lucumo] Tap ignorado: bot ya se está moviendo.");
                 return;
             }
 
@@ -658,7 +658,7 @@ export class Minigame3Lucumo {
 
             // Validaciones: dentro de la grilla, no camino, no ocupado
             if (nextCol >= this.gridSize) {
-                console.log(`[Lucumo] Bot (${row},${bot.col}) → derecha: fuera de la grilla.`);
+                //console.log(`[Lucumo] Bot (${row},${bot.col}) → derecha: fuera de la grilla.`);
                 return;
             }
             if (!this.currentPath) {
@@ -666,25 +666,25 @@ export class Minigame3Lucumo {
                 return;
             }
             if (this.currentPath[row][nextCol] === 1) {
-                console.log(`[Lucumo] Bot (${row},${bot.col}) → derecha bloqueado (hay camino).`);
+                //console.log(`[Lucumo] Bot (${row},${bot.col}) → derecha bloqueado (hay camino).`);
                 return;
             }
             if (this._botAt(row, nextCol)) {
-                console.log(`[Lucumo] Bot (${row},${bot.col}) → derecha ocupada por otro bot.`);
+                //console.log(`[Lucumo] Bot (${row},${bot.col}) → derecha ocupada por otro bot.`);
                 return;
             }
 
             const targetCell = this.grid[row * this.gridSize + nextCol];
             if (!targetCell) return;
 
-            console.log(`[Lucumo] Tap sobre bot en (${row},${bot.col}) → mover a (${row},${nextCol}).`);
+            //console.log(`[Lucumo] Tap sobre bot en (${row},${bot.col}) → mover a (${row},${nextCol}).`);
             bot.isMoving = true;
             this._moveBotToCell(bot, targetCell).then(() => {
                 bot.isMoving = false;
-                console.log(`[Lucumo] Bot llegó a (${row},${nextCol}).`);
+                //console.log(`[Lucumo] Bot llegó a (${row},${nextCol}).`);
             });
         });
-        console.log("[Lucumo] Tap → mover a derecha habilitado.");
+        //console.log("[Lucumo] Tap → mover a derecha habilitado.");
     }
 
     _findBotByPickedMesh(mesh) {
@@ -707,7 +707,7 @@ export class Minigame3Lucumo {
     // ─────────────────────────────────────────────────────────────────
 
     _onTimeUp() {
-        console.log("[Lucumo] Tiempo finalizado");
+        //console.log("[Lucumo] Tiempo finalizado");
         this.hud?.showPopup?.({
             title: "Tiempo agotado",
             message: "Fin del minijuego Lucumo (camino base generado)",
@@ -755,7 +755,7 @@ export class Minigame3Lucumo {
 
         // 5. Detener HUD y timer
         this.hud?.stopTimer?.();
-        console.log("[Lucumo] Recursos liberados y reiniciados correctamente");
+        //console.log("[Lucumo] Recursos liberados y reiniciados correctamente");
     }
 
 
@@ -799,7 +799,7 @@ export class Minigame3Lucumo {
     }
 
     _restart() {
-        console.log("[Lucumo] Reiniciando minijuego...");
+        //console.log("[Lucumo] Reiniciando minijuego...");
         this.dispose();
         this.score = this.startingScore;
         this.hud?.updateScore?.(this.startingScore);

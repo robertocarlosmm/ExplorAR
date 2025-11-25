@@ -27,6 +27,22 @@ function createSceneMock() {
     }
 }
 
+// Helper compartido para luces
+function createLightZone(state = "inactive") {
+    const baseMat = { diffuseColor: new Color3(0.2, 0.2, 0.2) }
+    const baseMesh = { material: baseMat }
+    const texMesh = {}
+
+    return {
+        mesh: texMesh,
+        baseMesh,
+        baseMat,
+        row: 0,
+        col: 0,
+        state,
+    }
+}
+
 describe("Minigame3Tambopata – impactos a animales", () => {
     it("disparar a un animal resta lightPenalty y muestra mensaje de advertencia", () => {
         const hud = createHudMock()
@@ -62,21 +78,6 @@ describe("Minigame3Tambopata – impactos a animales", () => {
 })
 
 describe("Minigame3Tambopata – impactos a luces (cambios de estado y puntaje)", () => {
-    function createLightZone(state = "inactive") {
-        const baseMat = { diffuseColor: new Color3(0.2, 0.2, 0.2) }
-        const baseMesh = { material: baseMat }
-        const texMesh = {}
-
-        return {
-            mesh: texMesh,
-            baseMesh,
-            baseMat,
-            row: 0,
-            col: 0,
-            state,
-        }
-    }
-
     it("inactive → green1 suma lightBonus y cambia color base a verde", () => {
         const hud = createHudMock()
         const scene = createSceneMock()
