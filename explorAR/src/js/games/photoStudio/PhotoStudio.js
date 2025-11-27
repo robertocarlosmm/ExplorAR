@@ -292,7 +292,7 @@ export class PhotoStudio {
         const photoMini = exp?.minigames?.find(m => m.id === "photo" || m.type === "photo");
 
         if (!photoMini) {
-            console.warn("[PhotoStudio] No se encontró minigame 'photo' en la experiencia:", this.experienceId);
+            //console.warn("[PhotoStudio] No se encontró minigame 'photo' en la experiencia:", this.experienceId);
             this.stickers = [];
             return;
         }
